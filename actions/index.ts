@@ -59,22 +59,25 @@ export async function fetchPosts() {
 
   const { data, error } = await supabase
     .from("posts")
-    .select(`
-      id,
-      text,
-      likes,
-      reposts,
-      created_at,
-      user_id,
-      profiles:user_id (display_name, avatar_url)
-    `)
+    .select("id, text, likes, reposts, created_at, user_id")
     .order("created_at", { ascending: false });
 
   if (error) {
     console.error(error);
     return [];
   }
-  return data ?? [];
+
+  const posts = data ?? [];
+  const withProfiles = await Promise.all(
+    posts.map(async (p) => {
+      const profile = await getProfile(p.user_id);
+      return {
+        ...p,
+        profiles: profile ? { display_name: profile.display_name, avatar_url: profile.avatar_url } : null,
+      };
+    })
+  );
+  return withProfiles;
 }
 
 export async function getPost(postId: string) {
@@ -82,20 +85,16 @@ export async function getPost(postId: string) {
 
   const { data, error } = await supabase
     .from("posts")
-    .select(`
-      id,
-      text,
-      likes,
-      reposts,
-      created_at,
-      user_id,
-      profiles:user_id (display_name, avatar_url)
-    `)
+    .select("id, text, likes, reposts, created_at, user_id")
     .eq("id", postId)
     .single();
 
   if (error || !data) return null;
-  return data;
+  const profile = await getProfile(data.user_id);
+  return {
+    ...data,
+    profiles: profile ? { display_name: profile.display_name, avatar_url: profile.avatar_url } : null,
+  };
 }
 
 export async function deletePost(postId: string) {

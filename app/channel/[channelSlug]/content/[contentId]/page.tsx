@@ -1,63 +1,60 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import {
-  getTopicContentById,
-  getTopicById,
+  getContentById,
+  getChannelBySlug,
   getComments,
   getFeedbackCounts,
   getShareCount,
   getUserHasFeedback,
-  isTopicMemberApproved,
-  isTopicAuthor,
-} from "@/actions/topics";
+  isChannelAuthor,
+} from "@/actions/channels";
+import DeleteContentButton from "./delete-content-button";
 import { getCurrentUser } from "@/actions";
 import ContentActions from "./content-actions";
 import CommentForm from "./comment-form";
 import CommentList from "./comment-list";
 
-type Props = { params: Promise<{ contentId: string }> };
+type Props = {
+  params: Promise<{ channelSlug: string; contentId: string }>;
+};
 
-export default async function ContentPage({ params }: Props) {
-  const { contentId } = await params;
+export default async function ChannelContentPage({ params }: Props) {
+  const { channelSlug, contentId } = await params;
 
-  const [content, user] = await Promise.all([
-    getTopicContentById(contentId),
+  const [content, channel, user] = await Promise.all([
+    getContentById(contentId),
+    getChannelBySlug(channelSlug),
     getCurrentUser(),
   ]);
 
-  if (!content) notFound();
+  if (!content || !channel) notFound();
 
-  const [topic, comments, feedbackCounts, shareCount, isMember, isAuthor, hasLiked, hasHelpful] =
-    await Promise.all([
-      getTopicById(content.topic_id),
-      getComments(contentId),
-      getFeedbackCounts(contentId),
-      getShareCount(contentId),
-      isTopicMemberApproved(content.topic_id),
-      isTopicAuthor(content.topic_id),
-      user ? getUserHasFeedback(contentId, "like") : Promise.resolve(false),
-      user ? getUserHasFeedback(contentId, "helpful") : Promise.resolve(false),
-    ]);
-
-  const canInteract = isMember || isAuthor;
+  const [comments, feedbackCounts, shareCount, hasLiked, hasHelpful, isAuthor] = await Promise.all([
+    getComments(contentId),
+    getFeedbackCounts(contentId),
+    getShareCount(contentId),
+    user ? getUserHasFeedback(contentId, "like") : false,
+    user ? getUserHasFeedback(contentId, "helpful") : false,
+    user ? isChannelAuthor(content.topic_id) : false,
+  ]);
 
   const typeLabels: Record<string, string> = {
-    article: "Article",
-    tutorial: "Tutorial",
-    debate: "Debate",
-    image: "Image",
     video: "Video",
+    podcast: "Podcast",
+    article: "Article",
+    discussion: "Discussion",
   };
 
-  const mediaUrls = (content.media_urls as { url: string; type: string; caption?: string }[]) ?? [];
+  const mediaUrls = (content.media_urls as { url: string; type: string }[]) ?? [];
 
   return (
     <div>
       <Link
-        href={`/topics/${topic?.slug}`}
+        href={`/channel/${channelSlug}`}
         className="text-sm text-indigo-600 hover:underline mb-4 inline-block"
       >
-        ← Back to {topic?.title}
+        ← Back to {channel.title}
       </Link>
 
       <div className="border rounded-lg p-6 mb-6">
@@ -81,25 +78,19 @@ export default async function ContentPage({ params }: Props) {
               <div key={i}>
                 {m.type === "image" ? (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={m.url}
-                    alt={m.caption ?? ""}
-                    className="max-w-full rounded"
-                  />
+                  <img src={m.url} alt="" className="max-w-full rounded" />
                 ) : (
                   <video src={m.url} controls className="max-w-full rounded" />
-                )}
-                {m.caption && (
-                  <p className="text-sm text-gray-500 mt-1">{m.caption}</p>
                 )}
               </div>
             ))}
           </div>
         )}
 
-        {user && canInteract && (
+        {user && (
           <ContentActions
             contentId={contentId}
+            channelSlug={channelSlug}
             likes={feedbackCounts.likes}
             helpful={feedbackCounts.helpful}
             shareCount={shareCount}
@@ -108,16 +99,22 @@ export default async function ContentPage({ params }: Props) {
           />
         )}
 
-        {user && !canInteract && (
+        {!user && (
           <p className="mt-4 text-sm text-amber-600 dark:text-amber-400">
-            Request to join this topic to comment, give feedback, or share.
+            Sign up to comment, give feedback, or share.
           </p>
+        )}
+
+        {isAuthor && (
+          <div className="mt-4 pt-4 border-t">
+            <DeleteContentButton contentId={contentId} />
+          </div>
         )}
       </div>
 
       <section className="mt-8">
         <h2 className="text-lg font-semibold mb-3">Comments</h2>
-        {user && canInteract && <CommentForm contentId={contentId} />}
+        {user && <CommentForm contentId={contentId} />}
         <CommentList comments={comments} />
       </section>
     </div>

@@ -2,27 +2,31 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { createTopicContent } from "@/actions/topics";
-
-type Props = { topicId: string; slug: string };
+import { createContent } from "@/actions/channels";
 
 const CONTENT_TYPES = [
-  { value: "article", label: "Article" },
-  { value: "tutorial", label: "Tutorial" },
-  { value: "debate", label: "Debate" },
-  { value: "image", label: "Image" },
   { value: "video", label: "Video" },
+  { value: "podcast", label: "Podcast" },
+  { value: "article", label: "Article" },
+  { value: "discussion", label: "Discussion" },
 ] as const;
 
-export default function AddContentForm({ topicId, slug }: Props) {
+type Page = { id: string; slug: string; title: string };
+
+type Props = {
+  channelId: string;
+  channelSlug: string;
+  pages: Page[];
+  defaultPageId: string | null;
+};
+
+export default function AddContentForm({ channelId, channelSlug, pages, defaultPageId }: Props) {
   const [error, setError] = useState<string | null>(null);
-  const [mediaUrls, setMediaUrls] = useState<{ url: string; type: string; caption?: string }[]>([]);
+  const [pageId, setPageId] = useState(defaultPageId ?? pages[0]?.id ?? "");
+  const [mediaUrls, setMediaUrls] = useState<{ url: string; type: string }[]>([]);
   const router = useRouter();
 
-  const addMedia = () => {
-    setMediaUrls([...mediaUrls, { url: "", type: "image" }]);
-  };
-
+  const addMedia = () => setMediaUrls([...mediaUrls, { url: "", type: "image" }]);
   const updateMedia = (i: number, field: string, value: string) => {
     const next = [...mediaUrls];
     (next[i] as Record<string, string>)[field] = value;
@@ -33,16 +37,33 @@ export default function AddContentForm({ topicId, slug }: Props) {
     <form
       action={async (formData) => {
         setError(null);
-        formData.set("media_urls", JSON.stringify(mediaUrls.filter((m) => m.url)));
-        const res = await createTopicContent(topicId, formData);
-        if (res?.error) {
-          setError(res.error);
-        } else {
-          router.push(`/topics/${slug}`);
+        const targetPage = pageId || pages[0]?.id;
+        if (!targetPage) {
+          setError("Select a page first.");
+          return;
         }
+        formData.set("media_urls", JSON.stringify(mediaUrls.filter((m) => m.url)));
+        const res = await createContent(channelId, targetPage, formData);
+        if (res?.error) setError(res.error);
+        else router.push(`/channel/${channelSlug}`);
       }}
       className="max-w-xl space-y-4"
     >
+      <div>
+        <label className="block text-sm font-medium mb-1">Page</label>
+        <select
+          value={pageId}
+          onChange={(e) => setPageId(e.target.value)}
+          className="w-full px-4 py-2 border rounded dark:bg-gray-800 dark:border-gray-700"
+        >
+          {pages.map((p) => (
+            <option key={p.id} value={p.id}>
+              {p.title}
+            </option>
+          ))}
+        </select>
+      </div>
+
       <div>
         <label className="block text-sm font-medium mb-1">Content type</label>
         <select
@@ -59,9 +80,7 @@ export default function AddContentForm({ topicId, slug }: Props) {
       </div>
 
       <div>
-        <label htmlFor="title" className="block text-sm font-medium mb-1">
-          Title
-        </label>
+        <label htmlFor="title" className="block text-sm font-medium mb-1">Title</label>
         <input
           id="title"
           name="title"
@@ -72,26 +91,19 @@ export default function AddContentForm({ topicId, slug }: Props) {
       </div>
 
       <div>
-        <label htmlFor="body" className="block text-sm font-medium mb-1">
-          Body / Description
-        </label>
+        <label htmlFor="body" className="block text-sm font-medium mb-1">Body / Description</label>
         <textarea
           id="body"
           name="body"
           rows={6}
           className="w-full px-4 py-2 border rounded dark:bg-gray-800 dark:border-gray-700"
-          placeholder="Write your content here. For images/videos, add URLs below."
         />
       </div>
 
       <div>
         <div className="flex justify-between items-center mb-2">
-          <label className="block text-sm font-medium">Media URLs (images/videos)</label>
-          <button
-            type="button"
-            onClick={addMedia}
-            className="text-sm text-indigo-600 hover:underline"
-          >
+          <label className="block text-sm font-medium">Media URLs</label>
+          <button type="button" onClick={addMedia} className="text-sm text-indigo-600 hover:underline">
             + Add
           </button>
         </div>
@@ -119,15 +131,12 @@ export default function AddContentForm({ topicId, slug }: Props) {
       {error && <p className="text-red-600 text-sm">{error}</p>}
 
       <div className="flex gap-3">
-        <button
-          type="submit"
-          className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700"
-        >
+        <button type="submit" className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700">
           Publish
         </button>
         <button
           type="button"
-          onClick={() => router.push(`/topics/${slug}`)}
+          onClick={() => router.push(`/channel/${channelSlug}`)}
           className="px-4 py-2 border rounded hover:bg-gray-100 dark:hover:bg-gray-800"
         >
           Cancel

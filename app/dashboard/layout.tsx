@@ -17,7 +17,7 @@ export default function DashboardLayout({
             <Link href="/dashboard/settings" className="hover:underline">Settings</Link>
           </li>
           <li>
-            <Link href="/topics" className="hover:underline">Browse topics</Link>
+            <Link href="/channel" className="hover:underline">Browse channels</Link>
           </li>
         </ul>
       </nav>

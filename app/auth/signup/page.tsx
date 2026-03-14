@@ -8,6 +8,7 @@ export default function SignUpPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
+  const [role, setRole] = useState<"user" | "channel_author">("user");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
@@ -23,7 +24,7 @@ export default function SignUpPage() {
       const { error } = await supabase.auth.signUp({
         email,
         password,
-        options: { data: { full_name: fullName } },
+        options: { data: { full_name: fullName, role } },
       });
       if (error) throw error;
       setMessage("Check your email for the confirmation link.");
@@ -65,6 +66,31 @@ export default function SignUpPage() {
           minLength={6}
           className="px-4 py-2 border rounded dark:bg-gray-800 dark:border-gray-700"
         />
+        <div>
+          <label className="block text-sm font-medium mb-2">Sign up as</label>
+          <div className="flex gap-4">
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="radio"
+                name="role"
+                value="user"
+                checked={role === "user"}
+                onChange={() => setRole("user")}
+              />
+              Regular user (post feedback & comments)
+            </label>
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="radio"
+                name="role"
+                value="channel_author"
+                checked={role === "channel_author"}
+                onChange={() => setRole("channel_author")}
+              />
+              Channel author (create & manage channels)
+            </label>
+          </div>
+        </div>
         {error && <p className="text-red-600 text-sm">{error}</p>}
         {message && <p className="text-green-600 text-sm">{message}</p>}
         <button

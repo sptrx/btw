@@ -26,16 +26,16 @@ export default async function Dashboard() {
           Go to Feed
         </Link>
         <Link
-          href="/topics"
+          href="/channel"
           className="block p-4 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800"
         >
-          Browse Topics
+          Browse Channels
         </Link>
         <Link
-          href="/topics/new"
+          href="/channel/new"
           className="block p-4 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800"
         >
-          Create a topic channel
+          Create a channel
         </Link>
         <Link
           href="/profile"

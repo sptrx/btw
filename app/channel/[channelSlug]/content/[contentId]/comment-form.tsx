@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { addComment } from "@/actions/topics";
+import { addComment } from "@/actions/channels";
 
 type Props = { contentId: string };
 
@@ -22,7 +22,7 @@ export default function CommentForm({ contentId }: Props) {
         const res = await addComment(contentId, body.trim());
         setLoading(false);
         if (res?.error) setError(res.error);
-        else if (res?.success) {
+        else {
           setBody("");
           router.refresh();
         }

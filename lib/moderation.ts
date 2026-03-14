@@ -41,7 +41,7 @@ async function moderateWithOpenRouter(text: string): Promise<ModerationResult> {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      model: "google/gemini-pro-1.5",
+      model: "google/gemini-2.5-flash",
       messages: [
         { role: "system", content: FAITH_BASED_SYSTEM_PROMPT },
         { role: "user", content: text },

@@ -8,8 +8,8 @@ export default function Home() {
         A Christian faith-based social platform
       </p>
       <p className="text-gray-500 dark:text-gray-500 mb-8 max-w-lg mx-auto">
-        Share encouragement, scripture, and community in a safe space. AI-powered
-        filtering keeps our platform free from inappropriate content.
+        Explore channels with videos, podcasts, articles, and discussions. Sign up
+        to comment and share. AI-powered moderation keeps content safe.
       </p>
       <div className="flex gap-4 justify-center">
         <Link

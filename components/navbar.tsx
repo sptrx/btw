@@ -19,6 +19,11 @@ export default function NavBar({ user }: Props) {
           </Link>
         </li>
         <li>
+          <Link href="/channel" className="link">
+            Channels
+          </Link>
+        </li>
+        <li>
           <Link href="/topics" className="link">
             Topics
           </Link>

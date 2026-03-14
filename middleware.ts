@@ -30,13 +30,26 @@ export async function middleware(request: NextRequest) {
     request.nextUrl.pathname.startsWith("/auth/signup");
   const isAuthCallback = request.nextUrl.pathname === "/auth/callback";
   const path = request.nextUrl.pathname;
+  const isChannelList = path === "/channel";
+  const isChannelRoute = path.startsWith("/channel/");
+  const isChannelNew = path === "/channel/new";
+  const isChannelCreateOrEdit =
+    path.includes("/pages/new") || path.includes("/content/new");
+  const isPublicChannel =
+    isChannelList ||
+    (isChannelRoute && !isChannelNew && !isChannelCreateOrEdit);
   const isTopicsList = path === "/topics";
   const isTopicChannel =
     /^\/topics\/[^/]+$/.test(path) &&
     path !== "/topics/new" &&
     !path.endsWith("/content/new");
   const isContentView = path.startsWith("/topics/content/");
-  const isPublic = path === "/" || isTopicsList || isTopicChannel || isContentView;
+  const isPublic =
+    path === "/" ||
+    isPublicChannel ||
+    isTopicsList ||
+    isTopicChannel ||
+    isContentView;
 
   if (isAuthCallback) return response;
 

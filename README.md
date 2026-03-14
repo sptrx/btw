@@ -1,58 +1,44 @@
 # BTW – Faith-Based Social Platform
 
-A Christian faith-based social platform with AI-driven filtering for inappropriate content and fake users. Built with Next.js, Supabase, and OpenRouter/Google AI.
+A Christian faith-based social platform with channels, AI moderation, and community features.
 
 ## Features
 
-- **Faith-based community** – Share encouragement, scripture, and testimony in a safe space
-- **Topic channels** – Authors create topic channels with written content, tutorials, debates, images, and videos
-- **Join-request flow** – Users request to join a topic; authors approve members
-- **Member-only interaction** – Only approved, signed-up users can comment, give feedback (like/helpful), and share
-- **AI content moderation** – Filters porn, profanity, blasphemy, hate speech, and anti-Christian content
-- **Fake-user protection** – Rate limiting and heuristics to reduce spam and bot behavior
-- **Authentication** – Email signup/login via Supabase Auth
-- **Profiles** – Display name, bio, and post history
+- **User roles**: Sign up as **channel author** (create & manage channels) or **regular user** (post feedback & comments)
+- **Channels**: Reach at `yoursite.com/channel/channel-name`
+- **Sub-pages**: Each channel has a main page (Home) + custom sub-pages for videos, podcasts, articles, discussions
+- **Content types**: Video, Podcast, Article, Discussion
+- **Self-management**: Channel authors add, delete, and update pages and content
+- **AI moderation**: All content moderated across the platform
+- **Public viewing**: Anyone can view channel content
+- **Signed-up for feedback**: Users must sign up to comment and give feedback
+- **External sharing**: All content supports share and copy-link
 
 ## Tech Stack
 
 - **Frontend**: Next.js 14, React, Tailwind CSS
-- **Backend**: Supabase (database + auth), Server Actions
-- **AI**: OpenRouter (Gemini), Google AI, or OpenAI (moderation)
+- **Backend**: Supabase (database + auth)
+- **AI**: OpenRouter / Google AI / OpenAI for moderation
 
 ## Setup
 
-### 1. Clone and install
+### 1. Install
 
 ```bash
-git clone https://github.com/your-username/btw.git
-cd btw
 npm install
 ```
 
-### 2. Supabase
+### 2. Supabase migrations
 
-1. Create a project at [supabase.com](https://supabase.com)
-2. Run the migrations in `supabase/migrations/` (in order):
-   - `20240101000001_initial_schema.sql` – profiles, posts
-   - `20240102000001_topics_and_channels.sql` – topics, content, members, comments
-3. In Authentication → URL Configuration, add:
-   - Site URL: `http://localhost:3000` (dev) or your production URL
-   - Redirect URLs: `http://localhost:3000/auth/callback`
+Run in order in Supabase SQL Editor:
 
-### 3. Environment variables
+1. `supabase/migrations/20240101000001_initial_schema.sql`
+2. `supabase/migrations/20240102000001_topics_and_channels.sql`
+3. `supabase/migrations/20240103000001_channels_and_pages.sql`
 
-Copy `env.example` to `.env.local` and fill in:
+### 3. Environment
 
-```bash
-cp env.example .env.local
-```
-
-- `NEXT_PUBLIC_SUPABASE_URL` – Supabase project URL
-- `NEXT_PUBLIC_SUPABASE_ANON_KEY` – Supabase anon key
-- At least one AI provider:
-  - `OPENROUTER_API_KEY` (recommended)
-  - `GOOGLE_AI_API_KEY`
-  - `OPENAI_API_KEY`
+Copy `env.example` to `.env.local` and configure Supabase + AI keys.
 
 ### 4. Run
 
@@ -60,38 +46,15 @@ cp env.example .env.local
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000).
+## URL structure
 
-## Project structure
+- `/channel` – List channels
+- `/channel/[slug]` – Channel home (e.g. `/channel/bible-study`)
+- `/channel/[slug]/[pageSlug]` – Sub-page (e.g. `/channel/bible-study/videos`)
+- `/channel/[slug]/content/[id]` – Content detail
 
+## Tests
+
+```bash
+npm run test
 ```
-btw/
-├── app/
-│   ├── auth/              # Login, signup, callback
-│   ├── feed/               # Main feed
-│   ├── profile/            # User profiles
-│   ├── dashboard/          # Dashboard + settings + topic member management
-│   ├── posts/              # Post detail + edit
-│   └── topics/             # Topic channels
-│       ├── [slug]/         # Topic page, add content
-│       │   └── content/    # New content form
-│       └── content/[id]    # Content detail (comments, feedback, share)
-├── actions/
-│   ├── index.ts            # Posts, auth, profile
-│   └── topics.ts           # Topics, content, members, comments
-├── components/
-├── lib/
-│   └── moderation.ts       # AI moderation (OpenRouter/Google/OpenAI)
-└── supabase/
-    └── migrations/
-```
-
-## AI Moderation
-
-The app uses AI to evaluate posts before they’re published. Priority:
-
-1. **OpenRouter** – Faith-based prompt with Gemini (recommended)
-2. **Google AI** – Same prompt with Gemini Pro
-3. **OpenAI** – Basic Moderation API (no faith-specific rules)
-
-Get an OpenRouter key at [openrouter.ai](https://openrouter.ai).

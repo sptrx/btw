@@ -1,0 +1,30 @@
+import { Metadata } from "next";
+import { redirect } from "next/navigation";
+import { getCurrentUser } from "@/actions";
+import { getProfile } from "@/actions";
+import CreateChannelForm from "./create-channel-form";
+
+export const metadata: Metadata = {
+  title: "Create Channel",
+  description: "Create a new channel",
+};
+
+export default async function NewChannelPage() {
+  const user = await getCurrentUser();
+  if (!user) redirect("/auth/login");
+
+  const profile = await getProfile(user.id);
+  if (profile?.role !== "channel_author") {
+    redirect("/channel");
+  }
+
+  return (
+    <div>
+      <h1 className="text-2xl font-bold mb-4">Create a channel</h1>
+      <p className="text-gray-600 dark:text-gray-400 mb-6">
+        Add sub-pages for videos, podcasts, articles, and discussions. Manage all content from your channel.
+      </p>
+      <CreateChannelForm />
+    </div>
+  );
+}

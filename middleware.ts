@@ -1,4 +1,5 @@
 import { createServerClient } from "@supabase/ssr";
+import type { User } from "@supabase/supabase-js";
 import { NextResponse, type NextRequest } from "next/server";
 import { getSupabaseAnonKey, getSupabasePublicUrl } from "@/utils/supabase/public-env";
 
@@ -10,26 +11,34 @@ export async function middleware(request: NextRequest) {
 
   let response = NextResponse.next({ request });
 
-  const supabase = createServerClient(
-    getSupabasePublicUrl(),
-    getSupabaseAnonKey(),
-    {
-      cookies: {
-        getAll() {
-          return request.cookies.getAll();
+  let user: User | null = null;
+  try {
+    const supabase = createServerClient(
+      getSupabasePublicUrl(),
+      getSupabaseAnonKey(),
+      {
+        cookies: {
+          getAll() {
+            return request.cookies.getAll();
+          },
+          setAll(cookiesToSet) {
+            cookiesToSet.forEach(({ name, value, options }) =>
+              response.cookies.set(name, value, options)
+            );
+          },
         },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) =>
-            response.cookies.set(name, value, options)
-          );
-        },
-      },
-    }
-  );
+      }
+    );
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+    const { data, error } = await supabase.auth.getUser();
+    if (error) {
+      console.warn("[middleware] getUser:", error.message);
+    }
+    user = data.user ?? null;
+  } catch (e) {
+    // Missing env, network, or Edge runtime issues — treat as signed out (avoid 500 on every route)
+    console.error("[middleware] auth:", e);
+  }
 
   const isAuthPage =
     request.nextUrl.pathname.startsWith("/auth/login") ||

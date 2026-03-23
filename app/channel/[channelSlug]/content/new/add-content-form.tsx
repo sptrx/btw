@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createContent } from "@/actions/channels";
+import { Button } from "@/components/ui/button";
+import { MediaUploadField, type MediaItem } from "@/components/media-upload-field";
 
 const CONTENT_TYPES = [
   { value: "video", label: "Video" },
@@ -23,7 +25,7 @@ type Props = {
 export default function AddContentForm({ channelId, channelSlug, pages, defaultPageId }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [pageId, setPageId] = useState(defaultPageId ?? pages[0]?.id ?? "");
-  const [mediaUrls, setMediaUrls] = useState<{ url: string; type: string }[]>([]);
+  const [mediaUrls, setMediaUrls] = useState<MediaItem[]>([]);
   const router = useRouter();
 
   const addMedia = () => setMediaUrls([...mediaUrls, { url: "", type: "image" }]);
@@ -47,14 +49,17 @@ export default function AddContentForm({ channelId, channelSlug, pages, defaultP
         if (res?.error) setError(res.error);
         else router.push(`/channel/${channelSlug}`);
       }}
-      className="max-w-xl space-y-4"
+      className="max-w-xl space-y-6"
     >
       <div>
-        <label className="block text-sm font-medium mb-1">Page</label>
+        <label htmlFor="content-page" className="block text-sm font-medium mb-1">
+          Page
+        </label>
         <select
+          id="content-page"
           value={pageId}
           onChange={(e) => setPageId(e.target.value)}
-          className="w-full px-4 py-2 border rounded dark:bg-gray-800 dark:border-gray-700"
+          className="w-full min-h-11 rounded-xl border border-input bg-background px-4 py-3 text-sm"
         >
           {pages.map((p) => (
             <option key={p.id} value={p.id}>
@@ -65,11 +70,14 @@ export default function AddContentForm({ channelId, channelSlug, pages, defaultP
       </div>
 
       <div>
-        <label className="block text-sm font-medium mb-1">Content type</label>
+        <label htmlFor="content-type" className="block text-sm font-medium mb-1">
+          Content type
+        </label>
         <select
+          id="content-type"
           name="type"
           required
-          className="w-full px-4 py-2 border rounded dark:bg-gray-800 dark:border-gray-700"
+          className="w-full min-h-11 rounded-xl border border-input bg-background px-4 py-3 text-sm"
         >
           {CONTENT_TYPES.map((t) => (
             <option key={t.value} value={t.value}>
@@ -80,67 +88,90 @@ export default function AddContentForm({ channelId, channelSlug, pages, defaultP
       </div>
 
       <div>
-        <label htmlFor="title" className="block text-sm font-medium mb-1">Title</label>
+        <label htmlFor="title" className="block text-sm font-medium mb-1">
+          Title
+        </label>
         <input
           id="title"
           name="title"
           type="text"
           required
-          className="w-full px-4 py-2 border rounded dark:bg-gray-800 dark:border-gray-700"
+          className="w-full min-h-11 rounded-xl border border-input bg-background px-4 py-3 text-sm"
         />
       </div>
 
       <div>
-        <label htmlFor="body" className="block text-sm font-medium mb-1">Body / Description</label>
+        <label htmlFor="body" className="block text-sm font-medium mb-1">
+          Body / description
+        </label>
         <textarea
           id="body"
           name="body"
           rows={6}
-          className="w-full px-4 py-2 border rounded dark:bg-gray-800 dark:border-gray-700"
+          className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm"
         />
       </div>
 
-      <div>
-        <div className="flex justify-between items-center mb-2">
-          <label className="block text-sm font-medium">Media URLs</label>
-          <button type="button" onClick={addMedia} className="text-sm text-indigo-600 hover:underline">
-            + Add
-          </button>
+      <div className="space-y-3">
+        <div>
+          <span className="block text-sm font-medium mb-2">Images &amp; videos</span>
+          <MediaUploadField channelId={channelId} mediaUrls={mediaUrls} onMediaChange={setMediaUrls} />
         </div>
-        {mediaUrls.map((m, i) => (
-          <div key={i} className="flex gap-2 mb-2">
-            <input
-              type="url"
-              placeholder="https://..."
-              value={m.url}
-              onChange={(e) => updateMedia(i, "url", e.target.value)}
-              className="flex-1 px-4 py-2 border rounded dark:bg-gray-800 dark:border-gray-700"
-            />
-            <select
-              value={m.type}
-              onChange={(e) => updateMedia(i, "type", e.target.value)}
-              className="px-2 py-2 border rounded dark:bg-gray-800"
+
+        <div className="rounded-xl border border-dashed border-border bg-muted/20 p-4 space-y-3">
+          <div className="flex justify-between items-center gap-2">
+            <label className="text-sm font-medium text-muted-foreground">Or paste URLs</label>
+            <button
+              type="button"
+              onClick={addMedia}
+              className="text-sm font-medium text-primary hover:underline"
             >
-              <option value="image">Image</option>
-              <option value="video">Video</option>
-            </select>
+              + Add URL
+            </button>
           </div>
-        ))}
+          <p className="text-xs text-muted-foreground">
+            Optional. Use any public HTTPS link, or upload files above when R2 is configured.
+          </p>
+          {mediaUrls.map((m, i) => (
+            <div key={i} className="flex flex-col sm:flex-row gap-2">
+              <input
+                type="url"
+                placeholder="https://..."
+                value={m.url}
+                onChange={(e) => updateMedia(i, "url", e.target.value)}
+                className="flex-1 min-w-0 min-h-11 rounded-xl border border-input bg-background px-4 py-3 text-sm"
+              />
+              <select
+                value={m.type}
+                onChange={(e) => updateMedia(i, "type", e.target.value)}
+                className="min-h-11 rounded-xl border border-input bg-background px-3 py-3 text-sm shrink-0"
+              >
+                <option value="image">Image</option>
+                <option value="video">Video</option>
+              </select>
+            </div>
+          ))}
+        </div>
       </div>
 
-      {error && <p className="text-red-600 text-sm">{error}</p>}
+      {error && (
+        <p className="text-destructive text-sm" role="alert">
+          {error}
+        </p>
+      )}
 
-      <div className="flex gap-3">
-        <button type="submit" className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700">
+      <div className="flex flex-wrap gap-3">
+        <Button type="submit" className="min-h-11 touch-manipulation">
           Publish
-        </button>
-        <button
+        </Button>
+        <Button
           type="button"
+          variant="outline"
           onClick={() => router.push(`/channel/${channelSlug}`)}
-          className="px-4 py-2 border rounded hover:bg-gray-100 dark:hover:bg-gray-800"
+          className="min-h-11 touch-manipulation"
         >
           Cancel
-        </button>
+        </Button>
       </div>
     </form>
   );

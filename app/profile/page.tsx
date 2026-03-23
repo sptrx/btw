@@ -14,7 +14,7 @@ export default async function Profile() {
   if (!user) redirect("/auth/login");
 
   const profile = await getProfile(user.id);
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data: posts } = await supabase
     .from("posts")
     .select("id, text, created_at")

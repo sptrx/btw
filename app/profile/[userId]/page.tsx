@@ -14,7 +14,7 @@ export default async function UserProfile({ params }: Props) {
     getCurrentUser(),
   ]);
 
-  const supabase = createClient();
+  const supabase = await createClient();
 
   if (!profile) notFound();
 

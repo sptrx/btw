@@ -1,33 +1,28 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import {
   getChannelBySlug,
-  getChannelPages,
   getChannelPage,
   getPageContent,
   isChannelAuthor,
 } from "@/actions/channels";
-import { getCurrentUser } from "@/actions";
-import AddPageLink from "../add-page-link";
+import { Button } from "@/components/ui/button";
 import AddContentLink from "../add-content-link";
+import { DeletePageButton } from "../delete-page-button";
 
 type Props = { params: Promise<{ channelSlug: string; pageSlug: string }> };
 
 export default async function ChannelSubPage({ params }: Props) {
   const { channelSlug, pageSlug } = await params;
 
-  const [channel, user] = await Promise.all([
-    getChannelBySlug(channelSlug),
-    getCurrentUser(),
-  ]);
+  if (pageSlug === "home") {
+    redirect(`/channel/${channelSlug}`);
+  }
 
+  const channel = await getChannelBySlug(channelSlug);
   if (!channel) notFound();
 
-  const [pages, page] = await Promise.all([
-    getChannelPages(channel.id),
-    getChannelPage(channel.id, pageSlug),
-  ]);
-
+  const page = await getChannelPage(channel.id, pageSlug);
   if (!page) notFound();
 
   const [content, isAuthor] = await Promise.all([
@@ -44,62 +39,70 @@ export default async function ChannelSubPage({ params }: Props) {
 
   return (
     <div>
-      <div className="border rounded-lg p-6 mb-6">
-        <h1 className="text-2xl font-bold">{page.title}</h1>
-
-        <nav className="mt-4 flex flex-wrap gap-2">
-          <Link
-            href={`/channel/${channelSlug}`}
-            className="px-3 py-1 border rounded hover:bg-gray-100 dark:hover:bg-gray-800"
-          >
-            Home
-          </Link>
-          {pages
-            .filter((p) => p.slug !== "home")
-            .map((p) => (
-              <Link
-                key={p.id}
-                href={`/channel/${channelSlug}/${p.slug}`}
-                className={`px-3 py-1 rounded ${
-                  p.slug === pageSlug
-                    ? "bg-indigo-100 dark:bg-indigo-900/50 font-medium"
-                    : "border hover:bg-gray-100 dark:hover:bg-gray-800"
-                }`}
-              >
-                {p.title}
-              </Link>
-            ))}
+      <div className="border border-border rounded-2xl p-4 sm:p-6 mb-6 bg-card">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div className="min-w-0 space-y-2">
+            <h1 className="text-xl font-bold tracking-tight sm:text-2xl">{page.title}</h1>
+            {page.description && (
+              <p className="text-sm text-muted-foreground whitespace-pre-wrap">{page.description}</p>
+            )}
+          </div>
           {isAuthor && (
-            <>
-              <AddPageLink channelId={channel.id} channelSlug={channelSlug} />
-              <AddContentLink channelId={channel.id} pageId={page.id} channelSlug={channelSlug} />
-            </>
+            <div className="flex flex-wrap items-center gap-2 shrink-0">
+              <Button variant="outline" size="sm" className="touch-manipulation" asChild>
+                <Link href={`/channel/${channelSlug}/pages/${page.id}/edit`}>Edit page</Link>
+              </Button>
+              <DeletePageButton
+                channelId={channel.id}
+                pageId={page.id}
+                pageTitle={page.title}
+              />
+            </div>
           )}
-        </nav>
+        </div>
       </div>
 
       <div className="space-y-3">
         {content.length === 0 && (
-          <p className="text-gray-500 py-8 text-center">No content yet.</p>
+          <p className="text-muted-foreground py-8 text-center">No content yet.</p>
         )}
         {content.map((item) => (
           <Link
             key={item.id}
             href={`/channel/${channelSlug}/content/${item.id}`}
-            className="block border rounded-lg p-4 hover:bg-gray-50 dark:hover:bg-gray-800"
+            className="block border border-border rounded-xl p-4 hover:bg-muted/50 transition-colors"
           >
-            <span className="text-xs px-2 py-0.5 bg-gray-200 dark:bg-gray-700 rounded">
+            <span className="text-xs px-2 py-0.5 rounded-md bg-secondary text-secondary-foreground">
               {typeLabels[item.type] ?? item.type}
             </span>
             <h3 className="font-medium mt-2">{item.title}</h3>
             {item.body && (
-              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1 line-clamp-2">
+              <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
                 {item.body}
               </p>
             )}
           </Link>
         ))}
       </div>
+
+      {isAuthor && (
+        <section
+          className="mt-8 rounded-xl border-2 border-primary/25 bg-primary/5 p-6 shadow-sm"
+          aria-labelledby="channel-subpage-add-content-heading"
+        >
+          <h2 id="channel-subpage-add-content-heading" className="text-lg font-semibold mb-2">
+            Add content
+          </h2>
+          <p className="text-sm text-muted-foreground mb-4">
+            Publish a new post on <span className="font-medium text-foreground">{page.title}</span> (you can change the page on the next step).
+          </p>
+          <AddContentLink
+            pageId={page.id}
+            channelSlug={channelSlug}
+            label="+ Add content to this page"
+          />
+        </section>
+      )}
     </div>
   );
 }

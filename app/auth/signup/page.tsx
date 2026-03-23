@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/utils/supabase/client";
+import { authInputClass, authPrimaryButtonClass } from "@/lib/auth-form-styles";
 
 export default function SignUpPage() {
   const [email, setEmail] = useState("");
@@ -35,78 +36,114 @@ export default function SignUpPage() {
     }
   };
 
+  const invalid = !!error;
+
   return (
-    <div className="max-w-md mx-auto mt-16 p-6 border rounded-lg shadow">
-      <h1 className="text-2xl font-bold mb-4">Create your BTW account</h1>
-      <p className="text-gray-600 dark:text-gray-400 mb-6">
-        Join a community built on faith and encouragement.
-      </p>
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-        <input
-          type="text"
-          placeholder="Full name"
-          value={fullName}
-          onChange={(e) => setFullName(e.target.value)}
-          className="px-4 py-2 border rounded dark:bg-gray-800 dark:border-gray-700"
-        />
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-          className="px-4 py-2 border rounded dark:bg-gray-800 dark:border-gray-700"
-        />
-        <input
-          type="password"
-          placeholder="Password (min 6 characters)"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-          minLength={6}
-          className="px-4 py-2 border rounded dark:bg-gray-800 dark:border-gray-700"
-        />
-        <div>
-          <label className="block text-sm font-medium mb-2">Sign up as</label>
-          <div className="flex gap-4">
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="radio"
-                name="role"
-                value="user"
-                checked={role === "user"}
-                onChange={() => setRole("user")}
-              />
-              Regular user (post feedback & comments)
+    <div className="max-w-md mx-auto mt-12 sm:mt-20">
+      <div className="rounded-2xl border border-border/60 bg-card/95 backdrop-blur-sm p-6 shadow-sm sm:p-8">
+        <h1 className="text-2xl font-semibold tracking-tight mb-1">Create account</h1>
+        <p className="text-muted-foreground text-sm mb-6">
+          Join a community built on faith and encouragement.
+        </p>
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4" noValidate>
+          <div className="space-y-2">
+            <label htmlFor="signup-name" className="text-sm font-medium text-foreground">
+              Full name
             </label>
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="radio"
-                name="role"
-                value="channel_author"
-                checked={role === "channel_author"}
-                onChange={() => setRole("channel_author")}
-              />
-              Channel author (create & manage channels)
-            </label>
+            <input
+              id="signup-name"
+              type="text"
+              autoComplete="name"
+              placeholder="Your name"
+              value={fullName}
+              onChange={(e) => setFullName(e.target.value)}
+              className={authInputClass}
+            />
           </div>
-        </div>
-        {error && <p className="text-red-600 text-sm">{error}</p>}
-        {message && <p className="text-green-600 text-sm">{message}</p>}
-        <button
-          type="submit"
-          disabled={loading}
-          className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 disabled:opacity-50"
-        >
-          {loading ? "Creating account..." : "Sign up"}
-        </button>
-      </form>
-      <p className="mt-4 text-sm text-gray-600 dark:text-gray-400">
-        Already have an account?{" "}
-        <Link href="/auth/login" className="text-indigo-600 hover:underline">
-          Sign in
-        </Link>
-      </p>
+          <div className="space-y-2">
+            <label htmlFor="signup-email" className="text-sm font-medium text-foreground">
+              Email
+            </label>
+            <input
+              id="signup-email"
+              type="email"
+              autoComplete="email"
+              inputMode="email"
+              placeholder="you@example.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              aria-invalid={invalid}
+              aria-describedby={invalid ? "signup-error" : undefined}
+              className={authInputClass}
+            />
+          </div>
+          <div className="space-y-2">
+            <label htmlFor="signup-password" className="text-sm font-medium text-foreground">
+              Password <span className="font-normal text-muted-foreground">(min 6 characters)</span>
+            </label>
+            <input
+              id="signup-password"
+              type="password"
+              autoComplete="new-password"
+              placeholder="••••••••"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              minLength={6}
+              aria-invalid={invalid}
+              aria-describedby={invalid ? "signup-error" : undefined}
+              className={authInputClass}
+            />
+          </div>
+          <fieldset className="space-y-2">
+            <legend className="text-sm font-medium text-foreground mb-2">Sign up as</legend>
+            <div className="flex flex-col gap-3">
+              <label className="flex min-h-11 cursor-pointer items-start gap-3 rounded-md p-1 text-sm text-muted-foreground -m-1 focus-within:ring-2 focus-within:ring-ring">
+                <input
+                  type="radio"
+                  name="role"
+                  value="user"
+                  checked={role === "user"}
+                  onChange={() => setRole("user")}
+                  className="mt-1 accent-primary size-4 shrink-0"
+                />
+                <span>Regular user (browse, comment & share)</span>
+              </label>
+              <label className="flex min-h-11 cursor-pointer items-start gap-3 rounded-md p-1 text-sm text-muted-foreground -m-1 focus-within:ring-2 focus-within:ring-ring">
+                <input
+                  type="radio"
+                  name="role"
+                  value="channel_author"
+                  checked={role === "channel_author"}
+                  onChange={() => setRole("channel_author")}
+                  className="mt-1 accent-primary size-4 shrink-0"
+                />
+                <span>Channel author (create & manage channels)</span>
+              </label>
+            </div>
+          </fieldset>
+          {error && (
+            <p id="signup-error" role="alert" className="text-destructive text-sm">
+              {error}
+            </p>
+          )}
+          {message && (
+            <p className="text-primary text-sm" role="status">
+              {message}
+            </p>
+          )}
+          <button type="submit" disabled={loading} className={authPrimaryButtonClass}>
+            {loading ? "Creating account..." : "Sign up"}
+          </button>
+        </form>
+        <p className="mt-6 text-sm text-muted-foreground text-center">
+          Already have an account?{" "}
+          <Link href="/auth/login" className="text-primary font-medium hover:underline">
+            Sign in
+          </Link>
+        </p>
+      </div>
     </div>
   );
 }

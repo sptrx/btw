@@ -12,8 +12,10 @@ import {
 import DeleteContentButton from "./delete-content-button";
 import { getCurrentUser } from "@/actions";
 import ContentActions from "./content-actions";
+import { Button } from "@/components/ui/button";
 import CommentForm from "./comment-form";
 import CommentList from "./comment-list";
+import { ChannelContentMedia } from "@/components/channel-content-media";
 
 type Props = {
   params: Promise<{ channelSlug: string; contentId: string }>;
@@ -46,7 +48,26 @@ export default async function ChannelContentPage({ params }: Props) {
     discussion: "Discussion",
   };
 
-  const mediaUrls = (content.media_urls as { url: string; type: string }[]) ?? [];
+  const rawMedia = content.media_urls;
+  let mediaUrls: { url: string; type: string }[] = [];
+  if (Array.isArray(rawMedia)) {
+    mediaUrls = rawMedia.filter(
+      (m): m is { url: string; type: string } =>
+        Boolean(m && typeof (m as { url?: string }).url === "string" && String((m as { url: string }).url).trim())
+    );
+  } else if (typeof rawMedia === "string") {
+    try {
+      const parsed = JSON.parse(rawMedia) as unknown;
+      if (Array.isArray(parsed)) {
+        mediaUrls = parsed.filter(
+          (m): m is { url: string; type: string } =>
+            Boolean(m && typeof (m as { url?: string }).url === "string")
+        );
+      }
+    } catch {
+      /* ignore */
+    }
+  }
 
   return (
     <div>
@@ -72,20 +93,7 @@ export default async function ChannelContentPage({ params }: Props) {
           </div>
         )}
 
-        {mediaUrls.length > 0 && (
-          <div className="mt-4 space-y-4">
-            {mediaUrls.map((m, i) => (
-              <div key={i}>
-                {m.type === "image" ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={m.url} alt="" className="max-w-full rounded" />
-                ) : (
-                  <video src={m.url} controls className="max-w-full rounded" />
-                )}
-              </div>
-            ))}
-          </div>
-        )}
+        <ChannelContentMedia items={mediaUrls} />
 
         {user && (
           <ContentActions
@@ -106,7 +114,10 @@ export default async function ChannelContentPage({ params }: Props) {
         )}
 
         {isAuthor && (
-          <div className="mt-4 pt-4 border-t">
+          <div className="mt-4 pt-4 border-t flex flex-wrap gap-3">
+            <Button variant="secondary" className="touch-manipulation" asChild>
+              <Link href={`/channel/${channelSlug}/content/${contentId}/edit`}>Edit content</Link>
+            </Button>
             <DeleteContentButton contentId={contentId} />
           </div>
         )}

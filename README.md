@@ -14,9 +14,15 @@ A Christian faith-based social platform with channels, AI moderation, and commun
 - **Signed-up for feedback**: Users must sign up to comment and give feedback
 - **External sharing**: All content supports share and copy-link
 
+## UX (mobile, accessibility, performance)
+
+- **Mobile**: Responsive spacing/typography, `min-h-dvh`, safe-area insets for notched devices, `touch-manipulation` on primary taps, ~44px minimum touch targets on header and CTAs.
+- **Accessibility**: Skip link to main content, labeled form fields, `role="alert"` / `role="status"` for feedback, focus-visible rings, `prefers-reduced-motion` respected in global CSS.
+- **Speed**: `next/font` with `display: swap`, `experimental.optimizePackageImports` for `lucide-react` in `next.config.ts`.
+
 ## Tech Stack
 
-- **Frontend**: Next.js 14, React, Tailwind CSS
+- **Frontend**: Next.js, React, Tailwind CSS
 - **Backend**: Supabase (database + auth)
 - **AI**: OpenRouter / Google AI / OpenAI for moderation
 
@@ -45,6 +51,24 @@ Copy `env.example` to `.env.local` and configure Supabase + AI keys.
 ```bash
 npm run dev
 ```
+
+## Deploy on Cloudflare (believetheworks.org)
+
+The app is configured for **Cloudflare Workers** using [OpenNext](https://opennext.js.org/cloudflare).
+
+1. Set production env (especially `NEXT_PUBLIC_*`) — see **`.env.production.example`**.
+2. Build and deploy:
+
+```bash
+npm run cf:build
+npx wrangler login
+npm run cf:deploy
+```
+
+3. Attach the custom domain **believetheworks.org** in the Cloudflare dashboard (Workers → your worker → Custom domains).
+4. Update **Supabase** Site URL and redirect allowlist for `https://believetheworks.org`.
+
+Full steps: **[docs/cloudflare-deploy.md](./docs/cloudflare-deploy.md)**.
 
 ## URL structure
 

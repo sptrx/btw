@@ -2,6 +2,11 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 export async function middleware(request: NextRequest) {
+  // API routes handle auth themselves; skipping avoids redirect-to-login HTML breaking fetch/json
+  if (request.nextUrl.pathname.startsWith("/api/")) {
+    return NextResponse.next();
+  }
+
   let response = NextResponse.next({ request });
 
   const supabase = createServerClient(
@@ -27,7 +32,8 @@ export async function middleware(request: NextRequest) {
 
   const isAuthPage =
     request.nextUrl.pathname.startsWith("/auth/login") ||
-    request.nextUrl.pathname.startsWith("/auth/signup");
+    request.nextUrl.pathname.startsWith("/auth/signup") ||
+    request.nextUrl.pathname.startsWith("/auth/forgot-password");
   const isAuthCallback = request.nextUrl.pathname === "/auth/callback";
   const path = request.nextUrl.pathname;
   const isChannelList = path === "/channel";
@@ -35,9 +41,13 @@ export async function middleware(request: NextRequest) {
   const isChannelNew = path === "/channel/new";
   const isChannelCreateOrEdit =
     path.includes("/pages/new") || path.includes("/content/new");
+  const isChannelContentEdit = /^\/channel\/[^/]+\/content\/[^/]+\/edit$/.test(path);
   const isPublicChannel =
     isChannelList ||
-    (isChannelRoute && !isChannelNew && !isChannelCreateOrEdit);
+    (isChannelRoute &&
+      !isChannelNew &&
+      !isChannelCreateOrEdit &&
+      !isChannelContentEdit);
   const isTopicsList = path === "/topics";
   const isTopicChannel =
     /^\/topics\/[^/]+$/.test(path) &&
@@ -61,7 +71,7 @@ export async function middleware(request: NextRequest) {
   }
 
   if (user && isAuthPage) {
-    return NextResponse.redirect(new URL("/feed", request.url));
+    return NextResponse.redirect(new URL("/channel", request.url));
   }
 
   return response;

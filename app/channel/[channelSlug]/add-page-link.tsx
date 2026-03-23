@@ -8,9 +8,9 @@ export default function AddPageLink({ channelId, channelSlug }: Props) {
   return (
     <Link
       href={`/channel/${channelSlug}/pages/new`}
-      className="px-3 py-1 border border-dashed rounded hover:bg-gray-100 dark:hover:bg-gray-800"
+      className="block w-full text-center px-3 py-2 text-sm border border-dashed border-border rounded-lg hover:bg-muted transition-colors"
     >
-      + Add page
+      + Add new page to this channel
     </Link>
   );
 }

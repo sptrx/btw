@@ -2,6 +2,8 @@ import { Metadata } from "next";
 import Link from "next/link";
 import { fetchChannels } from "@/actions/channels";
 import { getCurrentUser } from "@/actions";
+import { ChannelCardGrid } from "@/components/channel-card-grid";
+import { Button } from "@/components/ui/button";
 
 export const metadata: Metadata = {
   title: "Channels",
@@ -13,42 +15,21 @@ export default async function ChannelsPage() {
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Channels</h1>
+      <div className="flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-start mb-6">
+        <div className="min-w-0">
+          <h1 className="text-xl font-bold tracking-tight sm:text-2xl">Channels</h1>
+          <p className="text-muted-foreground mt-1 text-pretty text-sm sm:text-base">
+            Explore channels with videos, podcasts, articles, and discussions. Sign up to leave feedback and comments.
+          </p>
+        </div>
         {user && (
-          <Link
-            href="/channel/new"
-            className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
-          >
-            Create channel
-          </Link>
+          <Button asChild size="default" className="shrink-0 min-h-11 w-full touch-manipulation sm:w-auto">
+            <Link href="/channel/new">Create channel</Link>
+          </Button>
         )}
       </div>
 
-      <p className="text-gray-600 dark:text-gray-400 mb-6">
-        Explore channels with videos, podcasts, articles, and discussions. Sign up to leave feedback and comments.
-      </p>
-
-      <div className="grid gap-4 md:grid-cols-2">
-        {channels.map((ch) => {
-          const author = ch.profiles as { display_name?: string } | null;
-          return (
-            <Link
-              key={ch.id}
-              href={`/channel/${ch.slug}`}
-              className="block border rounded-lg p-4 hover:bg-gray-50 dark:hover:bg-gray-800 transition"
-            >
-              <h2 className="font-semibold text-lg">{ch.title}</h2>
-              {ch.description && (
-                <p className="text-sm text-gray-600 dark:text-gray-400 mt-1 line-clamp-2">
-                  {ch.description}
-                </p>
-              )}
-              <p className="text-xs text-gray-500 mt-2">by {author?.display_name ?? "Anonymous"}</p>
-            </Link>
-          );
-        })}
-      </div>
+      <ChannelCardGrid channels={channels} />
     </div>
   );
 }

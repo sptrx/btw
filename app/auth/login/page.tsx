@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { Suspense, useState, useEffect } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
 
-export default function LoginPage() {
+function LoginForm() {
   const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -30,7 +30,8 @@ export default function LoginPage() {
       const supabase = createClient();
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
-      window.location.href = "/channel";
+      const next = searchParams.get("next");
+      window.location.href = next && next.startsWith("/") ? next : "/channel";
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Failed to sign in");
     } finally {
@@ -38,45 +39,103 @@ export default function LoginPage() {
     }
   };
 
+  const invalid = !!error;
+
   return (
-    <div className="max-w-md mx-auto mt-16 p-6 border rounded-lg shadow">
-      <h1 className="text-2xl font-bold mb-4">Sign in to BTW</h1>
-      <p className="text-gray-600 dark:text-gray-400 mb-6">
-        A safe space for faith, encouragement, and community.
-      </p>
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-          className="px-4 py-2 border rounded dark:bg-gray-800 dark:border-gray-700"
-        />
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-          className="px-4 py-2 border rounded dark:bg-gray-800 dark:border-gray-700"
-        />
-        {error && <p className="text-red-600 text-sm">{error}</p>}
-        {message && <p className="text-green-600 text-sm">{message}</p>}
-        <button
-          type="submit"
-          disabled={loading}
-          className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 disabled:opacity-50"
-        >
-          {loading ? "Signing in..." : "Sign in"}
-        </button>
-      </form>
-      <p className="mt-4 text-sm text-gray-600 dark:text-gray-400">
-        Don&apos;t have an account?{" "}
-        <Link href="/auth/signup" className="text-indigo-600 hover:underline">
-          Sign up
-        </Link>
-      </p>
+    <div className="max-w-md mx-auto mt-12 sm:mt-20">
+      <div className="rounded-2xl border border-border/60 bg-card/95 backdrop-blur-sm p-6 shadow-sm sm:p-8">
+        <h1 className="text-2xl font-semibold tracking-tight mb-1">Sign in</h1>
+        <p className="text-muted-foreground text-sm mb-6">
+          A safe space for faith, encouragement, and community.
+        </p>
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4" noValidate suppressHydrationWarning>
+          <div className="space-y-2">
+            <label htmlFor="login-email" className="text-sm font-medium text-foreground">
+              Email
+            </label>
+            <input
+              id="login-email"
+              type="email"
+              autoComplete="email"
+              inputMode="email"
+              placeholder="you@example.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              aria-invalid={invalid}
+              aria-describedby={invalid ? "login-error" : undefined}
+              className="w-full min-h-11 px-4 py-3 rounded-xl border border-input bg-background text-base text-foreground placeholder:text-muted-foreground/60 sm:text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background focus:border-transparent aria-invalid:border-destructive"
+            />
+          </div>
+          <div className="space-y-2">
+            <label htmlFor="login-password" className="text-sm font-medium text-foreground">
+              Password
+            </label>
+            <input
+              id="login-password"
+              type="password"
+              autoComplete="current-password"
+              placeholder="••••••••"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              aria-invalid={invalid}
+              aria-describedby={invalid ? "login-error" : undefined}
+              className="w-full min-h-11 px-4 py-3 rounded-xl border border-input bg-background text-base text-foreground placeholder:text-muted-foreground/60 sm:text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background focus:border-transparent aria-invalid:border-destructive"
+            />
+          </div>
+          <p className="text-right -mt-1">
+            <Link
+              href="/auth/forgot-password"
+              className="inline-flex min-h-11 items-center text-sm text-muted-foreground underline-offset-4 hover:text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-sm"
+            >
+              Forgot password?
+            </Link>
+          </p>
+          {error && (
+            <p id="login-error" role="alert" className="text-destructive text-sm">
+              {error}
+            </p>
+          )}
+          {message && (
+            <p className="text-primary text-sm" role="status">
+              {message}
+            </p>
+          )}
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full min-h-11 rounded-xl bg-primary text-primary-foreground font-medium text-base sm:text-sm hover:bg-primary/90 disabled:opacity-50 transition-colors touch-manipulation"
+          >
+            {loading ? "Signing in..." : "Sign in"}
+          </button>
+        </form>
+        <p className="mt-6 text-sm text-muted-foreground text-center">
+          Don&apos;t have an account?{" "}
+          <Link href="/auth/signup" className="text-primary font-medium hover:underline">
+            Sign up
+          </Link>
+        </p>
+      </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="max-w-md mx-auto mt-12 sm:mt-20">
+          <div className="rounded-2xl border border-border/60 bg-card/95 p-6 shadow-sm sm:p-8">
+            <div className="h-8 w-40 rounded-md bg-muted animate-pulse mb-2" />
+            <div className="h-4 w-full max-w-sm rounded bg-muted/80 animate-pulse mb-6" />
+            <div className="h-11 w-full rounded-xl bg-muted animate-pulse mb-4" />
+            <div className="h-11 w-full rounded-xl bg-muted animate-pulse" />
+          </div>
+        </div>
+      }
+    >
+      <LoginForm />
+    </Suspense>
   );
 }

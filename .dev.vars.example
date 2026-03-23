@@ -1,0 +1,5 @@
+# Local preview: copy to .dev.vars (gitignored). Production secrets → Cloudflare dashboard / wrangler secret.
+NEXTJS_ENV=development
+
+# Mirror .env.local for `npm run cf:preview` (non-NEXT_PUBLIC_* only if used server-side)
+# NEXT_PUBLIC_* can be set in wrangler.toml [vars] or dashboard for preview

@@ -6,7 +6,7 @@ import { redirect } from "next/navigation";
 import { moderateContent, checkFakeUserHeuristic } from "@/lib/moderation";
 
 export async function moderate(text: string) {
-  const supabase = createClient();
+  const supabase = await createClient();
 
   const {
     data: { user },
@@ -55,7 +55,7 @@ export async function moderate(text: string) {
 }
 
 export async function fetchPosts() {
-  const supabase = createClient();
+  const supabase = await createClient();
 
   const { data, error } = await supabase
     .from("posts")
@@ -81,7 +81,7 @@ export async function fetchPosts() {
 }
 
 export async function getPost(postId: string) {
-  const supabase = createClient();
+  const supabase = await createClient();
 
   const { data, error } = await supabase
     .from("posts")
@@ -98,7 +98,7 @@ export async function getPost(postId: string) {
 }
 
 export async function deletePost(postId: string) {
-  const supabase = createClient();
+  const supabase = await createClient();
 
   const {
     data: { user },
@@ -121,7 +121,7 @@ export async function updatePost(
   postId: string,
   newPostText: string
 ): Promise<{ error?: string } | void> {
-  const supabase = createClient();
+  const supabase = await createClient();
 
   const {
     data: { user },
@@ -155,7 +155,7 @@ export async function navigateToEditPage(postId: string) {
 }
 
 export async function getCurrentUser() {
-  const supabase = createClient();
+  const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -163,14 +163,14 @@ export async function getCurrentUser() {
 }
 
 export async function signOut() {
-  const supabase = createClient();
+  const supabase = await createClient();
   await supabase.auth.signOut();
   revalidatePath("/", "layout");
   redirect("/");
 }
 
 export async function getProfile(userId: string) {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data, error } = await supabase
     .from("profiles")
     .select("*")
@@ -181,7 +181,7 @@ export async function getProfile(userId: string) {
 }
 
 export async function updateProfile(formData: FormData) {
-  const supabase = createClient();
+  const supabase = await createClient();
 
   const {
     data: { user },

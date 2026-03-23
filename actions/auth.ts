@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 export async function updatePassword(formData: FormData): Promise<{ error?: string }> {
-  const supabase = createClient();
+  const supabase = await createClient();
 
   const {
     data: { user },
@@ -45,7 +45,7 @@ export async function updatePassword(formData: FormData): Promise<{ error?: stri
 }
 
 export async function signOutAllOtherDevices(): Promise<{ error?: string }> {
-  const supabase = createClient();
+  const supabase = await createClient();
 
   const {
     data: { user },
@@ -61,7 +61,7 @@ export async function signOutAllOtherDevices(): Promise<{ error?: string }> {
 }
 
 export async function signOutAllDevices() {
-  const supabase = createClient();
+  const supabase = await createClient();
 
   await supabase.auth.signOut({ scope: "global" });
   revalidatePath("/", "layout");

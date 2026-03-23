@@ -13,39 +13,33 @@ export default async function Dashboard() {
   if (!user) redirect("/auth/login");
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold mb-4">Dashboard</h1>
-      <p className="text-gray-600 dark:text-gray-400 mb-6">
+    <div className="px-4">
+      <h1 className="text-2xl font-bold tracking-tight mb-4">Dashboard</h1>
+      <p className="text-muted-foreground mb-6">
         Welcome back, {user.email?.split("@")[0] ?? "there"}.
       </p>
       <div className="space-y-3">
         <Link
-          href="/feed"
-          className="block p-4 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800"
-        >
-          Go to Feed
-        </Link>
-        <Link
           href="/channel"
-          className="block p-4 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800"
+          className="block p-4 border border-border rounded-xl hover:bg-muted/50 transition-colors"
         >
           Browse Channels
         </Link>
         <Link
           href="/channel/new"
-          className="block p-4 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800"
+          className="block p-4 border border-border rounded-xl hover:bg-muted/50 transition-colors"
         >
           Create a channel
         </Link>
         <Link
           href="/profile"
-          className="block p-4 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800"
+          className="block p-4 border border-border rounded-xl hover:bg-muted/50 transition-colors"
         >
           View your profile
         </Link>
         <Link
           href="/dashboard/settings"
-          className="block p-4 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800"
+          className="block p-4 border border-border rounded-xl hover:bg-muted/50 transition-colors"
         >
           Settings
         </Link>

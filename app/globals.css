@@ -4,52 +4,104 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Mobile: full viewport height including dynamic toolbars */
+html {
+  @apply min-h-dvh scroll-smooth font-sans;
+}
+
 body {
-  @apply bg-white text-gray-700 container mx-auto dark:bg-gray-900 dark:text-gray-300 max-w-2xl
+  @apply bg-background text-foreground min-h-dvh antialiased text-base;
+  text-rendering: optimizeLegibility;
+  -webkit-tap-highlight-color: transparent;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Skip link: visible on keyboard focus only */
+.skip-link {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+.skip-link:focus {
+  position: fixed;
+  left: 1rem;
+  top: 1rem;
+  z-index: 100;
+  width: auto;
+  height: auto;
+  margin: 0;
+  overflow: visible;
+  clip: auto;
+  white-space: normal;
+  @apply rounded-lg bg-primary px-4 py-3 text-sm font-medium text-primary-foreground shadow-lg outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
 }
 
 .link {
-  @apply hover:bg-gray-200 hover:text-gray-700 text-2xl md:p-1 md:text-base
+  @apply hover:bg-accent hover:text-accent-foreground text-2xl md:p-1 md:text-base transition-colors rounded-md
 }
 
 @layer base {
+  /* Light: warm paper / stone — avoids flat pure white */
   :root {
 
-    --background: oklch(1 0 0);
+    --background: oklch(0.975 0.012 88);
 
-    --foreground: oklch(0.145 0 0);
+    --foreground: oklch(0.24 0.02 75);
 
-    --card: oklch(1 0 0);
+    --card: oklch(0.995 0.008 88);
 
-    --card-foreground: oklch(0.145 0 0);
+    --card-foreground: oklch(0.24 0.02 75);
 
-    --popover: oklch(1 0 0);
+    --popover: oklch(0.995 0.008 88);
 
-    --popover-foreground: oklch(0.145 0 0);
+    --popover-foreground: oklch(0.24 0.02 75);
 
-    --primary: oklch(0.205 0 0);
+    --primary: oklch(0.3 0.04 75);
 
-    --primary-foreground: oklch(0.985 0 0);
+    --primary-foreground: oklch(0.99 0.005 88);
 
-    --secondary: oklch(0.97 0 0);
+    --secondary: oklch(0.945 0.02 88);
 
-    --secondary-foreground: oklch(0.205 0 0);
+    --secondary-foreground: oklch(0.28 0.02 75);
 
-    --muted: oklch(0.97 0 0);
+    --muted: oklch(0.935 0.022 88);
 
-    --muted-foreground: oklch(0.556 0 0);
+    --muted-foreground: oklch(0.48 0.03 80);
 
-    --accent: oklch(0.97 0 0);
+    --accent: oklch(0.925 0.035 90);
 
-    --accent-foreground: oklch(0.205 0 0);
+    --accent-foreground: oklch(0.28 0.02 75);
 
     --destructive: oklch(0.577 0.245 27.325);
 
-    --border: oklch(0.922 0 0);
+    --border: oklch(0.88 0.035 88);
 
-    --input: oklch(0.922 0 0);
+    --input: oklch(0.9 0.025 88);
 
-    --ring: oklch(0.708 0 0);
+    --ring: oklch(0.55 0.08 145);
+
+    /* Nav chrome: slightly brighter than page, clear edge */
+    --header-surface: oklch(0.99 0.008 88);
+
+    --header-border: oklch(0.86 0.04 88);
 
     --chart-1: oklch(0.809 0.105 251.813);
 
@@ -83,6 +135,10 @@ body {
     --background: oklch(0.145 0 0);
 
     --foreground: oklch(0.985 0 0);
+
+    --header-surface: oklch(0.16 0.01 280);
+
+    --header-border: oklch(1 0 0 / 12%);
 
     --card: oklch(0.205 0 0);
 
@@ -145,8 +201,6 @@ body {
 
     --font-sans: var(--font-sans)}
   * {
-    @apply border-border outline-ring/50;}
-  body {
-    @apply bg-background text-foreground;}
-  html {
-    @apply font-sans;}}
+    @apply border-border;
+  }
+}

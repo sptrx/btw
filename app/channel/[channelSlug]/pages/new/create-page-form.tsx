@@ -1,12 +1,12 @@
 "use client";
 
-import { useFormState } from "react-dom";
+import { useActionState } from "react";
 import { createChannelPage } from "@/actions/channels";
 
 type Props = { channelId: string; channelSlug: string };
 
 export default function CreatePageForm({ channelId }: Props) {
-  const [state, formAction] = useFormState(
+  const [state, formAction] = useActionState(
     async (_prev: { error?: string } | null, formData: FormData) => {
       const result = await createChannelPage(channelId, formData);
       return result && "error" in result ? { error: result.error } : null;

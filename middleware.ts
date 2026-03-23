@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { getSupabaseAnonKey, getSupabasePublicUrl } from "@/utils/supabase/public-env";
 
 export async function middleware(request: NextRequest) {
   // API routes handle auth themselves; skipping avoids redirect-to-login HTML breaking fetch/json
@@ -10,8 +11,8 @@ export async function middleware(request: NextRequest) {
   let response = NextResponse.next({ request });
 
   const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    getSupabasePublicUrl(),
+    getSupabaseAnonKey(),
     {
       cookies: {
         getAll() {

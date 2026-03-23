@@ -76,6 +76,15 @@ Email magic links and password reset use `/auth/callback`; they must match these
 
 ## 8. CI/CD (optional)
 
+Cloudflare’s Workers pipeline often runs **`npm run build`** (`next build` only) and then **`opennextjs-cloudflare deploy`**. That fails with *“Could not find compiled Open Next config”* because **`next build` does not create `.open-next/`** — you must run **`opennextjs-cloudflare build`** before deploy.
+
+**Do not** point the dashboard **Build command** at plain `npm run build` if the next step is `opennextjs-cloudflare deploy`. Use one of these:
+
+1. **Build command:** `npm ci && npm run cf:build` — then let the platform run deploy, **or**
+2. **Single command** for build+deploy: `npm ci && npm run cf:deploy` (set env vars so `NEXT_PUBLIC_*` and secrets are available during `cf:build`).
+
+`opennextjs-cloudflare build` runs `next build` internally, so you must **not** set `package.json`’s `"build"` script to `opennextjs-cloudflare build` (that would recurse).
+
 - Connect the Git repo in **Workers & Pages** → **Create** → **Connect to Git**, **or**
 - In GitHub Actions, set `CLOUDFLARE_API_TOKEN` and run `npm ci && npm run cf:deploy` (with production env available during `cf:build`).
 

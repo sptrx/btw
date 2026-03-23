@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
+import type { EmailOtpType } from "@supabase/supabase-js";
 import { createClient } from "@/utils/supabase/client";
 
 /** Recovery / implicit redirect: tokens in URL hash (works in any browser — no PKCE verifier). */
@@ -33,14 +34,20 @@ function isPkceVerifierError(message: string) {
 export function AuthCallbackClient() {
   const searchParams = useSearchParams();
   const [status, setStatus] = useState<"loading" | "error" | "pkce_hint">("loading");
+  // Stabilize deps: the ReadonlyURLSearchParams object identity can change every render in Next.js 15,
+  // which would cancel this effect before setSession / exchangeCodeForSession finishes.
+  const searchKey = searchParams.toString();
 
   useEffect(() => {
     let cancelled = false;
 
-    const next = searchParams.get("next") ?? "/auth/reset-password";
-    const code = searchParams.get("code");
-    const oauthError = searchParams.get("error");
-    const oauthDesc = searchParams.get("error_description");
+    const params = new URLSearchParams(searchKey);
+    const next = params.get("next") ?? "/auth/reset-password";
+    const code = params.get("code");
+    const token_hash = params.get("token_hash");
+    const type = params.get("type") as EmailOtpType | null;
+    const oauthError = params.get("error");
+    const oauthDesc = params.get("error_description");
 
     const redirectTo = (path: string) => {
       if (!cancelled) window.location.replace(path);
@@ -85,7 +92,23 @@ export function AuthCallbackClient() {
         return;
       }
 
-      // 2) PKCE: ?code= — verifier must exist from the same browser session that requested reset.
+      // 2) Email template / SSR-style link: ?token_hash=&type=recovery (common with custom SMTP e.g. Resend)
+      if (token_hash && type) {
+        const { error } = await supabase.auth.verifyOtp({ type, token_hash });
+        if (cancelled) return;
+        if (error) {
+          handleFatalError();
+          return;
+        }
+        const url = new URL(window.location.href);
+        url.searchParams.delete("token_hash");
+        url.searchParams.delete("type");
+        window.history.replaceState(null, "", url.pathname + url.search + url.hash);
+        redirectTo(next);
+        return;
+      }
+
+      // 3) PKCE: ?code= — verifier must exist from the same browser session that requested reset.
       if (code) {
         const { error } = await supabase.auth.exchangeCodeForSession(code);
         if (cancelled) return;
@@ -107,7 +130,7 @@ export function AuthCallbackClient() {
     return () => {
       cancelled = true;
     };
-  }, [searchParams]);
+  }, [searchKey]);
 
   if (status === "pkce_hint") {
     return (

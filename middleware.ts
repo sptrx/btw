@@ -33,7 +33,8 @@ export async function middleware(request: NextRequest) {
   const isAuthPage =
     request.nextUrl.pathname.startsWith("/auth/login") ||
     request.nextUrl.pathname.startsWith("/auth/signup") ||
-    request.nextUrl.pathname.startsWith("/auth/forgot-password");
+    request.nextUrl.pathname.startsWith("/auth/forgot-password") ||
+    request.nextUrl.pathname.startsWith("/auth/reset-password");
   const isAuthCallback = request.nextUrl.pathname === "/auth/callback";
   const path = request.nextUrl.pathname;
   const isChannelList = path === "/channel";

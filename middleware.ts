@@ -81,7 +81,13 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  if (user && isAuthPage) {
+  // Logged-in users shouldn't use login/signup/forgot-password, but /auth/reset-password must stay
+  // reachable: recovery links create a session first, then this page calls updateUser({ password }).
+  if (
+    user &&
+    isAuthPage &&
+    !request.nextUrl.pathname.startsWith("/auth/reset-password")
+  ) {
     return NextResponse.redirect(new URL("/channel", request.url));
   }
 

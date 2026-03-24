@@ -45,7 +45,7 @@ npx wrangler login
 npm run cf:deploy
 ```
 
-`cf:deploy` runs `opennextjs-cloudflare deploy`, which uploads the worker.
+`cf:deploy` runs `opennextjs-cloudflare deploy -- --keep-vars`, which uploads the worker and **keeps** existing dashboard **Variables** (Wrangler otherwise deletes vars not listed in `wrangler.jsonc`).
 
 ## 5. Bind environment variables / secrets on the Worker
 
@@ -59,7 +59,17 @@ In the [Cloudflare dashboard](https://dash.cloudflare.com) → **Workers & Pages
 
 Also add the same `NEXT_PUBLIC_*` values under **Workers Builds** → **Build variables and secrets** so `npm run cf:build` can inline them for the client bundle. If those are missing at build time, the browser throws `@supabase/ssr: Your project's URL and API key are required` because the client bundle was compiled without Supabase env.
 
-`NEXT_PUBLIC_*` values must match between **build** and **runtime**; if you change them, **rebuild** (`cf:build`) and **redeploy**. Use `opennextjs-cloudflare deploy -- --keep-vars` (or Wrangler **keep-vars**) if CLI deploys would otherwise clear dashboard variables.
+`NEXT_PUBLIC_*` values must match between **build** and **runtime**; if you change them, **rebuild** (`cf:build`) and **redeploy**.
+
+### Variables disappearing after a deploy
+
+**Wrangler’s default behavior** is to **remove** Worker **plain-text variables** that are not defined in `wrangler.jsonc` before applying the new deployment. Dashboard-only variables are therefore wiped unless you use **`--keep-vars`**.
+
+- This repo’s **`npm run cf:deploy`** / **`npm run deploy`** already pass **`--keep-vars`** to Wrangler (via `opennextjs-cloudflare deploy -- --keep-vars`), so CLI deploys keep dashboard variables.
+- If you deploy another way (e.g. raw `wrangler deploy` or a custom CI step), add **`--keep-vars`** there too.
+- **Secrets** are not deleted by deploys in the same way; if something still vanishes, confirm you used **Secrets** vs **Variables** and that the right **environment** (production vs preview) is selected in the dashboard.
+
+To **manage vars in Git** instead, define them under `[vars]` in `wrangler.jsonc` (non-secrets only) or use **`wrangler secret put`** / **`--var`** for scripted deploys—then Wrangler won’t need to “replace” dashboard-only values.
 
 ## 6. Custom domain: believetheworks.org
 

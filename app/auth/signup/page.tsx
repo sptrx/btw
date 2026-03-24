@@ -12,18 +12,17 @@ export default function SignUpPage() {
   const [role, setRole] = useState<"user" | "channel_author">("user");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    setMessage(null);
     setLoading(true);
 
     try {
       const supabase = createClient();
       const origin = window.location.origin;
-      const { error } = await supabase.auth.signUp({
+      const { error: signUpError } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -31,8 +30,8 @@ export default function SignUpPage() {
           emailRedirectTo: `${origin}/auth/callback?next=${encodeURIComponent("/auth/confirmed")}`,
         },
       });
-      if (error) throw error;
-      setMessage("Check your email for the confirmation link.");
+      if (signUpError) throw signUpError;
+      setSuccess(true);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Failed to sign up");
     } finally {
@@ -41,6 +40,36 @@ export default function SignUpPage() {
   };
 
   const invalid = !!error;
+
+  if (success) {
+    return (
+      <div className="max-w-md mx-auto mt-12 sm:mt-20">
+        <div
+          className="rounded-2xl border border-border/60 bg-card/95 backdrop-blur-sm p-6 shadow-sm sm:p-8 space-y-4"
+          role="status"
+          aria-live="polite"
+        >
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground">Check your email</h1>
+          <p className="text-foreground text-sm leading-relaxed">
+            We sent a confirmation link to <span className="font-medium">{email}</span>. Open it to verify your
+            account, then you can sign in.
+          </p>
+          <p className="text-muted-foreground text-sm">Didn&apos;t see it? Check your spam folder.</p>
+          <Link
+            href="/auth/login"
+            className={authPrimaryButtonClass + " inline-block w-full text-center no-underline"}
+          >
+            Go to sign in
+          </Link>
+          <p className="text-sm text-muted-foreground text-center pt-2">
+            <Link href="/" className="text-primary font-medium hover:underline">
+              Back to home
+            </Link>
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-md mx-auto mt-12 sm:mt-20">
@@ -128,13 +157,8 @@ export default function SignUpPage() {
             </div>
           </fieldset>
           {error && (
-            <p id="signup-error" role="alert" className="text-destructive text-sm">
+            <p id="signup-error" role="alert" className="text-destructive text-sm rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2">
               {error}
-            </p>
-          )}
-          {message && (
-            <p className="text-primary text-sm" role="status">
-              {message}
             </p>
           )}
           <button type="submit" disabled={loading} className={authPrimaryButtonClass}>

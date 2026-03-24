@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { createClient } from "@/utils/supabase/client";
+import { createImplicitRecoveryClient } from "@/utils/supabase/client";
 import { authInputClass, authPrimaryButtonClass } from "@/lib/auth-form-styles";
 
 export default function SignUpPage() {
@@ -20,7 +20,7 @@ export default function SignUpPage() {
     setLoading(true);
 
     try {
-      const supabase = createClient();
+      const supabase = createImplicitRecoveryClient();
       const origin = window.location.origin;
       const { error: signUpError } = await supabase.auth.signUp({
         email,

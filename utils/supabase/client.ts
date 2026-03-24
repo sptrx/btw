@@ -10,10 +10,9 @@ export function createClient() {
 }
 
 /**
- * Password reset must use implicit flow (tokens in URL hash) so the email link works when opened
- * from another app/browser. `@supabase/ssr`’s `createBrowserClient` always forces `flowType: "pkce"`
- * and uses a singleton, so it ignores `flowType: "implicit"` and can reuse the app’s PKCE client —
- * which produces `?code=` links that fail with “same browser” when the verifier isn’t present.
+ * Email links (password reset + signup confirmation) must use implicit flow (tokens in URL hash) so
+ * links work when opened from mail or another browser. `@supabase/ssr`’s `createBrowserClient` forces
+ * `flowType: "pkce"` and a singleton, which yields `?code=` links that fail without a code verifier.
  */
 export function createImplicitRecoveryClient() {
   return createSupabaseJsClient(getSupabaseUrlBrowser(), getSupabaseAnonKeyBrowser(), {

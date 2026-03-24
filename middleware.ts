@@ -1,7 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import type { User } from "@supabase/supabase-js";
 import { NextResponse, type NextRequest } from "next/server";
-import { getSupabaseAnonKey, getSupabasePublicUrl } from "@/utils/supabase/public-env";
+import { getSupabaseAnonKeyServer, getSupabaseUrlServer } from "@/utils/supabase/public-env";
 
 export async function middleware(request: NextRequest) {
   // API routes handle auth themselves; skipping avoids redirect-to-login HTML breaking fetch/json
@@ -14,8 +14,8 @@ export async function middleware(request: NextRequest) {
   let user: User | null = null;
   try {
     const supabase = createServerClient(
-      getSupabasePublicUrl(),
-      getSupabaseAnonKey(),
+      getSupabaseUrlServer(),
+      getSupabaseAnonKeyServer(),
       {
         cookies: {
           getAll() {

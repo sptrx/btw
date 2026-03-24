@@ -16,19 +16,19 @@ This app uses [**OpenNext**](https://opennext.js.org/cloudflare) to run Next.js 
 npm install
 ```
 
-## 2. Production environment (important for `NEXT_PUBLIC_*`)
+## 2. Production environment (Supabase)
 
-Next.js inlines `NEXT_PUBLIC_*` variables **at build time**. Set them **before** `npm run cf:build`:
+You can configure Supabase in either of these ways (or both):
 
-- Copy `env.example` → `.env.production` (or export vars in CI).
-- At minimum:
+1. **`NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY`** — inlined into the **client** bundle at **`cf:build`**. They must be present in **Workers Builds → Build variables** (or `.env.production` locally) when you build.
 
-```bash
-NEXT_PUBLIC_SUPABASE_URL=https://YOUR_PROJECT.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
-```
+2. **`SUPABASE_URL` and `SUPABASE_ANON_KEY`** — read at **runtime** on the Worker (set under **Worker → Settings → Variables**). They are **not** prefixed with `NEXT_PUBLIC_`, so they are not baked into the JS at build time; the root layout injects them into the page as `window.__BTW_SUPABASE__` so the **browser** can still create the Supabase client **without** rebuilding if you only had Worker vars wrong before.
 
-Add any other server-side secrets your app needs (`OPENROUTER_API_KEY`, R2 keys, etc.) the same way you use `.env.local` locally.
+If the browser console still says the URL/key is missing, set **`SUPABASE_URL`** and **`SUPABASE_ANON_KEY`** on the Worker (same values as in Supabase **Project → API**), redeploy, and hard-refresh. Optionally also keep **`NEXT_PUBLIC_*`** in Build variables so the client bundle matches.
+
+Copy `env.example` → `.env.production` for local `cf:build`, or export the same names in CI.
+
+Add any other server-side secrets (`OPENROUTER_API_KEY`, R2 keys, etc.) the same way you use `.env.local` locally.
 
 ## 3. Build for Cloudflare
 
@@ -49,17 +49,19 @@ npm run cf:deploy
 
 ## 5. Bind environment variables / secrets on the Worker
 
-Middleware and server code read Supabase settings from `process.env.NEXT_PUBLIC_SUPABASE_URL` and `process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY`. On Cloudflare Workers, those names must exist as **runtime** variables, and Workers must populate `process.env` (this repo’s `wrangler.jsonc` enables `nodejs_compat_populate_process_env` for that).
+Middleware and server code read Supabase from **`SUPABASE_URL` / `SUPABASE_ANON_KEY`** (preferred at runtime) or **`NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_ANON_KEY`**. On Cloudflare Workers, `process.env` must be populated (`wrangler.jsonc` enables `nodejs_compat_populate_process_env`).
 
 In the [Cloudflare dashboard](https://dash.cloudflare.com) → **Workers & Pages** → your worker (**btw**) → **Settings** → **Variables**:
 
-- **Required for Supabase:** `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` (same values as in Supabase **Project Settings → API**).
+- **Supabase (pick one style or use both):**
+  - **`SUPABASE_URL`** + **`SUPABASE_ANON_KEY`** — same values as Supabase **Project Settings → API** (Project URL and `anon` `public` key). Enough for server + middleware; the app injects them for the browser so the client works even if `NEXT_PUBLIC_*` was missing at build.
+  - **`NEXT_PUBLIC_SUPABASE_URL`** + **`NEXT_PUBLIC_SUPABASE_ANON_KEY`** — duplicate the same strings if you also want them inlined at **build** time (recommended together with Workers Builds → Build variables).
 - Add other **plain-text** vars needed at **runtime** (e.g. `OPENROUTER_API_KEY`, R2 credentials for server routes).
 - Use **Secrets** for sensitive values.
 
-Also add the same `NEXT_PUBLIC_*` values under **Workers Builds** → **Build variables and secrets** so `npm run cf:build` can inline them for the client bundle. If those are missing at build time, the browser throws `@supabase/ssr: Your project's URL and API key are required` because the client bundle was compiled without Supabase env.
+**Workers Builds → Build variables:** still set **`NEXT_PUBLIC_*`** if you want the client bundle to embed Supabase without relying on injection; otherwise **`SUPABASE_*` on the Worker** alone is sufficient after this app’s layout injection.
 
-`NEXT_PUBLIC_*` values must match between **build** and **runtime**; if you change them, **rebuild** (`cf:build`) and **redeploy**.
+If you change `NEXT_PUBLIC_*`, **rebuild** (`cf:build`) and **redeploy**.
 
 ### Variables disappearing after a deploy
 

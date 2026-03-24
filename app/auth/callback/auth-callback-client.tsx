@@ -42,7 +42,8 @@ export function AuthCallbackClient() {
     let cancelled = false;
 
     const params = new URLSearchParams(searchKey);
-    const next = params.get("next") ?? "/auth/reset-password";
+    // Password reset always passes next=/auth/reset-password; signup passes next=/auth/confirmed.
+    const next = params.get("next") ?? "/auth/login";
     const code = params.get("code");
     const token_hash = params.get("token_hash");
     const type = params.get("type") as EmailOtpType | null;

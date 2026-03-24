@@ -20,7 +20,8 @@ export function AuthListener() {
           pathname.startsWith("/auth/signup") ||
           pathname.startsWith("/auth/forgot-password") ||
           pathname === "/auth/callback" ||
-          pathname === "/auth/reset-password";
+          pathname === "/auth/reset-password" ||
+          pathname === "/auth/confirmed";
         if (!isAuthRoute) {
           const next = encodeURIComponent(pathname);
           window.location.href = `/auth/login?next=${next}`;

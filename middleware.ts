@@ -44,7 +44,8 @@ export async function middleware(request: NextRequest) {
     request.nextUrl.pathname.startsWith("/auth/login") ||
     request.nextUrl.pathname.startsWith("/auth/signup") ||
     request.nextUrl.pathname.startsWith("/auth/forgot-password") ||
-    request.nextUrl.pathname.startsWith("/auth/reset-password");
+    request.nextUrl.pathname.startsWith("/auth/reset-password") ||
+    request.nextUrl.pathname.startsWith("/auth/confirmed");
   const isAuthCallback = request.nextUrl.pathname === "/auth/callback";
   const path = request.nextUrl.pathname;
   const isChannelList = path === "/channel";
@@ -81,12 +82,13 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // Logged-in users shouldn't use login/signup/forgot-password, but /auth/reset-password must stay
-  // reachable: recovery links create a session first, then this page calls updateUser({ password }).
+  // Logged-in users shouldn't use login/signup/forgot-password, but /auth/reset-password and
+  // /auth/confirmed must stay reachable (recovery flow; email confirmation success message).
   if (
     user &&
     isAuthPage &&
-    !request.nextUrl.pathname.startsWith("/auth/reset-password")
+    !request.nextUrl.pathname.startsWith("/auth/reset-password") &&
+    !request.nextUrl.pathname.startsWith("/auth/confirmed")
   ) {
     return NextResponse.redirect(new URL("/channel", request.url));
   }

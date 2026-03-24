@@ -89,7 +89,7 @@ In [Supabase](https://supabase.com/dashboard) → **Authentication** → **URL C
   - `https://believetheworks.org/auth/callback`
   - `https://www.believetheworks.org/**` (if you use `www`)
 
-Email magic links and password reset use `/auth/callback`; they must match these allowlists.
+Email magic links, **signup confirmation**, and password reset use `/auth/callback` (with a `next=` query for where to go next, e.g. `/auth/confirmed`); allowlist patterns must cover your callback URL.
 
 The app sends `redirectTo: ${window.location.origin}/auth/callback?next=/auth/reset-password` when requesting a reset; **Redirect URLs** must include your production callback origin (`https://.../auth/callback` or a `/**` pattern). After changing **Site URL** or **Redirect URLs**, request a **new** reset email (old links keep old hosts).
 

@@ -22,10 +22,14 @@ export default function SignUpPage() {
 
     try {
       const supabase = createClient();
+      const origin = window.location.origin;
       const { error } = await supabase.auth.signUp({
         email,
         password,
-        options: { data: { full_name: fullName, role } },
+        options: {
+          data: { full_name: fullName, role },
+          emailRedirectTo: `${origin}/auth/callback?next=${encodeURIComponent("/auth/confirmed")}`,
+        },
       });
       if (error) throw error;
       setMessage("Check your email for the confirmation link.");

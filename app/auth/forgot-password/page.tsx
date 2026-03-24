@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { createClientForPasswordReset } from "@/utils/supabase/client";
+import { createImplicitRecoveryClient } from "@/utils/supabase/client";
 import { authInputClass, authPrimaryButtonClass } from "@/lib/auth-form-styles";
 
 export default function ForgotPasswordPage() {
@@ -17,10 +17,8 @@ export default function ForgotPasswordPage() {
     setLoading(true);
 
     try {
-      // Implicit flowType asks Supabase for token-in-hash redirects when possible; /auth/callback
-      // applies them with setSession (works even when the email opens in another app/browser).
-      // PKCE ?code= links still work when opened in the same browser session as this request.
-      const supabase = createClientForPasswordReset();
+      // Must use createImplicitRecoveryClient() — @supabase/ssr createBrowserClient forces PKCE.
+      const supabase = createImplicitRecoveryClient();
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: `${window.location.origin}/auth/callback?next=/auth/reset-password`,
       });

@@ -29,7 +29,18 @@ function isPkceVerifierError(message: string) {
     m.includes("code_verifier") ||
     m.includes("bad_code_verifier") ||
     m.includes("code_challenge") ||
-    m.includes("code challenge")
+    m.includes("code challenge") ||
+    m.includes("pkce")
+  );
+}
+
+function isExpiredLinkError(message: string) {
+  const m = message.toLowerCase();
+  return (
+    m.includes("expired") ||
+    m.includes("otp_expired") ||
+    m.includes("flow_state") ||
+    m.includes("already been used")
   );
 }
 
@@ -115,33 +126,43 @@ export function AuthCallbackClient() {
         return;
       }
 
-      // 3) PKCE: ?code= — exchange needs the code_verifier from the same storage used when the email was requested.
-      // @supabase/ssr createClient() uses cookie storage; createImplicitRecoveryClient() uses localStorage.
-      // Try both orders so "same browser" works whether the user used implicit email flows or browsed the app first.
+      // 3) PKCE: ?code= — code_verifier must match the storage used when the email was sent.
+      // createImplicitRecoveryClient() → localStorage (forgot-password + implicit signUp).
+      // createClient() (@supabase/ssr) → cookies (e.g. user browsed with the main app client first).
+      // Always try both: Supabase error text varies, and mail-app browsers often lack the cookie jar from sign-up.
       if (code) {
         const emailFlow =
           next.includes("/auth/reset-password") || next.includes("/auth/confirmed");
-        const primary = emailFlow ? createImplicitRecoveryClient() : createClient();
-        const secondary = emailFlow ? createClient() : createImplicitRecoveryClient();
+        const implicitFirst = emailFlow;
+        const first = implicitFirst ? createImplicitRecoveryClient() : createClient();
+        const second = implicitFirst ? createClient() : createImplicitRecoveryClient();
 
-        let { error } = await primary.auth.exchangeCodeForSession(code);
-        if (error && isPkceVerifierError(error.message)) {
-          const second = await secondary.auth.exchangeCodeForSession(code);
-          error = second.error;
+        let firstErr = (await first.auth.exchangeCodeForSession(code)).error;
+        if (!firstErr) {
+          redirectTo(next);
+          return;
         }
+        const secondErr = (await second.auth.exchangeCodeForSession(code)).error;
+
         if (cancelled) return;
-        if (error) {
-          if (isPkceVerifierError(error.message)) {
-            if (!cancelled) {
-              setPkceHintFlow(nextForPkceHint);
-              setStatus("pkce_hint");
-            }
-            return;
-          }
+        if (!secondErr) {
+          redirectTo(next);
+          return;
+        }
+
+        const msg = (firstErr?.message ?? "") + " " + (secondErr?.message ?? "");
+        if (isExpiredLinkError(msg)) {
           handleFatalError();
           return;
         }
-        redirectTo(next);
+        if (isPkceVerifierError(firstErr.message) || isPkceVerifierError(secondErr.message)) {
+          if (!cancelled) {
+            setPkceHintFlow(nextForPkceHint);
+            setStatus("pkce_hint");
+          }
+          return;
+        }
+        handleFatalError();
         return;
       }
 

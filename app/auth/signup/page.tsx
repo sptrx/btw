@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { createClient } from "@/utils/supabase/client";
+import { createImplicitRecoveryClient } from "@/utils/supabase/client";
 import { authInputClass, authPrimaryButtonClass } from "@/lib/auth-form-styles";
 
 export default function SignUpPage() {
@@ -22,8 +22,9 @@ export default function SignUpPage() {
     setLoading(true);
 
     try {
-      // Use createBrowserClient for signUp — same as Supabase Next.js docs; implicit client is for reset/confirm links only.
-      const supabase = createClient();
+      // Implicit client (localStorage) so PKCE email links match /auth/callback’s implicit exchange. createBrowserClient
+      // stores the verifier in cookies — often missing in mail-app webviews, so confirmation appears to “fail same browser”.
+      const supabase = createImplicitRecoveryClient();
       const origin = window.location.origin;
       const { data, error: signUpError } = await supabase.auth.signUp({
         email,

@@ -593,7 +593,7 @@ export async function createContent(channelId: string, pageId: string, formData:
     } catch {}
   }
 
-  await supabase.from("topic_content").insert({
+  const { error: insertErr } = await supabase.from("topic_content").insert({
     topic_id: channelId,
     page_id: pageId || null,
     author_id: user.id,
@@ -602,6 +602,11 @@ export async function createContent(channelId: string, pageId: string, formData:
     body,
     media_urls: mediaUrls,
   });
+
+  if (insertErr) {
+    console.error("[createContent] insert", insertErr);
+    return { error: insertErr.message };
+  }
 
   revalidatePath(`/channel/${channel.slug}`);
   redirect(`/channel/${channel.slug}`);

@@ -111,20 +111,35 @@ export async function moderateContent(text: string): Promise<ModerationResult> {
   const trimmed = text?.trim() || "";
   if (!trimmed) return { allowed: false, reason: "Content cannot be empty." };
 
-  // Priority: OpenRouter > Google AI > OpenAI
-  if (process.env.OPENROUTER_API_KEY) {
-    return moderateWithOpenRouter(trimmed);
-  }
-  if (process.env.GOOGLE_AI_API_KEY) {
-    return moderateWithGoogleAI(trimmed);
-  }
-  if (process.env.OPENAI_API_KEY) {
-    return moderateWithOpenAI(trimmed);
+  const hasProvider =
+    !!process.env.OPENROUTER_API_KEY ||
+    !!process.env.GOOGLE_AI_API_KEY ||
+    !!process.env.OPENAI_API_KEY;
+
+  // Do not throw — uncaught errors surface as a generic 500 on publish (e.g. Workers without AI env vars).
+  if (!hasProvider) {
+    console.warn(
+      "[moderation] No OPENROUTER_API_KEY, GOOGLE_AI_API_KEY, or OPENAI_API_KEY; skipping AI moderation."
+    );
+    return { allowed: true };
   }
 
-  throw new Error(
-    "No AI provider configured. Set OPENROUTER_API_KEY, GOOGLE_AI_API_KEY, or OPENAI_API_KEY."
-  );
+  try {
+    if (process.env.OPENROUTER_API_KEY) {
+      return await moderateWithOpenRouter(trimmed);
+    }
+    if (process.env.GOOGLE_AI_API_KEY) {
+      return await moderateWithGoogleAI(trimmed);
+    }
+    return await moderateWithOpenAI(trimmed);
+  } catch (e) {
+    console.error("[moderation]", e);
+    const msg = e instanceof Error ? e.message : "Unknown error";
+    return {
+      allowed: false,
+      reason: `Moderation check failed (${msg}). Try again in a moment.`,
+    };
+  }
 }
 
 /**

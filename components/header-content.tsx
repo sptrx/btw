@@ -11,6 +11,21 @@ import { cn } from "@/lib/utils";
 
 type Props = { user: User | null; isChannelAuthor?: boolean };
 
+function headerDisplayName(user: User): string {
+  const meta = user.user_metadata;
+  const full =
+    typeof meta?.full_name === "string" ? meta.full_name.trim() : "";
+  if (full) return full;
+  const name = typeof meta?.name === "string" ? meta.name.trim() : "";
+  if (name) return name;
+  const email = user.email?.trim();
+  if (email) {
+    const local = email.split("@")[0];
+    return local || email;
+  }
+  return "Account";
+}
+
 const navLinks = [
   { href: "/", label: "Home" },
   { href: "/channel", label: "Channels" },
@@ -20,6 +35,7 @@ const MOBILE_NAV_ID = "mobile-primary-nav";
 
 export function HeaderContent({ user, isChannelAuthor }: Props) {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const userLabel = user ? headerDisplayName(user) : null;
 
   const closeMobile = useCallback(() => setMobileOpen(false), []);
 
@@ -69,11 +85,19 @@ export function HeaderContent({ user, isChannelAuthor }: Props) {
         </nav>
 
         {/* Right: auth + theme */}
-        <div className="flex items-center gap-2">
+        <div className="flex min-w-0 items-center gap-2">
           <ThemeToggle />
-          <div className="hidden md:flex md:items-center md:gap-1">
+          <div className="hidden min-w-0 md:flex md:items-center md:gap-1">
             {user ? (
               <>
+                {userLabel !== null && (
+                  <span
+                    className="max-w-[11rem] truncate text-sm font-medium text-foreground"
+                    title={userLabel}
+                  >
+                    {userLabel}
+                  </span>
+                )}
                 {isChannelAuthor && (
                   <>
                     <Button variant="ghost" size="sm" asChild>
@@ -129,12 +153,20 @@ export function HeaderContent({ user, isChannelAuthor }: Props) {
         className={cn(
           "md:hidden",
           mobileOpen ? "block border-t border-header-border bg-muted/30 px-3 pb-3 pt-1 dark:border-border/40 dark:bg-background/95" : "hidden"
-        )}
-      >
-        <nav
-          className="container mx-auto flex max-w-6xl flex-col gap-0.5 rounded-xl border border-border bg-card p-2 shadow-md shadow-foreground/5 dark:shadow-black/20 pb-[max(0.5rem,env(safe-area-inset-bottom))]"
-          aria-label="Primary mobile"
+          )}
         >
+          <nav
+            className="container mx-auto flex max-w-6xl flex-col gap-0.5 rounded-xl border border-border bg-card p-2 shadow-md shadow-foreground/5 dark:shadow-black/20 pb-[max(0.5rem,env(safe-area-inset-bottom))]"
+            aria-label="Primary mobile"
+          >
+          {user && userLabel !== null && (
+            <p className="px-2 py-1.5 text-sm text-muted-foreground border-b border-border mb-0.5">
+              Signed in as{" "}
+              <span className="font-medium text-foreground" title={userLabel}>
+                {userLabel}
+              </span>
+            </p>
+          )}
           {navLinks.map((link) => (
             <Button
               key={link.href}

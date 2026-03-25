@@ -15,10 +15,15 @@ export default function SignUpPage() {
   const [success, setSuccess] = useState(false);
   /** true = confirmation email expected; false = already signed in (confirm email off) */
   const [awaitingEmail, setAwaitingEmail] = useState(true);
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    if (!acceptedTerms) {
+      setError("Please accept the terms and conditions to create an account.");
+      return;
+    }
     setLoading(true);
 
     try {
@@ -183,12 +188,30 @@ export default function SignUpPage() {
               </label>
             </div>
           </fieldset>
+          <div className="rounded-xl border border-border bg-muted/30 px-3 py-3">
+            <label className="flex cursor-pointer items-start gap-3 text-sm text-foreground">
+              <input
+                type="checkbox"
+                checked={acceptedTerms}
+                onChange={(e) => setAcceptedTerms(e.target.checked)}
+                className="mt-0.5 size-4 shrink-0 accent-primary rounded border-input"
+                aria-describedby="signup-terms-hint"
+              />
+              <span id="signup-terms-hint">
+                I agree to the{" "}
+                <Link href="/legal/terms" target="_blank" rel="noopener noreferrer" className="text-primary font-medium underline-offset-2 hover:underline">
+                  terms and conditions
+                </Link>
+                .
+              </span>
+            </label>
+          </div>
           {error && (
             <p id="signup-error" role="alert" className="text-destructive text-sm rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2">
               {error}
             </p>
           )}
-          <button type="submit" disabled={loading} className={authPrimaryButtonClass}>
+          <button type="submit" disabled={loading || !acceptedTerms} className={authPrimaryButtonClass}>
             {loading ? "Creating account..." : "Sign up"}
           </button>
         </form>

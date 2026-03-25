@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { updateContent } from "@/actions/channels";
 import { Button } from "@/components/ui/button";
 import { MediaUploadField, type MediaItem } from "@/components/media-upload-field";
+import { ContentSubmissionDisclaimer } from "@/components/content-submission-disclaimer";
 
 const CONTENT_TYPES = [
   { value: "video", label: "Video" },
@@ -38,6 +39,7 @@ export default function EditContentForm({ channelId, channelSlug, content, pages
     Array.isArray(initialMedia) ? initialMedia.filter((m) => m?.url) : []
   );
   const [pageId, setPageId] = useState(content.page_id ?? pages[0]?.id ?? "");
+  const [acceptedDisclaimer, setAcceptedDisclaimer] = useState(false);
   const router = useRouter();
 
   const addMedia = () => setMediaUrls([...mediaUrls, { url: "", type: "image" }]);
@@ -51,6 +53,10 @@ export default function EditContentForm({ channelId, channelSlug, content, pages
     <form
       action={async (formData) => {
         setError(null);
+        if (!acceptedDisclaimer) {
+          setError("Please read and accept the content disclaimer before saving.");
+          return;
+        }
         const targetPage = pageId || pages[0]?.id;
         if (!targetPage) {
           setError("Select a page first.");
@@ -169,6 +175,12 @@ export default function EditContentForm({ channelId, channelSlug, content, pages
         </div>
       </div>
 
+      <ContentSubmissionDisclaimer
+        id="edit-content-disclaimer"
+        checked={acceptedDisclaimer}
+        onCheckedChange={setAcceptedDisclaimer}
+      />
+
       {error && (
         <p className="text-destructive text-sm" role="alert">
           {error}
@@ -176,7 +188,7 @@ export default function EditContentForm({ channelId, channelSlug, content, pages
       )}
 
       <div className="flex flex-wrap gap-3">
-        <Button type="submit" className="min-h-11 touch-manipulation">
+        <Button type="submit" disabled={!acceptedDisclaimer} className="min-h-11 touch-manipulation">
           Save changes
         </Button>
         <Button

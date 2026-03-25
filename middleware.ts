@@ -66,12 +66,14 @@ export async function middleware(request: NextRequest) {
     path !== "/topics/new" &&
     !path.endsWith("/content/new");
   const isContentView = path.startsWith("/topics/content/");
+  const isLegalPage = path.startsWith("/legal/");
   const isPublic =
     path === "/" ||
     isPublicChannel ||
     isTopicsList ||
     isTopicChannel ||
-    isContentView;
+    isContentView ||
+    isLegalPage;
 
   if (isAuthCallback) return response;
 

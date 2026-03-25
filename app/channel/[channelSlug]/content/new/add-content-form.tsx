@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { createContent } from "@/actions/channels";
 import { Button } from "@/components/ui/button";
 import { MediaUploadField, type MediaItem } from "@/components/media-upload-field";
+import { ContentSubmissionDisclaimer } from "@/components/content-submission-disclaimer";
 
 const CONTENT_TYPES = [
   { value: "video", label: "Video" },
@@ -26,6 +27,7 @@ export default function AddContentForm({ channelId, channelSlug, pages, defaultP
   const [error, setError] = useState<string | null>(null);
   const [pageId, setPageId] = useState(defaultPageId ?? pages[0]?.id ?? "");
   const [mediaUrls, setMediaUrls] = useState<MediaItem[]>([]);
+  const [acceptedDisclaimer, setAcceptedDisclaimer] = useState(false);
   const router = useRouter();
 
   const addMedia = () => setMediaUrls([...mediaUrls, { url: "", type: "image" }]);
@@ -39,6 +41,10 @@ export default function AddContentForm({ channelId, channelSlug, pages, defaultP
     <form
       action={async (formData) => {
         setError(null);
+        if (!acceptedDisclaimer) {
+          setError("Please read and accept the content disclaimer before publishing.");
+          return;
+        }
         const targetPage = pageId || pages[0]?.id;
         if (!targetPage) {
           setError("Select a page first.");
@@ -154,6 +160,12 @@ export default function AddContentForm({ channelId, channelSlug, pages, defaultP
         </div>
       </div>
 
+      <ContentSubmissionDisclaimer
+        id="add-content-disclaimer"
+        checked={acceptedDisclaimer}
+        onCheckedChange={setAcceptedDisclaimer}
+      />
+
       {error && (
         <p className="text-destructive text-sm" role="alert">
           {error}
@@ -161,7 +173,7 @@ export default function AddContentForm({ channelId, channelSlug, pages, defaultP
       )}
 
       <div className="flex flex-wrap gap-3">
-        <Button type="submit" className="min-h-11 touch-manipulation">
+        <Button type="submit" disabled={!acceptedDisclaimer} className="min-h-11 touch-manipulation">
           Publish
         </Button>
         <Button

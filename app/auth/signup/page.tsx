@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { createImplicitRecoveryClient } from "@/utils/supabase/client";
+import { createClient } from "@/utils/supabase/client";
 import { authInputClass, authPrimaryButtonClass } from "@/lib/auth-form-styles";
 
 export default function SignUpPage() {
@@ -13,6 +13,8 @@ export default function SignUpPage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  /** true = confirmation email expected; false = already signed in (confirm email off) */
+  const [awaitingEmail, setAwaitingEmail] = useState(true);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -20,9 +22,10 @@ export default function SignUpPage() {
     setLoading(true);
 
     try {
-      const supabase = createImplicitRecoveryClient();
+      // Use createBrowserClient for signUp — same as Supabase Next.js docs; implicit client is for reset/confirm links only.
+      const supabase = createClient();
       const origin = window.location.origin;
-      const { error: signUpError } = await supabase.auth.signUp({
+      const { data, error: signUpError } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -31,6 +34,19 @@ export default function SignUpPage() {
         },
       });
       if (signUpError) throw signUpError;
+
+      // Duplicate email: Supabase returns 200 with user.identities === [] (no email sent; enumeration protection).
+      if (data.user?.identities?.length === 0) {
+        setError(
+          "This email is already registered. Try signing in, or use “Forgot password” if you don’t remember your password."
+        );
+        return;
+      }
+
+      // Email confirmation disabled in project → session returned immediately; no confirmation mail is sent.
+      if (data.session) {
+        setAwaitingEmail(false);
+      }
       setSuccess(true);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Failed to sign up");
@@ -49,12 +65,22 @@ export default function SignUpPage() {
           role="status"
           aria-live="polite"
         >
-          <h1 className="text-2xl font-semibold tracking-tight text-foreground">Check your email</h1>
-          <p className="text-foreground text-sm leading-relaxed">
-            We sent a confirmation link to <span className="font-medium">{email}</span>. Open it to verify your
-            account, then you can sign in.
-          </p>
-          <p className="text-muted-foreground text-sm">Didn&apos;t see it? Check your spam folder.</p>
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground">
+            {awaitingEmail ? "Check your email" : "Account ready"}
+          </h1>
+          {awaitingEmail ? (
+            <>
+              <p className="text-foreground text-sm leading-relaxed">
+                We sent a confirmation link to <span className="font-medium">{email}</span>. Open it to verify your
+                account, then you can sign in.
+              </p>
+              <p className="text-muted-foreground text-sm">Didn&apos;t see it? Check your spam folder.</p>
+            </>
+          ) : (
+            <p className="text-foreground text-sm leading-relaxed">
+              Your account is active (email confirmation is off for this project). You can sign in now.
+            </p>
+          )}
           <Link
             href="/auth/login"
             className={authPrimaryButtonClass + " inline-block w-full text-center no-underline"}

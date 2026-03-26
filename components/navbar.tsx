@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { User } from "@supabase/supabase-js";
+import type { User } from "@supabase/supabase-js";
 import { signOut } from "@/actions";
 
 type Props = { user: User | null };

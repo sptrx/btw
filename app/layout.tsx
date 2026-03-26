@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Inter } from "next/font/google";
+import { Inter, Playfair_Display } from "next/font/google";
 import Script from "next/script";
 import Header from "@/components/header";
 import { ThemeProvider } from "@/components/theme-provider";
@@ -17,6 +17,13 @@ const inter = Inter({
   variable: "--font-sans",
   display: "swap",
   preload: true,
+  adjustFontFallback: true,
+});
+
+const playfair = Playfair_Display({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-landing-display",
   adjustFontFallback: true,
 });
 
@@ -47,7 +54,11 @@ export default function RootLayout({
   const supabaseInline = getSupabaseInlineConfig();
 
   return (
-    <html lang="en" className={cn("font-sans", inter.variable)} suppressHydrationWarning>
+    <html
+      lang="en"
+      className={cn("font-sans", inter.variable, playfair.variable)}
+      suppressHydrationWarning
+    >
       <body
         className={cn(inter.className, "min-h-dvh pb-[env(safe-area-inset-bottom)]")}
         suppressHydrationWarning

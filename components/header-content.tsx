@@ -174,7 +174,7 @@ export function HeaderContent({ user, isChannelAuthor }: Props) {
                 <Button variant="ghost" size="sm" asChild className={ghostOnHero}>
                   <Link href="/auth/login">Sign in</Link>
                 </Button>
-                <Button size="sm" asChild className={onHero ? "bg-white text-primary hover:bg-white/90" : undefined}>
+                <Button size="sm" asChild>
                   <Link href="/auth/signup">Sign up</Link>
                 </Button>
               </>

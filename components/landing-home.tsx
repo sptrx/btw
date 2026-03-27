@@ -118,7 +118,7 @@ export function LandingHome({ displayFontClassName, featured, intro }: LandingHo
               <Button
                 asChild
                 size="lg"
-                className="min-h-10 sm:min-h-11 rounded-full px-6 sm:px-8 text-sm sm:text-base bg-white text-foreground hover:bg-white/90"
+                className="min-h-10 sm:min-h-11 rounded-full px-6 sm:px-8 text-sm sm:text-base bg-white text-neutral-950 hover:bg-white/90 hover:text-neutral-950"
               >
                 <Link href="/auth/signup">
                   Get started

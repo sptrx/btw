@@ -24,7 +24,7 @@ const FEATURED = [
   {
     title: "Voices of hope",
     subtitle: "Stories from the community",
-    href: "/channel",
+    href: "/channel/browse",
     image:
       "https://images.unsplash.com/photo-1507692043040-9e896755c0ff?auto=format&fit=crop&w=900&q=80",
     accent: "from-amber-900/80 to-stone-900/90",
@@ -32,7 +32,7 @@ const FEATURED = [
   {
     title: "Scripture & study",
     subtitle: "Articles and reflections",
-    href: "/channel",
+    href: "/channel/browse",
     image:
       "https://images.unsplash.com/photo-1504052434569-70ad5836ab65?auto=format&fit=crop&w=900&q=80",
     accent: "from-indigo-950/85 to-slate-950/90",
@@ -40,7 +40,7 @@ const FEATURED = [
   {
     title: "Worship & word",
     subtitle: "Video and audio",
-    href: "/channel",
+    href: "/channel/browse",
     image:
       "https://images.unsplash.com/photo-1519834785169-43387729b212?auto=format&fit=crop&w=900&q=80",
     accent: "from-rose-950/80 to-neutral-950/90",
@@ -131,7 +131,7 @@ export function LandingHome({ displayFontClassName, featured, intro }: LandingHo
                 variant="outline"
                 className="min-h-10 sm:min-h-11 rounded-full px-6 sm:px-8 text-sm sm:text-base border-white/40 bg-white/10 text-white backdrop-blur-sm hover:bg-white/20 hover:text-white"
               >
-                <Link href="/channel">
+                <Link href="/channel/browse">
                   <Play className="mr-2 h-4 w-4 fill-current" aria-hidden />
                   Browse channels
                 </Link>
@@ -151,7 +151,7 @@ export function LandingHome({ displayFontClassName, featured, intro }: LandingHo
             Featured
           </h2>
           <Link
-            href="/channel"
+            href="/channel/browse"
             className="text-sm font-medium text-primary hover:underline underline-offset-4 inline-flex items-center gap-1"
           >
             View all

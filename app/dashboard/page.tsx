@@ -20,7 +20,7 @@ export default async function Dashboard() {
         Welcome back, {user.email?.split("@")[0] ?? "there"}.
       </p>
       <div className="space-y-3">
-        <Link href="/channel" className="btw-app-row font-medium">
+        <Link href="/channel/browse" className="btw-app-row font-medium">
           Browse channels
         </Link>
         <Link href="/channel/new" className="btw-app-row font-medium">

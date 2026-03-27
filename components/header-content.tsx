@@ -29,7 +29,7 @@ function headerDisplayName(user: User): string {
 
 const navLinks = [
   { href: "/", label: "Home" },
-  { href: "/channel", label: "Channels" },
+  { href: "/channel/browse", label: "Channels" },
 ];
 
 const MOBILE_NAV_ID = "mobile-primary-nav";
@@ -137,7 +137,7 @@ export function HeaderContent({ user, isChannelAuthor }: Props) {
                 {isChannelAuthor && (
                   <>
                     <Button variant="ghost" size="sm" asChild className={ghostOnHero}>
-                      <Link href="/channel/my">My Channels</Link>
+                      <Link href="/channel">My channels</Link>
                     </Button>
                     <Button
                       size="sm"
@@ -239,7 +239,7 @@ export function HeaderContent({ user, isChannelAuthor }: Props) {
               {isChannelAuthor && (
                 <>
                   <Button variant="ghost" className="h-11 justify-start rounded-lg" asChild onClick={() => setMobileOpen(false)}>
-                    <Link href="/channel/my">My Channels</Link>
+                    <Link href="/channel">My channels</Link>
                   </Button>
                   <Button className="h-11 justify-start rounded-lg" asChild onClick={() => setMobileOpen(false)}>
                     <Link href="/channel/new">Create Channel</Link>

@@ -28,7 +28,7 @@ export default function DashboardLayout({
           </li>
           <li>
             <Link
-              href="/channel"
+              href="/channel/browse"
               className="block rounded-lg px-3 py-2 text-muted-foreground no-underline motion-safe:transition-colors motion-safe:hover:bg-muted motion-safe:hover:text-foreground"
             >
               Browse channels

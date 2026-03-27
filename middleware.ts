@@ -92,7 +92,7 @@ export async function middleware(request: NextRequest) {
     !request.nextUrl.pathname.startsWith("/auth/reset-password") &&
     !request.nextUrl.pathname.startsWith("/auth/confirmed")
   ) {
-    return NextResponse.redirect(new URL("/channel", request.url));
+    return NextResponse.redirect(new URL("/channel/browse", request.url));
   }
 
   return response;

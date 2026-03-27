@@ -27,6 +27,7 @@ function slugify(text: string): string {
 const RESERVED_CHANNEL_SLUGS = new Set([
   "new",
   "my",
+  "browse",
   "api",
   "_next",
 ]);
@@ -125,10 +126,16 @@ export async function createChannel(formData: FormData) {
   });
 
   revalidatePath("/channel");
+  revalidatePath("/channel/browse");
   redirect(`/channel/${slug}`);
 }
 
-export async function fetchChannels() {
+export type FetchChannelsOptions = {
+  /** Case-insensitive match on title or description (filtered in memory after fetch). */
+  search?: string | null;
+};
+
+export async function fetchChannels(options?: FetchChannelsOptions) {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("topics")
@@ -136,7 +143,15 @@ export async function fetchChannels() {
     .order("created_at", { ascending: false });
 
   if (error) return [];
-  const channels = data ?? [];
+  let channels = data ?? [];
+  const q = options?.search?.trim().toLowerCase();
+  if (q) {
+    channels = channels.filter(
+      (c) =>
+        (c.title && c.title.toLowerCase().includes(q)) ||
+        (c.description && c.description.toLowerCase().includes(q))
+    );
+  }
   const withProfiles = await Promise.all(
     channels.map(async (c) => {
       const profile = await getProfile(c.author_id);
@@ -146,7 +161,7 @@ export async function fetchChannels() {
   return withProfiles;
 }
 
-/** Channels owned by the signed-in user (for /channel/my) */
+/** Channels owned by the signed-in user (for /channel hub) */
 export async function fetchMyChannels() {
   const supabase = await createClient();
   const {
@@ -226,6 +241,7 @@ export async function updateChannel(formData: FormData) {
   if (upErr) return { error: upErr.message };
 
   revalidatePath("/channel");
+  revalidatePath("/channel/browse");
   revalidatePath("/channel/my");
   revalidatePath(`/channel/${row.slug}`);
   revalidatePath(`/channel/${nextSlug}`);
@@ -255,9 +271,10 @@ export async function deleteChannel(formData: FormData) {
   if (delErr) return { error: delErr.message };
 
   revalidatePath("/channel");
+  revalidatePath("/channel/browse");
   revalidatePath("/channel/my");
   revalidatePath(`/channel/${row.slug}`);
-  redirect("/channel/my?deleted=1");
+  redirect("/channel?deleted=1");
 }
 
 export async function getChannelBySlug(slug: string) {
@@ -774,6 +791,7 @@ export async function addComment(contentId: string, body: string) {
     body: body.trim(),
   });
   revalidatePath(`/channel`);
+  revalidatePath("/channel/browse");
   return { success: true };
 }
 
@@ -804,6 +822,7 @@ export async function addFeedback(contentId: string, type: "like" | "helpful") {
     { onConflict: "topic_content_id,user_id,type" }
   );
   revalidatePath(`/channel`);
+  revalidatePath("/channel/browse");
   return { success: true };
 }
 
@@ -815,6 +834,7 @@ export async function removeFeedback(contentId: string, type: "like" | "helpful"
   await supabase.from("topic_content_feedback").delete()
     .eq("topic_content_id", contentId).eq("user_id", user.id).eq("type", type);
   revalidatePath(`/channel`);
+  revalidatePath("/channel/browse");
   return { success: true };
 }
 
@@ -829,6 +849,7 @@ export async function shareContent(contentId: string) {
     user_id: user.id,
   });
   revalidatePath(`/channel`);
+  revalidatePath("/channel/browse");
   return { success: true };
 }
 

@@ -64,7 +64,7 @@ export default function ContentDisclaimerPage() {
           Terms and conditions
         </Link>
         {" · "}
-        <Link href="/channel" className="text-muted-foreground hover:underline">
+        <Link href="/channel/browse" className="text-muted-foreground hover:underline">
           Channels
         </Link>
         {" · "}

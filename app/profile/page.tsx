@@ -24,37 +24,31 @@ export default async function Profile() {
 
   return (
     <div>
-      <div className="border rounded-lg p-6 mb-6">
-        <h1 className="text-2xl font-bold">
+      <p className="btw-section-eyebrow">Account</p>
+      <div className="btw-content-panel mb-8">
+        <h1 className="btw-page-title text-xl sm:text-2xl">
           {profile?.display_name ?? user.email?.split("@")[0] ?? "Anonymous"}
         </h1>
-        {profile?.bio && (
-          <p className="mt-2 text-gray-600 dark:text-gray-400">{profile.bio}</p>
-        )}
+        {profile?.bio && <p className="mt-3 text-sm text-muted-foreground leading-relaxed">{profile.bio}</p>}
         <Link
           href="/dashboard/settings"
-          className="mt-4 inline-block text-indigo-600 hover:underline"
+          className="mt-5 inline-flex text-sm font-medium text-primary underline-offset-4 hover:underline"
         >
           Edit profile
         </Link>
       </div>
 
-      <h2 className="text-lg font-semibold mb-3">Your posts</h2>
+      <h2 className="mb-4 text-lg font-semibold tracking-tight">Your posts</h2>
       <div className="space-y-3">
         {posts?.map((post) => (
-          <Link
-            key={post.id}
-            href={`/posts/${post.id}`}
-            className="block border rounded-lg p-4 hover:bg-gray-50 dark:hover:bg-gray-800"
-          >
-            <div className="text-sm text-gray-500 mb-1">
+          <Link key={post.id} href={`/posts/${post.id}`} className="btw-app-row">
+            <div className="mb-1 text-xs text-muted-foreground">
               {new Date(post.created_at).toLocaleDateString()}
             </div>
-            <div>{post.text}</div>
+            <div className="text-sm">{post.text}</div>
           </Link>
         ))}
       </div>
     </div>
   );
 }
-  

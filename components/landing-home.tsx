@@ -3,6 +3,8 @@ import Link from "next/link";
 import { ArrowRight, Play } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import type { LandingFeaturedCard, LandingIntroCopy } from "@/actions/landing";
+import { FeaturedChannelCarousel } from "@/components/featured-channel-carousel";
 
 /** Break out of layout `main` container to full viewport width */
 function FullBleed({ className, children }: { className?: string; children: React.ReactNode }) {
@@ -54,17 +56,34 @@ const EXPLORE = [
   { title: "Testimonies", tag: "Stories", tone: "bg-orange-950/40" },
 ] as const;
 
-type LandingHomeProps = {
-  displayFontClassName: string;
+const DEFAULT_INTRO: LandingIntroCopy = {
+  headline: "A calm place to discover, share, and grow—moderated for safety, designed for depth.",
+  body: "Featured channels can be curated in the database. Run the latest Supabase migration, then add rows to site_home_featured and edit site_home_copy—or sync these tables from your CMS.",
 };
 
-export function LandingHome({ displayFontClassName }: LandingHomeProps) {
+type LandingHomeProps = {
+  displayFontClassName: string;
+  /** From DB / CMS; if empty, mock FEATURED is used */
+  featured?: LandingFeaturedCard[];
+  /** From site_home_copy; if null, DEFAULT_INTRO is used */
+  intro?: LandingIntroCopy | null;
+};
+
+export function LandingHome({ displayFontClassName, featured, intro }: LandingHomeProps) {
+  const featuredCards = featured && featured.length > 0 ? featured : [...FEATURED];
+  const introCopy =
+    intro && (intro.headline || intro.body)
+      ? {
+          headline: intro.headline || DEFAULT_INTRO.headline,
+          body: intro.body || "",
+        }
+      : DEFAULT_INTRO;
   return (
     <article className="-mt-6 sm:-mt-10">
-      {/* Hero — immersive, museum-like */}
+      {/* Hero — compact band so featured channels sit high on the page */}
       <FullBleed>
         <section
-          className="relative min-h-[min(88vh,52rem)] flex flex-col justify-end"
+          className="relative min-h-0 md:min-h-[min(38vh,22rem)] flex flex-col justify-end"
           aria-labelledby="landing-hero-heading"
         >
           <Image
@@ -73,33 +92,33 @@ export function LandingHome({ displayFontClassName }: LandingHomeProps) {
             fill
             priority
             sizes="100vw"
-            className="object-cover"
+            className="object-cover max-md:object-[50%_35%]"
           />
           <div
-            className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/45 to-black/25"
+            className="absolute inset-0 bg-gradient-to-t from-black/88 via-black/50 to-black/30"
             aria-hidden
           />
-          <div className="relative z-10 container mx-auto max-w-6xl px-4 sm:px-5 pb-16 sm:pb-20 md:pb-24 pt-32">
-            <p className="text-white/80 text-xs sm:text-sm font-medium tracking-[0.2em] uppercase mb-3">
+          <div className="relative z-10 container mx-auto max-w-6xl px-4 sm:px-5 pt-14 pb-6 sm:pt-16 sm:pb-8 md:pt-20 md:pb-9">
+            <p className="text-white/80 text-[10px] sm:text-xs font-medium tracking-[0.18em] uppercase mb-1.5 sm:mb-2">
               Believe The Works
             </p>
             <h1
               id="landing-hero-heading"
               className={cn(
                 displayFontClassName,
-                "text-white text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-normal tracking-tight max-w-4xl leading-[1.08] text-balance"
+                "text-white text-2xl sm:text-3xl md:text-4xl lg:text-[2.75rem] font-normal tracking-tight max-w-3xl leading-[1.12] text-balance"
               )}
             >
               Testify boldly in a space guarded by grace
             </h1>
-            <p className="mt-5 text-lg sm:text-xl text-white/85 max-w-2xl leading-relaxed text-pretty">
+            <p className="mt-2 sm:mt-3 text-sm sm:text-base text-white/85 max-w-xl leading-snug text-pretty line-clamp-2 sm:line-clamp-none">
               Explore channels of video, podcasts, articles, and discussion—built for encouragement and faith.
             </p>
-            <div className="mt-8 flex flex-col sm:flex-row gap-3 sm:items-center">
+            <div className="mt-4 sm:mt-5 flex flex-col sm:flex-row gap-2 sm:gap-3 sm:items-center">
               <Button
                 asChild
                 size="lg"
-                className="min-h-12 rounded-full px-8 bg-white text-foreground hover:bg-white/90"
+                className="min-h-10 sm:min-h-11 rounded-full px-6 sm:px-8 text-sm sm:text-base bg-white text-foreground hover:bg-white/90"
               >
                 <Link href="/auth/signup">
                   Get started
@@ -110,7 +129,7 @@ export function LandingHome({ displayFontClassName }: LandingHomeProps) {
                 asChild
                 size="lg"
                 variant="outline"
-                className="min-h-12 rounded-full px-8 border-white/40 bg-white/10 text-white backdrop-blur-sm hover:bg-white/20 hover:text-white"
+                className="min-h-10 sm:min-h-11 rounded-full px-6 sm:px-8 text-sm sm:text-base border-white/40 bg-white/10 text-white backdrop-blur-sm hover:bg-white/20 hover:text-white"
               >
                 <Link href="/channel">
                   <Play className="mr-2 h-4 w-4 fill-current" aria-hidden />
@@ -122,21 +141,9 @@ export function LandingHome({ displayFontClassName }: LandingHomeProps) {
         </section>
       </FullBleed>
 
-      {/* Intro strip */}
-      <section className="py-14 sm:py-18 md:py-20 border-b border-border/60">
-        <div className="max-w-3xl">
-          <p className={cn(displayFontClassName, "text-2xl sm:text-3xl md:text-4xl text-foreground leading-snug text-pretty")}>
-            A calm place to discover, share, and grow—moderated for safety, designed for depth.
-          </p>
-          <p className="mt-6 text-muted-foreground text-base sm:text-lg leading-relaxed">
-            Mock layout: replace this strip with featured channels or editorial copy from your CMS later.
-          </p>
-        </div>
-      </section>
-
-      {/* Featured large cards */}
-      <section className="py-14 sm:py-16 md:py-20" aria-labelledby="landing-featured-heading">
-        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-10 md:mb-12">
+      {/* Featured large cards — directly under hero */}
+      <section className="pt-6 pb-10 sm:pt-8 sm:pb-12 md:pt-10 md:pb-14" aria-labelledby="landing-featured-heading">
+        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 sm:gap-4 mb-6 md:mb-8">
           <h2
             id="landing-featured-heading"
             className={cn(displayFontClassName, "text-3xl sm:text-4xl font-normal text-foreground")}
@@ -151,39 +158,18 @@ export function LandingHome({ displayFontClassName }: LandingHomeProps) {
             <ArrowRight className="h-4 w-4" aria-hidden />
           </Link>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-5">
-          {FEATURED.map((item) => (
-            <Link
-              key={item.title}
-              href={item.href}
-              className="group relative aspect-[3/4] md:aspect-[4/5] overflow-hidden rounded-2xl border border-border/50 bg-muted shadow-sm transition-transform duration-300 motion-safe:hover:-translate-y-1 motion-safe:hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-            >
-              <Image
-                src={item.image}
-                alt=""
-                fill
-                sizes="(max-width: 768px) 100vw, 33vw"
-                className="object-cover transition-transform duration-700 motion-safe:group-hover:scale-105"
-              />
-              <div
-                className={cn(
-                  "absolute inset-0 bg-gradient-to-t opacity-90",
-                  item.accent
-                )}
-                aria-hidden
-              />
-              <div className="absolute inset-0 flex flex-col justify-end p-6 sm:p-7 text-white">
-                <p className="text-xs font-medium tracking-wider uppercase text-white/70">{item.subtitle}</p>
-                <p className={cn(displayFontClassName, "mt-2 text-2xl sm:text-3xl font-normal leading-tight")}>
-                  {item.title}
-                </p>
-                <span className="mt-4 inline-flex items-center text-sm font-medium opacity-0 translate-y-2 transition-all duration-300 group-hover:opacity-100 group-hover:translate-y-0 motion-reduce:opacity-100 motion-reduce:translate-y-0">
-                  Open
-                  <ArrowRight className="ml-1 h-4 w-4" aria-hidden />
-                </span>
-              </div>
-            </Link>
-          ))}
+        <FeaturedChannelCarousel items={featuredCards} displayFontClassName={displayFontClassName} />
+      </section>
+
+      {/* Intro strip — below featured so cards stay above the fold */}
+      <section className="py-8 sm:py-10 md:py-12 border-b border-border/60">
+        <div className="max-w-3xl">
+          <p className={cn(displayFontClassName, "text-xl sm:text-2xl md:text-3xl text-foreground leading-snug text-pretty")}>
+            {introCopy.headline}
+          </p>
+          {introCopy.body ? (
+            <p className="mt-4 sm:mt-5 text-muted-foreground text-sm sm:text-base leading-relaxed">{introCopy.body}</p>
+          ) : null}
         </div>
       </section>
 
@@ -200,7 +186,7 @@ export function LandingHome({ displayFontClassName }: LandingHomeProps) {
               <div
                 key={item.title}
                 className={cn(
-                  "relative overflow-hidden rounded-2xl border border-border/60 bg-card p-6 min-h-[9.5rem] flex flex-col justify-between transition-shadow motion-safe:hover:shadow-md",
+                  "relative flex min-h-[9.5rem] flex-col justify-between overflow-hidden btw-surface btw-surface-lift p-6",
                   item.tone
                 )}
               >

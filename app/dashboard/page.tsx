@@ -13,34 +13,23 @@ export default async function Dashboard() {
   if (!user) redirect("/auth/login");
 
   return (
-    <div className="px-4">
-      <h1 className="text-2xl font-bold tracking-tight mb-4">Dashboard</h1>
-      <p className="text-muted-foreground mb-6">
+    <div>
+      <p className="btw-section-eyebrow">Account</p>
+      <h1 className="btw-page-title">Dashboard</h1>
+      <p className="mb-8 mt-2 text-muted-foreground">
         Welcome back, {user.email?.split("@")[0] ?? "there"}.
       </p>
       <div className="space-y-3">
-        <Link
-          href="/channel"
-          className="block p-4 border border-border rounded-xl hover:bg-muted/50 transition-colors"
-        >
-          Browse Channels
+        <Link href="/channel" className="btw-app-row font-medium">
+          Browse channels
         </Link>
-        <Link
-          href="/channel/new"
-          className="block p-4 border border-border rounded-xl hover:bg-muted/50 transition-colors"
-        >
+        <Link href="/channel/new" className="btw-app-row font-medium">
           Create a channel
         </Link>
-        <Link
-          href="/profile"
-          className="block p-4 border border-border rounded-xl hover:bg-muted/50 transition-colors"
-        >
+        <Link href="/profile" className="btw-app-row font-medium">
           View your profile
         </Link>
-        <Link
-          href="/dashboard/settings"
-          className="block p-4 border border-border rounded-xl hover:bg-muted/50 transition-colors"
-        >
+        <Link href="/dashboard/settings" className="btw-app-row font-medium">
           Settings
         </Link>
       </div>

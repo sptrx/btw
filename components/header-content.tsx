@@ -212,7 +212,7 @@ export function HeaderContent({ user, isChannelAuthor }: Props) {
         )}
       >
           <nav
-            className="container mx-auto flex max-w-6xl flex-col gap-0.5 rounded-xl border border-border bg-card p-2 shadow-md shadow-foreground/5 dark:shadow-black/20 pb-[max(0.5rem,env(safe-area-inset-bottom))]"
+            className="container mx-auto flex max-w-6xl flex-col gap-0.5 btw-surface p-2 shadow-md shadow-foreground/5 dark:shadow-black/25 pb-[max(0.5rem,env(safe-area-inset-bottom))]"
             aria-label="Primary mobile"
           >
           {user && userLabel !== null && (

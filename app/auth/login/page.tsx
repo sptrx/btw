@@ -43,7 +43,7 @@ function LoginForm() {
 
   return (
     <div className="max-w-md mx-auto mt-12 sm:mt-20">
-      <div className="rounded-2xl border border-border/60 bg-card/95 backdrop-blur-sm p-6 shadow-sm sm:p-8">
+      <div className="btw-auth-panel">
         <h1 className="text-2xl font-semibold tracking-tight mb-1">Sign in</h1>
         <p className="text-muted-foreground text-sm mb-6">
           A safe space for faith, encouragement, and community.
@@ -126,7 +126,7 @@ export default function LoginPage() {
     <Suspense
       fallback={
         <div className="max-w-md mx-auto mt-12 sm:mt-20">
-          <div className="rounded-2xl border border-border/60 bg-card/95 p-6 shadow-sm sm:p-8">
+          <div className="btw-auth-panel">
             <div className="h-8 w-40 rounded-md bg-muted animate-pulse mb-2" />
             <div className="h-4 w-full max-w-sm rounded bg-muted/80 animate-pulse mb-6" />
             <div className="h-11 w-full rounded-xl bg-muted animate-pulse mb-4" />

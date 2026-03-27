@@ -15,10 +15,11 @@ export default async function ChannelsPage() {
 
   return (
     <div>
-      <div className="flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-start mb-6">
+      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0">
-          <h1 className="text-xl font-bold tracking-tight sm:text-2xl">Channels</h1>
-          <p className="text-muted-foreground mt-1 text-pretty text-sm sm:text-base">
+          <p className="btw-section-eyebrow">Community</p>
+          <h1 className="btw-page-title">Channels</h1>
+          <p className="mt-2 text-pretty text-sm text-muted-foreground sm:text-base">
             Explore channels with videos, podcasts, articles, and discussions. Sign up to leave feedback and comments.
           </p>
         </div>

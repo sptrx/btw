@@ -54,7 +54,7 @@ export default function ResetPasswordPage() {
 
   return (
     <div className="max-w-md mx-auto mt-12 sm:mt-20">
-      <div className="rounded-2xl border border-border/60 bg-card/95 backdrop-blur-sm p-6 shadow-sm sm:p-8">
+      <div className="btw-auth-panel">
         <h1 className="text-2xl font-semibold tracking-tight mb-1">Set new password</h1>
         <p className="text-muted-foreground text-sm mb-6">
           Enter your new password below.

@@ -30,13 +30,6 @@ function formatSavedAt(iso: string | null | undefined) {
   }
 }
 
-const typeLabels: Record<string, string> = {
-  video: "Video",
-  podcast: "Podcast",
-  article: "Article",
-  discussion: "Discussion",
-};
-
 export default function EditPageForm({ channelId, channelSlug, page, pageContent }: Props) {
   const isHome = page.slug === "home";
 
@@ -80,10 +73,7 @@ export default function EditPageForm({ channelId, channelSlug, page, pageContent
                 className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between rounded-xl border border-border bg-background/90 p-4"
               >
                 <div className="min-w-0">
-                  <span className="text-xs px-2 py-0.5 rounded-md bg-secondary text-secondary-foreground">
-                    {typeLabels[item.type] ?? item.type}
-                  </span>
-                  <p className="font-medium mt-2 truncate">{item.title}</p>
+                  <p className="font-medium truncate">{item.title}</p>
                   {item.body && (
                     <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{item.body}</p>
                   )}

@@ -30,19 +30,12 @@ export default async function ChannelSubPage({ params }: Props) {
     isChannelAuthor(channel.id),
   ]);
 
-  const typeLabels: Record<string, string> = {
-    video: "Video",
-    podcast: "Podcast",
-    article: "Article",
-    discussion: "Discussion",
-  };
-
   return (
     <div>
-      <div className="border border-border rounded-2xl p-4 sm:p-6 mb-6 bg-card">
+      <div className="btw-content-panel mb-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div className="min-w-0 space-y-2">
-            <h1 className="text-xl font-bold tracking-tight sm:text-2xl">{page.title}</h1>
+            <h1 className="btw-page-title text-xl sm:text-2xl">{page.title}</h1>
             {page.description && (
               <p className="text-sm text-muted-foreground whitespace-pre-wrap">{page.description}</p>
             )}
@@ -70,12 +63,9 @@ export default async function ChannelSubPage({ params }: Props) {
           <Link
             key={item.id}
             href={`/channel/${channelSlug}/content/${item.id}`}
-            className="block border border-border rounded-xl p-4 hover:bg-muted/50 transition-colors"
+            className="btw-app-row"
           >
-            <span className="text-xs px-2 py-0.5 rounded-md bg-secondary text-secondary-foreground">
-              {typeLabels[item.type] ?? item.type}
-            </span>
-            <h3 className="font-medium mt-2">{item.title}</h3>
+            <h3 className="font-medium">{item.title}</h3>
             {item.body && (
               <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
                 {item.body}
@@ -87,7 +77,7 @@ export default async function ChannelSubPage({ params }: Props) {
 
       {isAuthor && (
         <section
-          className="mt-8 rounded-xl border-2 border-primary/25 bg-primary/5 p-6 shadow-sm"
+          className="btw-callout-section"
           aria-labelledby="channel-subpage-add-content-heading"
         >
           <h2 id="channel-subpage-add-content-heading" className="text-lg font-semibold mb-2">

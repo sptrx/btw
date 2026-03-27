@@ -5,6 +5,7 @@ import { fetchMyChannels } from "@/actions/channels";
 import { getCurrentUser, getProfile } from "@/actions";
 import { MyChannelCardGrid } from "@/components/my-channel-card-grid";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = {
   title: "My channels",
@@ -24,8 +25,9 @@ export default async function MyChannelsPage({ searchParams }: PageProps) {
   if (profile?.role !== "channel_author") {
     return (
       <div className="space-y-4">
-        <h1 className="text-xl font-bold tracking-tight sm:text-2xl">My channels</h1>
-        <p className="text-muted-foreground text-sm sm:text-base text-pretty">
+        <p className="btw-section-eyebrow">Channels</p>
+        <h1 className="btw-page-title text-xl sm:text-2xl">My channels</h1>
+        <p className="text-pretty text-sm text-muted-foreground sm:text-base">
           Only channel authors can manage channels. Your account is set up as a regular user.
         </p>
         <Button asChild variant="outline" className="min-h-11 touch-manipulation">
@@ -44,10 +46,11 @@ export default async function MyChannelsPage({ searchParams }: PageProps) {
           Channel removed.
         </p>
       )}
-      <div className="flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-start mb-6">
+      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0">
-          <h1 className="text-xl font-bold tracking-tight sm:text-2xl">My channels</h1>
-          <p className="text-muted-foreground mt-1 text-pretty text-sm sm:text-base">
+          <p className="btw-section-eyebrow">Channels</p>
+          <h1 className="btw-page-title text-xl sm:text-2xl">My channels</h1>
+          <p className="mt-2 text-pretty text-sm text-muted-foreground sm:text-base">
             Create pages and content for channels you own.
           </p>
         </div>
@@ -57,7 +60,7 @@ export default async function MyChannelsPage({ searchParams }: PageProps) {
       </div>
 
       {channels.length === 0 ? (
-        <div className="rounded-xl border border-border bg-card p-8 text-center">
+        <div className={cn("btw-surface p-8 text-center")}>
           <p className="text-muted-foreground mb-4">You don&apos;t have any channels yet.</p>
           <Button asChild className="min-h-11 touch-manipulation">
             <Link href="/channel/new">Create your first channel</Link>

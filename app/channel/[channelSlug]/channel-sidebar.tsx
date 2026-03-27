@@ -62,7 +62,7 @@ export default function ChannelSidebar({
 
   return (
     <aside className="w-full shrink-0 lg:w-64 lg:sticky lg:top-20 lg:self-start">
-      <div className="border border-border rounded-2xl bg-card p-4 shadow-sm">
+      <div className="btw-content-panel">
         <Link href={base} className="block">
           <h1 className="text-lg font-bold tracking-tight leading-snug hover:text-primary transition-colors">
             {channel.title}

@@ -1,5 +1,13 @@
+import { getLandingHomeData } from "@/actions/landing";
 import { LandingHome } from "@/components/landing-home";
 
-export default function Home() {
-  return <LandingHome displayFontClassName="font-[family-name:var(--font-landing-display)]" />;
+export default async function Home() {
+  const { featured, intro } = await getLandingHomeData();
+  return (
+    <LandingHome
+      displayFontClassName="font-[family-name:var(--font-landing-display)]"
+      featured={featured}
+      intro={intro}
+    />
+  );
 }

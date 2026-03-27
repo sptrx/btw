@@ -30,7 +30,7 @@ create table if not exists public.channel_pages (
   unique(channel_id, slug)
 );
 
-create index channel_pages_channel_id_idx on public.channel_pages (channel_id);
+create index if not exists channel_pages_channel_id_idx on public.channel_pages (channel_id);
 
 -- Create default "home" page for each existing channel
 insert into public.channel_pages (channel_id, slug, title, sort_order)
@@ -56,13 +56,17 @@ where page_id is null;
 
 -- 4. RLS for channel_pages
 alter table public.channel_pages enable row level security;
+drop policy if exists "Channel pages viewable by everyone" on public.channel_pages;
 create policy "Channel pages viewable by everyone" on public.channel_pages for select using (true);
+drop policy if exists "Channel authors can create pages" on public.channel_pages;
 create policy "Channel authors can create pages" on public.channel_pages for insert with check (
   exists (select 1 from public.topics t where t.id = channel_id and t.author_id = auth.uid())
 );
+drop policy if exists "Channel authors can update pages" on public.channel_pages;
 create policy "Channel authors can update pages" on public.channel_pages for update using (
   exists (select 1 from public.topics t where t.id = channel_id and t.author_id = auth.uid())
 );
+drop policy if exists "Channel authors can delete pages" on public.channel_pages;
 create policy "Channel authors can delete pages" on public.channel_pages for delete using (
   exists (select 1 from public.topics t where t.id = channel_id and t.author_id = auth.uid())
 );

@@ -41,13 +41,6 @@ export default async function ChannelContentPage({ params }: Props) {
     user ? isChannelAuthor(content.topic_id) : false,
   ]);
 
-  const typeLabels: Record<string, string> = {
-    video: "Video",
-    podcast: "Podcast",
-    article: "Article",
-    discussion: "Discussion",
-  };
-
   const rawMedia = content.media_urls;
   let mediaUrls: { url: string; type: string }[] = [];
   if (Array.isArray(rawMedia)) {
@@ -79,10 +72,7 @@ export default async function ChannelContentPage({ params }: Props) {
       </Link>
 
       <div className="border rounded-lg p-6 mb-6">
-        <span className="text-xs px-2 py-0.5 bg-gray-200 dark:bg-gray-700 rounded">
-          {typeLabels[content.type] ?? content.type}
-        </span>
-        <h1 className="text-2xl font-bold mt-2">{content.title}</h1>
+        <h1 className="text-2xl font-bold">{content.title}</h1>
         <p className="text-sm text-gray-500 mt-1">
           by {(content.profiles as { display_name?: string })?.display_name ?? "Anonymous"}
         </p>

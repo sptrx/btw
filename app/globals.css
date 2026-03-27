@@ -13,6 +13,19 @@ body {
   @apply bg-background text-foreground min-h-dvh antialiased text-base;
   text-rendering: optimizeLegibility;
   -webkit-tap-highlight-color: transparent;
+  background-image: radial-gradient(
+    ellipse 120% 85% at 50% -35%,
+    oklch(0.93 0.028 88 / 0.38),
+    transparent 52%
+  );
+}
+
+.dark body {
+  background-image: radial-gradient(
+    ellipse 100% 75% at 50% -30%,
+    oklch(0.28 0.04 280 / 0.35),
+    transparent 55%
+  );
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -202,5 +215,75 @@ body {
     --font-sans: var(--font-sans)}
   * {
     @apply border-border;
+  }
+}
+
+@layer components {
+  /*
+   * Surfaces — match landing / featured carousel.
+   * Avoid opacity modifiers on theme vars in @apply (e.g. border-border/50): Tailwind
+   * cannot always resolve them when colors are raw var(--token) values.
+   */
+  .btw-surface {
+    @apply rounded-2xl border border-border bg-card text-card-foreground shadow-sm;
+  }
+
+  .dark .btw-surface {
+    @apply shadow-md shadow-black/20;
+  }
+
+  .btw-surface-interactive {
+    @apply motion-safe:transition-[box-shadow,border-color,background-color] motion-safe:duration-300;
+  }
+
+  .btw-surface-interactive:hover {
+    @apply motion-safe:border-border motion-safe:bg-accent motion-safe:shadow-md;
+  }
+
+  .btw-surface-lift {
+    @apply motion-safe:transition-[transform,box-shadow,border-color] motion-safe:duration-300;
+  }
+
+  .btw-surface-lift:hover {
+    @apply motion-safe:-translate-y-0.5 motion-safe:border-border motion-safe:shadow-md;
+  }
+
+  .btw-content-panel {
+    @apply rounded-2xl border border-border bg-card p-4 text-card-foreground shadow-sm sm:p-6;
+  }
+
+  .dark .btw-content-panel {
+    @apply shadow-md shadow-black/20;
+  }
+
+  .btw-auth-panel {
+    @apply rounded-2xl border border-border bg-card p-6 text-card-foreground shadow-sm backdrop-blur-sm sm:p-8;
+  }
+
+  .btw-app-row {
+    @apply block rounded-2xl border border-border bg-card px-4 py-4 text-foreground shadow-sm no-underline motion-safe:transition-[transform,box-shadow,background-color,border-color] motion-safe:duration-300 motion-safe:hover:-translate-y-0.5 motion-safe:hover:border-border motion-safe:hover:bg-muted motion-safe:hover:shadow-md;
+  }
+
+  .btw-page-title {
+    @apply font-[family-name:var(--font-landing-display)] text-2xl font-normal tracking-tight text-foreground sm:text-3xl;
+  }
+
+  .btw-section-eyebrow {
+    @apply mb-2 text-[10px] font-medium uppercase tracking-[0.18em] text-muted-foreground sm:text-xs;
+  }
+
+  .btw-main {
+    @apply pb-16 sm:pb-20;
+  }
+
+  .btw-callout-section {
+    @apply mt-8 rounded-2xl border-2 p-6 shadow-sm;
+    border-color: color-mix(in oklch, var(--primary) 22%, var(--background));
+    background-color: color-mix(in oklch, var(--primary) 7%, var(--background));
+  }
+
+  .dark .btw-callout-section {
+    border-color: color-mix(in oklch, var(--primary) 32%, var(--background));
+    background-color: color-mix(in oklch, var(--primary) 12%, var(--background));
   }
 }

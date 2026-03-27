@@ -16,18 +16,15 @@ type Props = { channels: Channel[] };
 
 export function MyChannelCardGrid({ channels }: Props) {
   return (
-    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 py-4">
+    <div className="grid grid-cols-1 gap-4 py-4 md:grid-cols-2">
       {channels.map((ch) => (
         <div
           key={ch.id}
-          className={cn(
-            "flex flex-col rounded-2xl border border-border/50 bg-card p-4 sm:p-5",
-            "shadow-sm shadow-foreground/5 dark:shadow-black/20"
-          )}
+          className={cn("btw-surface btw-surface-lift flex flex-col p-4 sm:p-5")}
         >
-          <h3 className="font-semibold text-lg tracking-tight">{ch.title}</h3>
+          <h3 className="text-lg font-semibold tracking-tight">{ch.title}</h3>
           {ch.description && (
-            <p className="mt-2 text-sm text-muted-foreground line-clamp-2">{ch.description}</p>
+            <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">{ch.description}</p>
           )}
           <p className="mt-3 text-xs text-muted-foreground">
             by {ch.profiles?.display_name ?? "You"}

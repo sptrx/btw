@@ -3,6 +3,8 @@
  * Direct file URLs use <img> / <video>. YouTube/Vimeo and similar need embeds — <video> does not play those URLs.
  */
 
+import { cn } from "@/lib/utils";
+
 function parseYouTubeVideoId(url: string): string | null {
   try {
     const u = new URL(url.trim());
@@ -20,6 +22,22 @@ function parseYouTubeVideoId(url: string): string | null {
       }
       const v = u.searchParams.get("v");
       if (v) return v;
+    }
+  } catch {
+    return null;
+  }
+  return null;
+}
+
+function parseXOrTwitterStatusId(url: string): string | null {
+  try {
+    const u = new URL(url.trim());
+    const host = u.hostname.replace(/^www\./, "");
+    if (host !== "x.com" && host !== "twitter.com" && host !== "mobile.twitter.com") return null;
+    const parts = u.pathname.split("/").filter(Boolean);
+    const statusIdx = parts.indexOf("status");
+    if (statusIdx >= 0 && parts[statusIdx + 1] && /^\d+$/.test(parts[statusIdx + 1])) {
+      return parts[statusIdx + 1];
     }
   } catch {
     return null;
@@ -49,13 +67,20 @@ function isLikelyDirectVideoFile(url: string): boolean {
 
 type Item = { url: string; type: string };
 
-export function ChannelContentMedia({ items }: { items: Item[] }) {
+export function ChannelContentMedia({
+  items,
+  className,
+}: {
+  items: Item[];
+  /** Merges with default spacing; use e.g. `mt-0` on the home feed */
+  className?: string;
+}) {
   const list = items.filter((m) => m?.url && String(m.url).trim());
 
   if (list.length === 0) return null;
 
   return (
-    <div className="mt-4 space-y-4">
+    <div className={cn("mt-4 space-y-4", className)}>
       {list.map((m, i) => (
         <MediaItem key={`${m.url}-${i}`} item={m} />
       ))}
@@ -76,14 +101,34 @@ function MediaItem({ item }: { item: Item }) {
 
   const yt = parseYouTubeVideoId(url);
   if (yt) {
+    const isShort = url.includes("/shorts/");
     return (
-      <div className="relative w-full overflow-hidden rounded-lg border border-border aspect-video bg-muted">
+      <div
+        className={cn(
+          "relative w-full overflow-hidden rounded-lg border border-border bg-muted mx-auto",
+          isShort ? "aspect-[9/16] max-w-[min(100%,16rem)]" : "aspect-video"
+        )}
+      >
         <iframe
           title="YouTube video"
           src={`https://www.youtube-nocookie.com/embed/${yt}`}
           className="absolute inset-0 h-full w-full"
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
           allowFullScreen
+        />
+      </div>
+    );
+  }
+
+  const xId = parseXOrTwitterStatusId(url);
+  if (xId) {
+    return (
+      <div className="relative w-full overflow-hidden rounded-lg border border-border bg-muted min-h-[min(420px,55vh)] max-h-[min(520px,70vh)]">
+        <iframe
+          title="Post on X"
+          src={`https://platform.twitter.com/embed/Tweet.html?id=${xId}`}
+          className="absolute inset-0 h-full min-h-[420px] w-full"
+          allow="encrypted-media; fullscreen"
         />
       </div>
     );

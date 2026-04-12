@@ -4,6 +4,7 @@ import { createClient } from "@/utils/supabase/server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { moderateContent } from "@/lib/moderation";
+import { fetchScriptureGuideReply, isScriptureGuideConfigured } from "@/lib/bible-ai";
 import { getProfile } from "@/actions";
 
 export type ContentType = "video" | "podcast" | "article" | "discussion";
@@ -777,29 +778,97 @@ export async function deleteContent(contentId: string) {
 }
 
 // Comments: any signed-in user (no membership)
-export async function addComment(contentId: string, body: string) {
+export async function addComment(
+  contentId: string,
+  body: string,
+  options?: { requestScriptureGuide?: boolean; translationId?: string }
+) {
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   if (!user) return { error: "Sign in to comment." };
 
   const result = await moderateContent(body);
   if (!result.allowed) return { error: result.reason ?? "Comment not allowed." };
 
-  await supabase.from("topic_content_comments").insert({
-    topic_content_id: contentId,
-    user_id: user.id,
-    body: body.trim(),
-  });
+  const priorComments = await getComments(contentId);
+  const content = await getContentById(contentId);
+
+  const { data: inserted, error: insertErr } = await supabase
+    .from("topic_content_comments")
+    .insert({
+      topic_content_id: contentId,
+      user_id: user.id,
+      body: body.trim(),
+    })
+    .select("id")
+    .single();
+
+  if (insertErr || !inserted) {
+    console.error("[addComment] insert", insertErr);
+    return { error: insertErr?.message ?? "Could not post comment." };
+  }
+
   revalidatePath(`/channel`);
   revalidatePath("/channel/browse");
-  return { success: true };
+
+  let guideError: string | undefined;
+
+  if (options?.requestScriptureGuide) {
+    if (!isScriptureGuideConfigured()) {
+      guideError =
+        "Scripture guide is not configured. Ask your admin to set BIBLE_AI_BASE_URL (and BIBLE_AI_API_KEY if required).";
+    } else {
+      const threadContext = priorComments
+        .map((c) => {
+          const name = c.profiles?.display_name?.trim() || "Member";
+          return `[${name}]: ${c.body.trim()}`;
+        })
+        .join("\n\n");
+
+      let pageContext: string | undefined;
+      if (content?.title) {
+        const excerpt = content.body?.trim()?.slice(0, 2000) ?? "";
+        pageContext = excerpt
+          ? `Title: ${content.title}\n\nArticle excerpt:\n${excerpt}`
+          : `Title: ${content.title}`;
+      }
+
+      const guide = await fetchScriptureGuideReply({
+        message: body.trim(),
+        threadContext,
+        pageContext,
+        translationId: options.translationId,
+      });
+
+      if ("error" in guide) {
+        guideError = guide.error;
+      } else {
+        const { error: updErr } = await supabase
+          .from("topic_content_comments")
+          .update({ scripture_guide_reply: guide.response })
+          .eq("id", inserted.id);
+
+        if (updErr) {
+          console.error("[addComment] scripture_guide_reply update", updErr);
+          guideError = "Comment saved but the Scripture guide reply could not be stored.";
+        } else {
+          revalidatePath(`/channel`);
+          revalidatePath("/channel/browse");
+        }
+      }
+    }
+  }
+
+  return { success: true as const, guideError };
 }
 
 export async function getComments(contentId: string) {
   const supabase = await createClient();
   const { data } = await supabase
     .from("topic_content_comments")
-    .select("id, body, created_at, user_id")
+    .select("id, body, created_at, user_id, scripture_guide_reply")
     .eq("topic_content_id", contentId)
     .order("created_at", { ascending: true });
   const comments = data ?? [];

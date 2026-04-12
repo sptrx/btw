@@ -3,3 +3,7 @@ NEXTJS_ENV=development
 
 # Mirror .env.local for `npm run cf:preview` (non-NEXT_PUBLIC_* only if used server-side)
 # NEXT_PUBLIC_* can be set in wrangler.toml [vars] or dashboard for preview
+
+# Scripture guide on comments (server → bible-ai). Example:
+# BIBLE_AI_BASE_URL=http://localhost:3040
+# BIBLE_AI_API_KEY=your_shared_secret

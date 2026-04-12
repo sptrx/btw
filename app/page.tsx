@@ -1,13 +1,18 @@
-import { getLandingHomeData } from "@/actions/landing";
+import { getLandingHomeData, getLandingFeed, getLandingRecentChannels } from "@/actions/landing";
 import { LandingHome } from "@/components/landing-home";
 
 export default async function Home() {
-  const { featured, intro } = await getLandingHomeData();
+  const [{ intro }, feed, recentChannels] = await Promise.all([
+    getLandingHomeData(),
+    getLandingFeed(28),
+    getLandingRecentChannels(14),
+  ]);
   return (
     <LandingHome
       displayFontClassName="font-[family-name:var(--font-landing-display)]"
-      featured={featured}
       intro={intro}
+      feed={feed}
+      recentChannels={recentChannels}
     />
   );
 }

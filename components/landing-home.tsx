@@ -3,8 +3,8 @@ import Link from "next/link";
 import { ArrowRight, Play } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import type { LandingFeaturedCard, LandingIntroCopy } from "@/actions/landing";
-import { FeaturedChannelCarousel } from "@/components/featured-channel-carousel";
+import type { LandingChannelPill, LandingFeedItem, LandingIntroCopy } from "@/actions/landing";
+import { LandingPublicFeed } from "@/components/landing-public-feed";
 
 /** Break out of layout `main` container to full viewport width */
 function FullBleed({ className, children }: { className?: string; children: React.ReactNode }) {
@@ -20,57 +20,27 @@ function FullBleed({ className, children }: { className?: string; children: Reac
   );
 }
 
-const FEATURED = [
-  {
-    title: "Voices of hope",
-    subtitle: "Stories from the community",
-    href: "/channel/browse",
-    image:
-      "https://images.unsplash.com/photo-1507692043040-9e896755c0ff?auto=format&fit=crop&w=900&q=80",
-    accent: "from-amber-900/80 to-stone-900/90",
-  },
-  {
-    title: "Scripture & study",
-    subtitle: "Articles and reflections",
-    href: "/channel/browse",
-    image:
-      "https://images.unsplash.com/photo-1504052434569-70ad5836ab65?auto=format&fit=crop&w=900&q=80",
-    accent: "from-indigo-950/85 to-slate-950/90",
-  },
-  {
-    title: "Worship & word",
-    subtitle: "Video and audio",
-    href: "/channel/browse",
-    image:
-      "https://images.unsplash.com/photo-1519834785169-43387729b212?auto=format&fit=crop&w=900&q=80",
-    accent: "from-rose-950/80 to-neutral-950/90",
-  },
-] as const;
-
-const EXPLORE = [
-  { title: "Morning devotion", tag: "Article", tone: "bg-emerald-950/40" },
-  { title: "Community prayer", tag: "Discussion", tone: "bg-sky-950/40" },
-  { title: "Sunday message", tag: "Video", tone: "bg-violet-950/40" },
-  { title: "Faith & culture", tag: "Podcast", tone: "bg-amber-950/40" },
-  { title: "Youth channel", tag: "Channel", tone: "bg-teal-950/40" },
-  { title: "Testimonies", tag: "Stories", tone: "bg-orange-950/40" },
-] as const;
-
 const DEFAULT_INTRO: LandingIntroCopy = {
   headline: "A calm place to discover, share, and grow—moderated for safety, designed for depth.",
-  body: "Featured channels can be curated in the database. Run the latest Supabase migration, then add rows to site_home_featured and edit site_home_copy—or sync these tables from your CMS.",
+  body: "You can edit this intro in Supabase (`site_home_copy`) or sync it from your CMS.",
 };
 
 type LandingHomeProps = {
   displayFontClassName: string;
-  /** From DB / CMS; if empty, mock FEATURED is used */
-  featured?: LandingFeaturedCard[];
   /** From site_home_copy; if null, DEFAULT_INTRO is used */
   intro?: LandingIntroCopy | null;
+  /** Recent posts for the public feed */
+  feed?: LandingFeedItem[];
+  /** Recent channels for the horizontal strip above the feed */
+  recentChannels?: LandingChannelPill[];
 };
 
-export function LandingHome({ displayFontClassName, featured, intro }: LandingHomeProps) {
-  const featuredCards = featured && featured.length > 0 ? featured : [...FEATURED];
+export function LandingHome({
+  displayFontClassName,
+  intro,
+  feed = [],
+  recentChannels = [],
+}: LandingHomeProps) {
   const introCopy =
     intro && (intro.headline || intro.body)
       ? {
@@ -80,7 +50,7 @@ export function LandingHome({ displayFontClassName, featured, intro }: LandingHo
       : DEFAULT_INTRO;
   return (
     <article className="-mt-6 sm:-mt-10">
-      {/* Hero — compact band so featured channels sit high on the page */}
+      {/* Hero */}
       <FullBleed>
         <section
           className="relative min-h-0 md:min-h-[min(38vh,22rem)] flex flex-col justify-end"
@@ -112,7 +82,7 @@ export function LandingHome({ displayFontClassName, featured, intro }: LandingHo
               Testify boldly in a space guarded by grace
             </h1>
             <p className="mt-2 sm:mt-3 text-sm sm:text-base text-white/85 max-w-xl leading-snug text-pretty line-clamp-2 sm:line-clamp-none">
-              Explore channels of video, podcasts, articles, and discussion—built for encouragement and faith.
+              Scroll a live feed of channels, pages, clips, and posts—like a calm timeline built for encouragement and faith.
             </p>
             <div className="mt-4 sm:mt-5 flex flex-col sm:flex-row gap-2 sm:gap-3 sm:items-center">
               <Button
@@ -141,27 +111,7 @@ export function LandingHome({ displayFontClassName, featured, intro }: LandingHo
         </section>
       </FullBleed>
 
-      {/* Featured large cards — directly under hero */}
-      <section className="pt-6 pb-10 sm:pt-8 sm:pb-12 md:pt-10 md:pb-14" aria-labelledby="landing-featured-heading">
-        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 sm:gap-4 mb-6 md:mb-8">
-          <h2
-            id="landing-featured-heading"
-            className={cn(displayFontClassName, "text-3xl sm:text-4xl font-normal text-foreground")}
-          >
-            Featured
-          </h2>
-          <Link
-            href="/channel/browse"
-            className="text-sm font-medium text-primary hover:underline underline-offset-4 inline-flex items-center gap-1"
-          >
-            View all
-            <ArrowRight className="h-4 w-4" aria-hidden />
-          </Link>
-        </div>
-        <FeaturedChannelCarousel items={featuredCards} displayFontClassName={displayFontClassName} />
-      </section>
-
-      {/* Intro strip — below featured so cards stay above the fold */}
+      {/* Intro strip */}
       <section className="py-8 sm:py-10 md:py-12 border-b border-border/60">
         <div className="max-w-3xl">
           <p className={cn(displayFontClassName, "text-xl sm:text-2xl md:text-3xl text-foreground leading-snug text-pretty")}>
@@ -173,32 +123,29 @@ export function LandingHome({ displayFontClassName, featured, intro }: LandingHo
         </div>
       </section>
 
-      {/* Explore grid */}
-      <FullBleed className="bg-muted/40 dark:bg-muted/20 border-y border-border/60">
-        <section className="py-14 sm:py-16 md:py-20 container mx-auto max-w-6xl px-4 sm:px-5">
-          <h2
-            className={cn(displayFontClassName, "text-3xl sm:text-4xl font-normal text-foreground mb-10 md:mb-12")}
-          >
-            Explore
-          </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5">
-            {EXPLORE.map((item) => (
-              <div
-                key={item.title}
-                className={cn(
-                  "relative flex min-h-[9.5rem] flex-col justify-between overflow-hidden btw-surface btw-surface-lift p-6",
-                  item.tone
-                )}
-              >
-                <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                  {item.tag}
-                </span>
-                <p className={cn(displayFontClassName, "text-xl sm:text-2xl text-foreground mt-4 leading-snug")}>
-                  {item.title}
-                </p>
-                <span className="text-sm text-primary font-medium mt-4 opacity-80">Coming soon</span>
-              </div>
-            ))}
+      {/* Public feed — narrow column like a social timeline */}
+      <FullBleed className="bg-muted/35 dark:bg-muted/15 border-y border-border/60">
+        <section
+          className="py-10 sm:py-12 md:py-14"
+          aria-labelledby="landing-feed-heading"
+        >
+          <div className="container mx-auto max-w-6xl px-4 sm:px-5 mb-6 md:mb-8">
+            <h2
+              id="landing-feed-heading"
+              className={cn(displayFontClassName, "text-3xl sm:text-4xl font-normal text-foreground")}
+            >
+              Discover
+            </h2>
+            <p className="mt-2 text-sm sm:text-base text-muted-foreground max-w-2xl">
+              Embedded and direct video, podcast links, articles, and threads—organized by channel and page.
+            </p>
+          </div>
+          <div className="mx-auto w-full max-w-4xl border-x border-border/50 bg-background shadow-[0_0_0_1px_rgba(0,0,0,0.03)] dark:shadow-[0_0_0_1px_rgba(255,255,255,0.06)]">
+            <LandingPublicFeed
+              displayFontClassName={displayFontClassName}
+              feed={feed}
+              recentChannels={recentChannels}
+            />
           </div>
         </section>
       </FullBleed>

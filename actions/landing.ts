@@ -2,7 +2,7 @@
 
 import { createClient } from "@/utils/supabase/server";
 
-/** Card shape consumed by `LandingHome` featured grid */
+/** Card shape for `FeaturedChannelCarousel` (not used on the public home). */
 export type LandingFeaturedCard = {
   title: string;
   subtitle: string;
@@ -16,24 +16,11 @@ export type LandingIntroCopy = {
   body: string;
 };
 
-const ACCENT_ROTATION = [
-  "from-amber-900/80 to-stone-900/90",
-  "from-indigo-950/85 to-slate-950/90",
-  "from-rose-950/80 to-neutral-950/90",
-  "from-emerald-950/80 to-stone-950/90",
-  "from-violet-950/80 to-neutral-950/90",
-  "from-sky-950/80 to-slate-950/90",
-] as const;
-
-const FALLBACK_CARD_IMAGE =
-  "https://images.unsplash.com/photo-1507692043040-9e896755c0ff?auto=format&fit=crop&w=900&q=80";
-
 /**
- * Curated home content from Supabase (`site_home_featured`, `site_home_copy`).
- * Manage rows in the Dashboard (SQL editor / Table editor) or sync from a headless CMS into these tables.
+ * Intro copy for the public home from Supabase (`site_home_copy`).
+ * Manage rows in the Dashboard (SQL editor / Table editor) or sync from a headless CMS.
  */
 export async function getLandingHomeData(): Promise<{
-  featured: LandingFeaturedCard[];
   intro: LandingIntroCopy | null;
 }> {
   const supabase = await createClient();
@@ -54,52 +41,147 @@ export async function getLandingHomeData(): Promise<{
     };
   }
 
-  const { data: featuredRows, error: feErr } = await supabase
-    .from("site_home_featured")
-    .select("channel_id, sort_order, card_subtitle")
-    .order("sort_order", { ascending: true });
+  return { intro };
+}
 
-  if (feErr) {
-    console.warn("[landing] site_home_featured:", feErr.message);
-    return { featured: [], intro };
+/** Public home feed — mirrors `topic_content` + channel + optional page */
+export type LandingFeedItem = {
+  id: string;
+  type: "video" | "podcast" | "article" | "discussion";
+  title: string;
+  bodySnippet: string | null;
+  createdAt: string;
+  channelSlug: string;
+  channelTitle: string;
+  channelCoverUrl: string | null;
+  pageSlug: string | null;
+  pageTitle: string | null;
+  href: string;
+  mediaItems: { url: string; type: string }[];
+};
+
+export type LandingChannelPill = {
+  slug: string;
+  title: string;
+  coverImageUrl: string | null;
+  description: string | null;
+};
+
+function parseMediaUrlsLanding(raw: unknown): { url: string; type: string }[] {
+  if (Array.isArray(raw)) {
+    return raw.filter(
+      (m): m is { url: string; type: string } =>
+        Boolean(
+          m &&
+            typeof (m as { url?: string }).url === "string" &&
+            String((m as { url: string }).url).trim()
+        )
+    );
   }
-
-  if (!featuredRows?.length) {
-    return { featured: [], intro };
+  if (typeof raw === "string") {
+    try {
+      const parsed = JSON.parse(raw) as unknown;
+      if (Array.isArray(parsed)) {
+        return parsed.filter(
+          (m): m is { url: string; type: string } =>
+            Boolean(m && typeof (m as { url?: string }).url === "string")
+        );
+      }
+    } catch {
+      /* ignore */
+    }
   }
+  return [];
+}
 
-  const ids = featuredRows.map((r) => r.channel_id);
-  const { data: topics, error: topicsErr } = await supabase
+const FEED_TYPE_SET = new Set(["video", "podcast", "article", "discussion"]);
+
+/**
+ * Recent posts across all channels for the public home feed (newest first).
+ */
+export async function getLandingFeed(limit = 28): Promise<LandingFeedItem[]> {
+  const supabase = await createClient();
+  const { data: rows, error } = await supabase
+    .from("topic_content")
+    .select("id, type, title, body, media_urls, created_at, topic_id, page_id")
+    .order("created_at", { ascending: false })
+    .limit(Math.min(Math.max(limit, 1), 50));
+
+  if (error) {
+    console.warn("[landing] getLandingFeed:", error.message);
+    return [];
+  }
+  if (!rows?.length) return [];
+
+  const topicIds = [...new Set(rows.map((r) => r.topic_id))];
+  const pageIds = [...new Set(rows.map((r) => r.page_id).filter(Boolean))] as string[];
+
+  const { data: topicRows } = await supabase
     .from("topics")
-    .select("id, title, slug, description, cover_image_url")
-    .in("id", ids);
+    .select("id, slug, title, cover_image_url")
+    .in("id", topicIds);
 
-  if (topicsErr || !topics?.length) {
-    console.warn("[landing] topics for featured:", topicsErr?.message);
-    return { featured: [], intro };
+  let pageRows: { id: string; slug: string; title: string }[] = [];
+  if (pageIds.length) {
+    const { data: p } = await supabase.from("channel_pages").select("id, slug, title").in("id", pageIds);
+    pageRows = p ?? [];
   }
 
-  const topicById = new Map(topics.map((t) => [t.id, t]));
-  const featured: LandingFeaturedCard[] = [];
+  const topicById = new Map((topicRows ?? []).map((t) => [t.id, t]));
+  const pageById = new Map(pageRows.map((p) => [p.id, p]));
 
-  for (let i = 0; i < featuredRows.length; i++) {
-    const row = featuredRows[i];
-    const t = topicById.get(row.channel_id);
+  const out: LandingFeedItem[] = [];
+
+  for (const r of rows) {
+    const t = topicById.get(r.topic_id);
     if (!t) continue;
-    const image =
-      (t.cover_image_url && t.cover_image_url.trim()) ? t.cover_image_url.trim() : FALLBACK_CARD_IMAGE;
-    const subtitle =
-      (row.card_subtitle && row.card_subtitle.trim()) ||
-      (t.description && t.description.trim().slice(0, 80)) ||
-      "Channel";
-    featured.push({
-      title: t.title,
-      subtitle,
-      href: `/channel/${t.slug}`,
-      image,
-      accent: ACCENT_ROTATION[i % ACCENT_ROTATION.length],
+    const rawType = String(r.type);
+    const type = FEED_TYPE_SET.has(rawType) ? (rawType as LandingFeedItem["type"]) : "article";
+    const page = r.page_id ? pageById.get(r.page_id) : undefined;
+    const body = typeof r.body === "string" && r.body.trim() ? r.body.trim() : null;
+    const bodySnippet =
+      body && body.length > 220 ? `${body.slice(0, 217).trim()}…` : body;
+    const mediaItems = parseMediaUrlsLanding(r.media_urls);
+
+    out.push({
+      id: r.id,
+      type,
+      title: String(r.title ?? "").trim() || "Untitled",
+      bodySnippet,
+      createdAt: r.created_at,
+      channelSlug: t.slug,
+      channelTitle: t.title,
+      channelCoverUrl: t.cover_image_url?.trim() || null,
+      pageSlug: page?.slug ?? null,
+      pageTitle: page?.title ?? null,
+      href: `/channel/${t.slug}/content/${r.id}`,
+      mediaItems,
     });
   }
 
-  return { featured, intro };
+  return out;
+}
+
+/**
+ * Recently created channels for the home “discover” strip.
+ */
+export async function getLandingRecentChannels(limit = 14): Promise<LandingChannelPill[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("topics")
+    .select("slug, title, cover_image_url, description")
+    .order("created_at", { ascending: false })
+    .limit(Math.min(Math.max(limit, 1), 30));
+
+  if (error) {
+    console.warn("[landing] getLandingRecentChannels:", error.message);
+    return [];
+  }
+
+  return (data ?? []).map((row) => ({
+    slug: row.slug,
+    title: row.title,
+    coverImageUrl: row.cover_image_url?.trim() || null,
+    description: row.description?.trim() || null,
+  }));
 }

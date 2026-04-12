@@ -27,9 +27,17 @@ function headerDisplayName(user: User): string {
   return "Account";
 }
 
+/** Scripture Chat (bible-ai); defaults to local dev server. Set NEXT_PUBLIC_BIBLE_AI_URL in .env.local for production. */
+const bibleAiUrl =
+  typeof process.env.NEXT_PUBLIC_BIBLE_AI_URL === "string" &&
+  process.env.NEXT_PUBLIC_BIBLE_AI_URL.trim().length > 0
+    ? process.env.NEXT_PUBLIC_BIBLE_AI_URL.trim()
+    : "http://localhost:3040/ask";
+
 const navLinks = [
-  { href: "/", label: "Home" },
-  { href: "/channel/browse", label: "Channels" },
+  { href: "/", label: "Home" as const },
+  { href: "/channel/browse", label: "Channels" as const },
+  { href: bibleAiUrl, label: "Bible Q&A" as const, external: true as const },
 ];
 
 const MOBILE_NAV_ID = "mobile-primary-nav";
@@ -106,9 +114,20 @@ export function HeaderContent({ user, isChannelAuthor }: Props) {
               asChild
               className={cn("rounded-full", navBtn)}
             >
-              <Link href={link.href} className="font-medium">
-                {link.label}
-              </Link>
+              {"external" in link && link.external ? (
+                <a
+                  href={link.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-medium"
+                >
+                  {link.label}
+                </a>
+              ) : (
+                <Link href={link.href} className="font-medium">
+                  {link.label}
+                </Link>
+              )}
             </Button>
           ))}
         </nav>
@@ -231,7 +250,18 @@ export function HeaderContent({ user, isChannelAuthor }: Props) {
               asChild
               onClick={() => setMobileOpen(false)}
             >
-              <Link href={link.href}>{link.label}</Link>
+              {"external" in link && link.external ? (
+                <a
+                  href={link.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {link.label}
+                  <span className="sr-only"> (opens in new tab)</span>
+                </a>
+              ) : (
+                <Link href={link.href}>{link.label}</Link>
+              )}
             </Button>
           ))}
           {user ? (

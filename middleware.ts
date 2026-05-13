@@ -45,7 +45,8 @@ export async function middleware(request: NextRequest) {
     request.nextUrl.pathname.startsWith("/auth/signup") ||
     request.nextUrl.pathname.startsWith("/auth/forgot-password") ||
     request.nextUrl.pathname.startsWith("/auth/reset-password") ||
-    request.nextUrl.pathname.startsWith("/auth/confirmed");
+    request.nextUrl.pathname.startsWith("/auth/confirmed") ||
+    request.nextUrl.pathname.startsWith("/auth/email-changed");
   const isAuthCallback = request.nextUrl.pathname === "/auth/callback";
   const path = request.nextUrl.pathname;
   const isChannelList = path === "/channel";
@@ -90,7 +91,8 @@ export async function middleware(request: NextRequest) {
     user &&
     isAuthPage &&
     !request.nextUrl.pathname.startsWith("/auth/reset-password") &&
-    !request.nextUrl.pathname.startsWith("/auth/confirmed")
+    !request.nextUrl.pathname.startsWith("/auth/confirmed") &&
+    !request.nextUrl.pathname.startsWith("/auth/email-changed")
   ) {
     return NextResponse.redirect(new URL("/channel/browse", request.url));
   }

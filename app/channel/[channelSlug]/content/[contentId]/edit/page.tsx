@@ -8,7 +8,7 @@ import {
   isChannelAuthor,
 } from "@/actions/channels";
 import { getAllTopicTags, getPostTagIds } from "@/actions/tags";
-import { getCurrentUser } from "@/actions";
+import { getCurrentUser, hasAcceptedContentDisclaimer } from "@/actions";
 import EditContentForm from "./edit-content-form";
 
 type Props = { params: Promise<{ channelSlug: string; contentId: string }> };
@@ -37,10 +37,11 @@ export default async function EditContentPage({ params }: Props) {
 
   if (content.topic_id !== channel.id) notFound();
 
-  const [pages, allTags, initialTagIds] = await Promise.all([
+  const [pages, allTags, initialTagIds, hasAlreadyAcceptedDisclaimer] = await Promise.all([
     getChannelPages(channel.id),
     getAllTopicTags(),
     getPostTagIds(content.id),
+    hasAcceptedContentDisclaimer(user.id),
   ]);
 
   return (
@@ -69,6 +70,7 @@ export default async function EditContentPage({ params }: Props) {
         pages={pages}
         allTags={allTags}
         initialTagIds={initialTagIds}
+        hasAlreadyAcceptedDisclaimer={hasAlreadyAcceptedDisclaimer}
       />
     </div>
   );

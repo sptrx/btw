@@ -6,7 +6,10 @@ import { Sparkles } from "lucide-react";
 import { createContent } from "@/actions/channels";
 import { Button } from "@/components/ui/button";
 import { MediaUploadField, type MediaItem } from "@/components/media-upload-field";
-import { ContentSubmissionDisclaimer } from "@/components/content-submission-disclaimer";
+import {
+  ContentSubmissionDisclaimer,
+  ContentSubmissionDisclaimerAccepted,
+} from "@/components/content-submission-disclaimer";
 import { TopicTagPicker } from "@/components/tags/topic-tag-picker";
 
 const CONTENT_TYPES = [
@@ -25,15 +28,27 @@ type Props = {
   pages: Page[];
   defaultPageId: string | null;
   allTags: Tag[];
+  /** True once the user has agreed to the disclaimer at least once -- hides
+   *  the per-submission checkbox below. */
+  hasAlreadyAcceptedDisclaimer?: boolean;
 };
 
-export default function AddContentForm({ channelId, channelSlug, pages, defaultPageId, allTags }: Props) {
+export default function AddContentForm({
+  channelId,
+  channelSlug,
+  pages,
+  defaultPageId,
+  allTags,
+  hasAlreadyAcceptedDisclaimer = false,
+}: Props) {
   const [error, setError] = useState<string | null>(null);
   const [pageId, setPageId] = useState(defaultPageId ?? pages[0]?.id ?? "");
   const [mediaUrls, setMediaUrls] = useState<MediaItem[]>([]);
   const [tagIds, setTagIds] = useState<string[]>([]);
   const [acceptedDisclaimer, setAcceptedDisclaimer] = useState(false);
   const router = useRouter();
+
+  const effectiveAccepted = hasAlreadyAcceptedDisclaimer || acceptedDisclaimer;
 
   const addMedia = () => setMediaUrls([...mediaUrls, { url: "", type: "image" }]);
   const updateMedia = (i: number, field: string, value: string) => {
@@ -46,7 +61,7 @@ export default function AddContentForm({ channelId, channelSlug, pages, defaultP
     <form
       action={async (formData) => {
         setError(null);
-        if (!acceptedDisclaimer) {
+        if (!effectiveAccepted) {
           setError("Please read and accept the content disclaimer before publishing.");
           return;
         }
@@ -56,6 +71,7 @@ export default function AddContentForm({ channelId, channelSlug, pages, defaultP
           return;
         }
         formData.set("media_urls", JSON.stringify(mediaUrls.filter((m) => m.url)));
+        formData.set("accepted_disclaimer", effectiveAccepted ? "1" : "0");
         const res = await createContent(channelId, targetPage, formData);
         if (res?.error) setError(res.error);
         else router.push(`/channel/${channelSlug}`);
@@ -187,11 +203,15 @@ export default function AddContentForm({ channelId, channelSlug, pages, defaultP
         </p>
       </div>
 
-      <ContentSubmissionDisclaimer
-        id="add-content-disclaimer"
-        checked={acceptedDisclaimer}
-        onCheckedChange={setAcceptedDisclaimer}
-      />
+      {hasAlreadyAcceptedDisclaimer ? (
+        <ContentSubmissionDisclaimerAccepted />
+      ) : (
+        <ContentSubmissionDisclaimer
+          id="add-content-disclaimer"
+          checked={acceptedDisclaimer}
+          onCheckedChange={setAcceptedDisclaimer}
+        />
+      )}
 
       {error && (
         <p className="text-destructive text-sm" role="alert">
@@ -200,7 +220,7 @@ export default function AddContentForm({ channelId, channelSlug, pages, defaultP
       )}
 
       <div className="flex flex-wrap gap-3">
-        <Button type="submit" disabled={!acceptedDisclaimer} className="min-h-11 touch-manipulation">
+        <Button type="submit" disabled={!effectiveAccepted} className="min-h-11 touch-manipulation">
           Publish
         </Button>
         <Button

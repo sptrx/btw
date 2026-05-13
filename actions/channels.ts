@@ -5,8 +5,13 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { moderateContent } from "@/lib/moderation";
 import { fetchScriptureGuideReply, isScriptureGuideConfigured } from "@/lib/bible-ai";
-import { getProfile } from "@/actions";
+import {
+  getProfile,
+  hasAcceptedContentDisclaimer,
+  recordContentDisclaimerAcceptance,
+} from "@/actions";
 import { replaceChannelTags, replacePostTags } from "@/actions/tags";
+import { createNotification } from "@/actions/notifications";
 
 /** Caller-provided tag IDs from a form's hidden `tag_ids` inputs (capped to 3 client + server side). */
 function readTagIdsFromForm(formData: FormData): string[] {
@@ -896,6 +901,12 @@ export async function createContent(channelId: string, pageId: string, formData:
   const { data: channel } = await supabase.from("topics").select("slug, author_id").eq("id", channelId).single();
   if (!channel || channel.author_id !== user.id) redirect("/channel");
 
+  const acceptedDisclaimer = formData.get("accepted_disclaimer") === "1";
+  const alreadyAccepted = await hasAcceptedContentDisclaimer(user.id);
+  if (!alreadyAccepted && !acceptedDisclaimer) {
+    return { error: "Please accept the content disclaimer before publishing." };
+  }
+
   const type = formData.get("type") as ContentType;
   const title = (formData.get("title") as string)?.trim();
   const body = (formData.get("body") as string)?.trim() || null;
@@ -905,6 +916,10 @@ export async function createContent(channelId: string, pageId: string, formData:
 
   const result = await moderateContent([title, body].filter(Boolean).join(" "));
   if (!result.allowed) return { error: result.reason ?? "Content not allowed." };
+
+  if (!alreadyAccepted && acceptedDisclaimer) {
+    await recordContentDisclaimerAcceptance(user.id);
+  }
 
   const mediaUrls: { url: string; type: string }[] = [];
   const mediaStr = formData.get("media_urls") as string | null;
@@ -971,6 +986,12 @@ export async function updateContent(contentId: string, formData: FormData) {
     return { error: "You can only edit content on your own channels." };
   }
 
+  const acceptedDisclaimer = formData.get("accepted_disclaimer") === "1";
+  const alreadyAccepted = await hasAcceptedContentDisclaimer(user.id);
+  if (!alreadyAccepted && !acceptedDisclaimer) {
+    return { error: "Please accept the content disclaimer before saving." };
+  }
+
   const type = formData.get("type") as ContentType;
   const title = (formData.get("title") as string)?.trim();
   const body = (formData.get("body") as string)?.trim() || null;
@@ -982,6 +1003,10 @@ export async function updateContent(contentId: string, formData: FormData) {
 
   const result = await moderateContent([title, body].filter(Boolean).join(" "));
   if (!result.allowed) return { error: result.reason ?? "Content not allowed." };
+
+  if (!alreadyAccepted && acceptedDisclaimer) {
+    await recordContentDisclaimerAcceptance(user.id);
+  }
 
   const mediaUrls: { url: string; type: string }[] = [];
   const mediaStr = formData.get("media_urls") as string | null;
@@ -1105,7 +1130,13 @@ export async function deleteContent(contentId: string) {
 export async function addComment(
   contentId: string,
   body: string,
-  options?: { requestScriptureGuide?: boolean; translationId?: string }
+  options?: {
+    requestScriptureGuide?: boolean;
+    translationId?: string;
+    /** Set when the user ticked the disclaimer in this submission. Ignored if
+     *  the profile already has a stored acceptance timestamp. */
+    acceptedDisclaimer?: boolean;
+  }
 ) {
   const supabase = await createClient();
   const {
@@ -1113,8 +1144,20 @@ export async function addComment(
   } = await supabase.auth.getUser();
   if (!user) return { error: "Sign in to comment." };
 
+  // Once accepted (stamped on the profile), the disclaimer is silently
+  // re-applied on subsequent submissions. Only first-time submitters must
+  // explicitly opt in here.
+  const alreadyAccepted = await hasAcceptedContentDisclaimer(user.id);
+  if (!alreadyAccepted && !options?.acceptedDisclaimer) {
+    return { error: "Please accept the content disclaimer before commenting." };
+  }
+
   const result = await moderateContent(body);
   if (!result.allowed) return { error: result.reason ?? "Comment not allowed." };
+
+  if (!alreadyAccepted && options?.acceptedDisclaimer) {
+    await recordContentDisclaimerAcceptance(user.id);
+  }
 
   const priorComments = await getComments(contentId);
   const content = await getContentById(contentId);
@@ -1132,6 +1175,18 @@ export async function addComment(
   if (insertErr || !inserted) {
     console.error("[addComment] insert", insertErr);
     return { error: insertErr?.message ?? "Could not post comment." };
+  }
+
+  // Notify the post author. `content` was fetched above for the scripture
+  // guide context, so we reuse it here instead of an extra round-trip.
+  if (content?.author_id) {
+    await createNotification({
+      recipientId: content.author_id,
+      actorId: user.id,
+      type: "comment",
+      topicContentId: contentId,
+      commentId: inserted.id,
+    });
   }
 
   revalidatePath(`/channel`);
@@ -1210,10 +1265,39 @@ export async function addFeedback(contentId: string, type: "like" | "helpful") {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { error: "Sign in to give feedback." };
 
+  // We need to know whether this is a brand-new like (so we should notify the
+  // post author) vs. a no-op re-tap. Check before the upsert; the partial
+  // unique index on `notifications` would still dedupe at the DB layer, but
+  // skipping the insert keeps the actor-side write count lower.
+  const { data: existing } = await supabase
+    .from("topic_content_feedback")
+    .select("id")
+    .eq("topic_content_id", contentId)
+    .eq("user_id", user.id)
+    .eq("type", type)
+    .maybeSingle();
+
   await supabase.from("topic_content_feedback").upsert(
     { topic_content_id: contentId, user_id: user.id, type },
     { onConflict: "topic_content_id,user_id,type" }
   );
+
+  if (type === "like" && !existing) {
+    const { data: content } = await supabase
+      .from("topic_content")
+      .select("author_id")
+      .eq("id", contentId)
+      .single();
+    if (content?.author_id) {
+      await createNotification({
+        recipientId: content.author_id,
+        actorId: user.id,
+        type: "like",
+        topicContentId: contentId,
+      });
+    }
+  }
+
   revalidatePath(`/channel`);
   revalidatePath("/channel/browse");
   return { success: true };

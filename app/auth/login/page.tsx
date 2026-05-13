@@ -18,6 +18,10 @@ function LoginForm() {
     const msg = searchParams.get("message");
     if (msg === "signed_out_all") {
       setMessage("You have been signed out from all devices. Please sign in again.");
+    } else if (msg === "account_deleted") {
+      setMessage(
+        "Your account and all associated data have been permanently deleted. We're sorry to see you go."
+      );
     }
   }, [searchParams]);
 

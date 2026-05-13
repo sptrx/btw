@@ -180,6 +180,70 @@ export async function getProfile(userId: string) {
   return data;
 }
 
+/**
+ * True when the disclaimer-acceptance column is missing entirely. Lets us
+ * gracefully fall back to the legacy "ask on every submission" behavior in
+ * environments where the migration hasn't been applied yet (same approach as
+ * `isMissingTopicsBannerImageUrlColumn` in actions/channels.ts).
+ */
+function isMissingDisclaimerColumn(err: {
+  message?: string;
+  code?: string;
+} | null): boolean {
+  if (!err) return false;
+  const msg = (err.message ?? "").toLowerCase();
+  const code = String(err.code ?? "");
+  if (!msg.includes("content_disclaimer_accepted_at")) return false;
+  if (code === "42703" || code.startsWith("PGRST")) return true;
+  return (
+    msg.includes("does not exist") ||
+    msg.includes("schema cache") ||
+    msg.includes("could not find")
+  );
+}
+
+/**
+ * Whether `userId` has previously agreed to the content submission disclaimer.
+ * Used to skip the per-submission checkbox after the first acceptance.
+ *
+ * Returns false (= prompt the user) if the migration column doesn't exist yet,
+ * or on any other unexpected error -- the disclaimer prompt is the safe default.
+ */
+export async function hasAcceptedContentDisclaimer(userId: string): Promise<boolean> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("content_disclaimer_accepted_at")
+    .eq("id", userId)
+    .maybeSingle();
+  if (error) {
+    if (!isMissingDisclaimerColumn(error)) {
+      console.warn("[hasAcceptedContentDisclaimer]", error.message);
+    }
+    return false;
+  }
+  const ts = (data as { content_disclaimer_accepted_at?: string | null } | null)
+    ?.content_disclaimer_accepted_at;
+  return Boolean(ts);
+}
+
+/**
+ * Stamp the user's first acceptance of the content disclaimer. No-op if the
+ * column is missing (pre-migration) or if a timestamp is already recorded --
+ * we only want the *first* acceptance for audit purposes.
+ */
+export async function recordContentDisclaimerAcceptance(userId: string): Promise<void> {
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("profiles")
+    .update({ content_disclaimer_accepted_at: new Date().toISOString() })
+    .eq("id", userId)
+    .is("content_disclaimer_accepted_at", null);
+  if (error && !isMissingDisclaimerColumn(error)) {
+    console.warn("[recordContentDisclaimerAcceptance]", error.message);
+  }
+}
+
 export async function updateProfile(formData: FormData) {
   const supabase = await createClient();
 

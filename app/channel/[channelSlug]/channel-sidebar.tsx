@@ -38,10 +38,11 @@ type Props = {
 };
 
 const ROW_BASE =
-  "flex items-center gap-2 rounded-md px-3 py-2 text-sm transition-colors";
-const ROW_ACTIVE = "bg-muted text-foreground font-medium";
+  "flex items-center gap-2 rounded-md border-l-2 py-2 pl-[10px] pr-3 text-sm transition-colors";
+const ROW_ACTIVE =
+  "border-primary bg-primary/10 text-primary font-medium";
 const ROW_INACTIVE =
-  "text-muted-foreground hover:bg-muted/50 hover:text-foreground";
+  "border-transparent text-muted-foreground hover:bg-muted/50 hover:text-foreground";
 
 function iconForPageType(
   derived: ChannelSidebarPage["derived_type"]

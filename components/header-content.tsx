@@ -9,6 +9,7 @@ import { signOut } from "@/actions";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { GlobalSearch } from "@/components/global-search/global-search";
+import { NotificationBell } from "@/components/notification-bell";
 import { cn } from "@/lib/utils";
 
 type Props = { user: User | null; isChannelAuthor?: boolean };
@@ -140,6 +141,15 @@ export function HeaderContent({ user, isChannelAuthor }: Props) {
               onHero ? "text-white hover:bg-white/15 hover:text-white [&_svg]:text-white" : undefined
             }
           />
+          {user && (
+            <NotificationBell
+              className={
+                onHero
+                  ? "text-white hover:bg-white/15 hover:text-white [&_svg]:text-white"
+                  : undefined
+              }
+            />
+          )}
           <ThemeToggle
             className={
               onHero ? "text-white hover:bg-white/15 hover:text-white [&_svg]:text-white" : undefined

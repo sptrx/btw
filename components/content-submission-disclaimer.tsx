@@ -10,6 +10,38 @@ type Props = {
   variant?: "default" | "compact";
 };
 
+/**
+ * Compact reminder shown in place of the checkbox once the user has previously
+ * agreed to the disclaimer. Keeps the disclaimer link visible without forcing
+ * them to re-check the box on every submission (acceptance is stored on the
+ * profile -- see migration 20260513030000_profile_disclaimer_acceptance.sql).
+ */
+export function ContentSubmissionDisclaimerAccepted({
+  variant = "default",
+}: {
+  variant?: "default" | "compact";
+}) {
+  const isCompact = variant === "compact";
+  return (
+    <p
+      className={
+        isCompact
+          ? "text-xs text-muted-foreground"
+          : "text-xs text-muted-foreground"
+      }
+    >
+      You previously agreed to the{" "}
+      <Link
+        href="/legal/content-disclaimer"
+        className="text-primary font-medium underline-offset-2 hover:underline"
+      >
+        content disclaimer
+      </Link>
+      .
+    </p>
+  );
+}
+
 export function ContentSubmissionDisclaimer({
   id,
   checked,

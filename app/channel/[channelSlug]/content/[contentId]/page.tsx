@@ -10,7 +10,7 @@ import {
   isChannelAuthor,
 } from "@/actions/channels";
 import DeleteContentButton from "./delete-content-button";
-import { getCurrentUser } from "@/actions";
+import { getCurrentUser, hasAcceptedContentDisclaimer } from "@/actions";
 import ContentActions from "./content-actions";
 import { Button } from "@/components/ui/button";
 import CommentForm from "./comment-form";
@@ -33,13 +33,14 @@ export default async function ChannelContentPage({ params }: Props) {
 
   if (!content || !channel) notFound();
 
-  const [comments, feedbackCounts, shareCount, hasLiked, hasHelpful, isAuthor] = await Promise.all([
+  const [comments, feedbackCounts, shareCount, hasLiked, hasHelpful, isAuthor, hasAlreadyAcceptedDisclaimer] = await Promise.all([
     getComments(contentId),
     getFeedbackCounts(contentId),
     getShareCount(contentId),
     user ? getUserHasFeedback(contentId, "like") : false,
     user ? getUserHasFeedback(contentId, "helpful") : false,
     user ? isChannelAuthor(content.topic_id) : false,
+    user ? hasAcceptedContentDisclaimer(user.id) : false,
   ]);
 
   const rawMedia = content.media_urls;
@@ -122,7 +123,12 @@ export default async function ChannelContentPage({ params }: Props) {
 
       <section className="mt-8">
         <h2 className="text-lg font-semibold mb-3">Comments</h2>
-        {user && <CommentForm contentId={contentId} />}
+        {user && (
+          <CommentForm
+            contentId={contentId}
+            hasAlreadyAcceptedDisclaimer={hasAlreadyAcceptedDisclaimer}
+          />
+        )}
         <CommentList comments={comments} />
       </section>
     </div>

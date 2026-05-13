@@ -6,7 +6,10 @@ import { Sparkles } from "lucide-react";
 import { updateContent } from "@/actions/channels";
 import { Button } from "@/components/ui/button";
 import { MediaUploadField, type MediaItem } from "@/components/media-upload-field";
-import { ContentSubmissionDisclaimer } from "@/components/content-submission-disclaimer";
+import {
+  ContentSubmissionDisclaimer,
+  ContentSubmissionDisclaimerAccepted,
+} from "@/components/content-submission-disclaimer";
 import { TopicTagPicker } from "@/components/tags/topic-tag-picker";
 
 const CONTENT_TYPES = [
@@ -36,6 +39,9 @@ type Props = {
   pages: Page[];
   allTags: Tag[];
   initialTagIds: string[];
+  /** True once the user has agreed to the disclaimer at least once -- hides
+   *  the per-edit checkbox below. */
+  hasAlreadyAcceptedDisclaimer?: boolean;
 };
 
 export default function EditContentForm({
@@ -45,6 +51,7 @@ export default function EditContentForm({
   pages,
   allTags,
   initialTagIds,
+  hasAlreadyAcceptedDisclaimer = false,
 }: Props) {
   const [error, setError] = useState<string | null>(null);
   const initialMedia = (content.media_urls as MediaItem[] | null) ?? [];
@@ -55,6 +62,8 @@ export default function EditContentForm({
   const [tagIds, setTagIds] = useState<string[]>(initialTagIds);
   const [acceptedDisclaimer, setAcceptedDisclaimer] = useState(false);
   const router = useRouter();
+
+  const effectiveAccepted = hasAlreadyAcceptedDisclaimer || acceptedDisclaimer;
 
   const addMedia = () => setMediaUrls([...mediaUrls, { url: "", type: "image" }]);
   const updateMedia = (i: number, field: string, value: string) => {
@@ -67,7 +76,7 @@ export default function EditContentForm({
     <form
       action={async (formData) => {
         setError(null);
-        if (!acceptedDisclaimer) {
+        if (!effectiveAccepted) {
           setError("Please read and accept the content disclaimer before saving.");
           return;
         }
@@ -78,6 +87,7 @@ export default function EditContentForm({
         }
         formData.set("media_urls", JSON.stringify(mediaUrls.filter((m) => m.url)));
         formData.set("page_id", targetPage);
+        formData.set("accepted_disclaimer", effectiveAccepted ? "1" : "0");
         const res = await updateContent(content.id, formData);
         if (res?.error) setError(res.error);
       }}
@@ -212,11 +222,15 @@ export default function EditContentForm({
         </p>
       </div>
 
-      <ContentSubmissionDisclaimer
-        id="edit-content-disclaimer"
-        checked={acceptedDisclaimer}
-        onCheckedChange={setAcceptedDisclaimer}
-      />
+      {hasAlreadyAcceptedDisclaimer ? (
+        <ContentSubmissionDisclaimerAccepted />
+      ) : (
+        <ContentSubmissionDisclaimer
+          id="edit-content-disclaimer"
+          checked={acceptedDisclaimer}
+          onCheckedChange={setAcceptedDisclaimer}
+        />
+      )}
 
       {error && (
         <p className="text-destructive text-sm" role="alert">
@@ -225,7 +239,7 @@ export default function EditContentForm({
       )}
 
       <div className="flex flex-wrap gap-3">
-        <Button type="submit" disabled={!acceptedDisclaimer} className="min-h-11 touch-manipulation">
+        <Button type="submit" disabled={!effectiveAccepted} className="min-h-11 touch-manipulation">
           Save changes
         </Button>
         <Button

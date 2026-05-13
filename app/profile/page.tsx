@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { getProfile, getCurrentUser } from "@/actions";
 import { createClient } from "@/utils/supabase/server";
 import Link from "next/link";
+import { RelativeDate } from "@/components/relative-date";
 
 export const metadata: Metadata = {
   title: "Profile",
@@ -42,9 +43,7 @@ export default async function Profile() {
       <div className="space-y-3">
         {posts?.map((post) => (
           <Link key={post.id} href={`/posts/${post.id}`} className="btw-app-row">
-            <div className="mb-1 text-xs text-muted-foreground">
-              {new Date(post.created_at).toLocaleDateString()}
-            </div>
+            <RelativeDate date={post.created_at} className="mb-1 block text-xs text-muted-foreground" />
             <div className="text-sm">{post.text}</div>
           </Link>
         ))}

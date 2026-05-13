@@ -2,6 +2,7 @@ import { Metadata } from "next";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { getChannelBySlug, getChannelPages, isChannelAuthor } from "@/actions/channels";
+import { getAllTopicTags, getChannelTagIds } from "@/actions/tags";
 import { getCurrentUser } from "@/actions";
 import { ChannelSettingsForm } from "./channel-settings-form";
 import { ChannelDeleteForm } from "./channel-delete-form";
@@ -29,7 +30,11 @@ export default async function ChannelSettingsPage({ params }: Props) {
     redirect(`/channel/${channelSlug}`);
   }
 
-  const pages = await getChannelPages(channel.id);
+  const [pages, allTags, initialTagIds] = await Promise.all([
+    getChannelPages(channel.id),
+    getAllTopicTags(),
+    getChannelTagIds(channel.id),
+  ]);
   const homePage = pages.find((p) => p.slug === "home");
   const defaultPageIdForContent = homePage?.id ?? pages[0]?.id ?? null;
 
@@ -54,6 +59,8 @@ export default async function ChannelSettingsPage({ params }: Props) {
           initialTitle={channel.title}
           initialDescription={channel.description ?? ""}
           initialSlug={channel.slug}
+          allTags={allTags}
+          initialTagIds={initialTagIds}
         />
       </section>
 

@@ -1,6 +1,7 @@
 import { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { getChannelBySlug, getChannelPages, isChannelAuthor } from "@/actions/channels";
+import { getAllTopicTags } from "@/actions/tags";
 import { getCurrentUser } from "@/actions";
 import AddContentForm from "./add-content-form";
 
@@ -29,7 +30,10 @@ export default async function NewContentPage({ params, searchParams }: Props) {
   const author = await isChannelAuthor(channel.id);
   if (!author) redirect(`/channel/${channelSlug}`);
 
-  const pages = await getChannelPages(channel.id);
+  const [pages, allTags] = await Promise.all([
+    getChannelPages(channel.id),
+    getAllTopicTags(),
+  ]);
   const defaultPage = pages.find((p) => p.slug === "home") ?? pages[0];
   const selectedPage = pageId ? pages.find((p) => p.id === pageId) : defaultPage;
 
@@ -41,6 +45,7 @@ export default async function NewContentPage({ params, searchParams }: Props) {
         channelSlug={channelSlug}
         pages={pages}
         defaultPageId={selectedPage?.id ?? null}
+        allTags={allTags}
       />
     </div>
   );

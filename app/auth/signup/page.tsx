@@ -2,8 +2,28 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { Info, MessageCircle, Mic, Rss, ShieldCheck, User } from "lucide-react";
 import { createImplicitRecoveryClient } from "@/utils/supabase/client";
 import { authInputClass, authPrimaryButtonClass } from "@/lib/auth-form-styles";
+import { OAuthButtons } from "@/components/auth/oauth-buttons";
+
+const signupBenefits = [
+  {
+    icon: Rss,
+    headline: "Follow channels you love",
+    description: "Subscribe to voices that build you up and keep their newest posts close at hand.",
+  },
+  {
+    icon: MessageCircle,
+    headline: "Comment and share with the community",
+    description: "Encourage others, share what stirred you, and walk together in faith.",
+  },
+  {
+    icon: ShieldCheck,
+    headline: "Access a safe, AI-moderated space",
+    description: "Conversations stay kind thanks to thoughtful AI moderation.",
+  },
+] as const;
 
 export default function SignUpPage() {
   const [email, setEmail] = useState("");
@@ -100,12 +120,39 @@ export default function SignUpPage() {
   }
 
   return (
-    <div className="max-w-md mx-auto mt-12 sm:mt-20">
-      <div className="btw-auth-panel">
+    <div className="mx-auto mt-12 sm:mt-20 w-full max-w-5xl">
+      <div className="grid gap-10 lg:grid-cols-[1fr_minmax(0,28rem)] lg:gap-14 lg:items-start">
+        <section aria-labelledby="signup-benefits-heading" className="lg:pt-2">
+          <h2 id="signup-benefits-heading" className="sr-only">
+            Why join Believe The Works
+          </h2>
+          <ul className="space-y-6">
+            {signupBenefits.map(({ icon: Icon, headline, description }) => (
+              <li key={headline} className="flex gap-4">
+                <span
+                  aria-hidden
+                  className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-muted text-muted-foreground"
+                >
+                  <Icon className="size-5" aria-hidden />
+                </span>
+                <div className="space-y-1">
+                  <h3 className="text-base font-medium text-foreground">{headline}</h3>
+                  <p className="text-sm text-muted-foreground leading-relaxed">{description}</p>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </section>
+        <div className="btw-auth-panel">
         <h1 className="text-2xl font-semibold tracking-tight mb-1">Create account</h1>
-        <p className="text-muted-foreground text-sm mb-6">
+        <p className="text-muted-foreground text-sm mb-2">
           Join a community built on faith and encouragement.
         </p>
+        <p className="mb-6 inline-flex items-center gap-2 text-sm text-muted-foreground">
+          <ShieldCheck className="size-4" aria-hidden />
+          You&apos;re joining a space moderated by AI for safety and encouragement
+        </p>
+        <OAuthButtons />
         <form onSubmit={handleSubmit} className="flex flex-col gap-4" noValidate>
           <div className="space-y-2">
             <label htmlFor="signup-name" className="text-sm font-medium text-foreground">
@@ -159,30 +206,72 @@ export default function SignUpPage() {
           </div>
           <fieldset className="space-y-2">
             <legend className="text-sm font-medium text-foreground mb-2">Sign up as</legend>
-            <div className="flex flex-col gap-3">
-              <label className="flex min-h-11 cursor-pointer items-start gap-3 rounded-md p-1 text-sm text-muted-foreground -m-1 focus-within:ring-2 focus-within:ring-ring">
-                <input
-                  type="radio"
-                  name="role"
-                  value="user"
-                  checked={role === "user"}
-                  onChange={() => setRole("user")}
-                  className="mt-1 accent-primary size-4 shrink-0"
-                />
-                <span>Regular user (browse, comment & share)</span>
-              </label>
-              <label className="flex min-h-11 cursor-pointer items-start gap-3 rounded-md p-1 text-sm text-muted-foreground -m-1 focus-within:ring-2 focus-within:ring-ring">
-                <input
-                  type="radio"
-                  name="role"
-                  value="channel_author"
-                  checked={role === "channel_author"}
-                  onChange={() => setRole("channel_author")}
-                  className="mt-1 accent-primary size-4 shrink-0"
-                />
-                <span>Channel author (create & manage channels)</span>
-              </label>
+            <div className="flex flex-col gap-2">
+              {(
+                [
+                  {
+                    value: "user",
+                    title: "Regular user",
+                    description: "Browse, comment, and share content from channels you follow",
+                    Icon: User,
+                  },
+                  {
+                    value: "channel_author",
+                    title: "Channel author",
+                    description: "Everything above, plus create and manage your own channels",
+                    Icon: Mic,
+                  },
+                ] as const
+              ).map(({ value, title, description, Icon }) => {
+                const selected = role === value;
+                return (
+                  <label
+                    key={value}
+                    className={
+                      "flex cursor-pointer items-start gap-3 rounded-xl border px-3 py-3 transition-colors focus-within:ring-2 focus-within:ring-ring " +
+                      (selected
+                        ? "border-primary bg-primary/5"
+                        : "border-border hover:border-foreground/20 hover:bg-muted/50")
+                    }
+                  >
+                    <input
+                      type="radio"
+                      name="role"
+                      value={value}
+                      checked={selected}
+                      onChange={() => setRole(value)}
+                      className="sr-only"
+                    />
+                    <span
+                      aria-hidden
+                      className={
+                        "mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg " +
+                        (selected ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground")
+                      }
+                    >
+                      <Icon className="size-4" aria-hidden />
+                    </span>
+                    <span className="flex-1 space-y-0.5">
+                      <span className="block text-sm font-medium text-foreground">{title}</span>
+                      <span className="block text-sm text-muted-foreground leading-snug">{description}</span>
+                    </span>
+                    <span
+                      aria-hidden
+                      className={
+                        "mt-1 flex size-4 shrink-0 items-center justify-center rounded-full border transition-colors " +
+                        (selected ? "border-primary bg-primary" : "border-input bg-background")
+                      }
+                    >
+                      {selected && <span className="size-1.5 rounded-full bg-primary-foreground" />}
+                    </span>
+                  </label>
+                );
+              })}
             </div>
+            <p className="mt-2 inline-flex items-start gap-1.5 text-xs text-muted-foreground">
+              <Info className="mt-0.5 size-3.5 shrink-0" aria-hidden />
+              You can always upgrade to a Channel author later from your account settings
+            </p>
           </fieldset>
           <div className="rounded-xl border border-border bg-muted/30 px-3 py-3">
             <label className="flex cursor-pointer items-start gap-3 text-sm text-foreground">
@@ -217,6 +306,7 @@ export default function SignUpPage() {
             Sign in
           </Link>
         </p>
+        </div>
       </div>
     </div>
   );

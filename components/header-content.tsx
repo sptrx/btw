@@ -8,6 +8,7 @@ import { useState, useEffect, useCallback } from "react";
 import { signOut } from "@/actions";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { GlobalSearch } from "@/components/global-search/global-search";
 import { cn } from "@/lib/utils";
 
 type Props = { user: User | null; isChannelAuthor?: boolean };
@@ -134,6 +135,11 @@ export function HeaderContent({ user, isChannelAuthor }: Props) {
 
         {/* Right: auth + theme */}
         <div className="flex min-w-0 items-center gap-2">
+          <GlobalSearch
+            className={
+              onHero ? "text-white hover:bg-white/15 hover:text-white [&_svg]:text-white" : undefined
+            }
+          />
           <ThemeToggle
             className={
               onHero ? "text-white hover:bg-white/15 hover:text-white [&_svg]:text-white" : undefined

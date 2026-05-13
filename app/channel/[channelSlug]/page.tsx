@@ -8,6 +8,8 @@ import {
   isChannelAuthor,
 } from "@/actions/channels";
 import AddContentLink from "./add-content-link";
+import { ShareButton } from "@/components/share-button";
+import { getCurrentUser } from "@/actions";
 
 type Props = { params: Promise<{ channelSlug: string }> };
 
@@ -23,11 +25,22 @@ export default async function ChannelPage({ params }: Props) {
     ? await getPageContentForEditPage(channel.id, homePage)
     : await getPageContent(channel.id, null);
 
-  const isAuthor = await isChannelAuthor(channel.id);
+  const [isAuthor, user] = await Promise.all([
+    isChannelAuthor(channel.id),
+    getCurrentUser(),
+  ]);
   const defaultPageIdForContent = homePage?.id ?? pages[0]?.id ?? null;
 
   return (
     <div>
+      <div className="mb-3 flex items-center justify-end">
+        <ShareButton
+          path={`/channel/${channelSlug}`}
+          title={channel.title}
+          text={channel.description ?? `Check out ${channel.title} on BTW`}
+          isAuthenticated={!!user}
+        />
+      </div>
       {homePage?.description && (
         <div className="btw-content-panel mb-6">
           <p className="text-sm text-muted-foreground whitespace-pre-wrap">{homePage.description}</p>

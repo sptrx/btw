@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/button";
 import CommentForm from "./comment-form";
 import CommentList from "./comment-list";
 import { ChannelContentMedia } from "@/components/channel-content-media";
+import { RelativeDate } from "@/components/relative-date";
 
 type Props = {
   params: Promise<{ channelSlug: string; contentId: string }>;
@@ -75,6 +76,12 @@ export default async function ChannelContentPage({ params }: Props) {
         <h1 className="text-2xl font-bold">{content.title}</h1>
         <p className="text-sm text-gray-500 mt-1">
           by {(content.profiles as { display_name?: string })?.display_name ?? "Anonymous"}
+          {content.created_at ? (
+            <>
+              {" · "}
+              <RelativeDate date={content.created_at} />
+            </>
+          ) : null}
         </p>
 
         {content.body && (
@@ -85,21 +92,21 @@ export default async function ChannelContentPage({ params }: Props) {
 
         <ChannelContentMedia items={mediaUrls} />
 
-        {user && (
-          <ContentActions
-            contentId={contentId}
-            channelSlug={channelSlug}
-            likes={feedbackCounts.likes}
-            helpful={feedbackCounts.helpful}
-            shareCount={shareCount}
-            hasLiked={hasLiked}
-            hasHelpful={hasHelpful}
-          />
-        )}
+        <ContentActions
+          contentId={contentId}
+          channelSlug={channelSlug}
+          contentTitle={content.title}
+          likes={feedbackCounts.likes}
+          helpful={feedbackCounts.helpful}
+          shareCount={shareCount}
+          hasLiked={hasLiked}
+          hasHelpful={hasHelpful}
+          isAuthenticated={!!user}
+        />
 
         {!user && (
           <p className="mt-4 text-sm text-amber-600 dark:text-amber-400">
-            Sign up to comment, give feedback, or share.
+            Sign up to comment, give feedback, or repost to your feed.
           </p>
         )}
 

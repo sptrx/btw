@@ -1,6 +1,8 @@
 import { Metadata } from "next";
 import { fetchChannels } from "@/actions/channels";
+import { getAllTopicTags } from "@/actions/tags";
 import { ChannelCardGrid } from "@/components/channel-card-grid";
+import { BrowseTopicFilter } from "@/components/tags/browse-topic-filter";
 import { Button } from "@/components/ui/button";
 
 export const metadata: Metadata = {
@@ -9,13 +11,22 @@ export const metadata: Metadata = {
 };
 
 type Props = {
-  searchParams: Promise<{ q?: string }>;
+  searchParams: Promise<{ q?: string; topic?: string }>;
 };
 
 export default async function BrowseChannelsPage({ searchParams }: Props) {
   const sp = await searchParams;
   const q = typeof sp.q === "string" ? sp.q : "";
-  const channels = await fetchChannels({ search: q || undefined });
+  const topic = typeof sp.topic === "string" ? sp.topic.trim() : "";
+
+  const [channels, allTags] = await Promise.all([
+    fetchChannels({ search: q || undefined, topicSlug: topic || undefined }),
+    getAllTopicTags(),
+  ]);
+
+  const activeTagLabel = topic
+    ? allTags.find((t) => t.slug === topic)?.label ?? topic
+    : null;
 
   return (
     <div>
@@ -30,7 +41,7 @@ export default async function BrowseChannelsPage({ searchParams }: Props) {
       <form
         action="/channel/browse"
         method="get"
-        className="mb-8 flex flex-col gap-3 sm:flex-row sm:items-center"
+        className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center"
         role="search"
       >
         <label htmlFor="channel-search" className="sr-only">
@@ -45,16 +56,21 @@ export default async function BrowseChannelsPage({ searchParams }: Props) {
           className="min-h-11 w-full flex-1 rounded-xl border border-input bg-background px-4 py-2 text-base text-foreground placeholder:text-muted-foreground/70 sm:text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
           autoComplete="off"
         />
+        {topic ? <input type="hidden" name="topic" value={topic} /> : null}
         <Button type="submit" className="min-h-11 w-full shrink-0 sm:w-auto">
           Search
         </Button>
       </form>
 
+      <BrowseTopicFilter tags={allTags} />
+
       {channels.length === 0 ? (
         <p className="py-12 text-center text-muted-foreground">
           {q.trim()
             ? "No channels match your search. Try different words."
-            : "No channels yet."}
+            : activeTagLabel
+              ? `No channels tagged "${activeTagLabel}" yet.`
+              : "No channels yet."}
         </p>
       ) : (
         <ChannelCardGrid channels={channels} />

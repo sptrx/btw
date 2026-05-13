@@ -1,6 +1,7 @@
+import { Suspense } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, Play } from "lucide-react";
+import { ArrowRight, Play, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { LandingChannelPill, LandingFeedItem, LandingIntroCopy } from "@/actions/landing";
@@ -31,6 +32,8 @@ type LandingHomeProps = {
   intro?: LandingIntroCopy | null;
   /** Recent posts for the public feed */
   feed?: LandingFeedItem[];
+  /** Author-flagged posts surfaced above the main feed */
+  featured?: LandingFeedItem[];
   /** Recent channels for the horizontal strip above the feed */
   recentChannels?: LandingChannelPill[];
 };
@@ -39,6 +42,7 @@ export function LandingHome({
   displayFontClassName,
   intro,
   feed = [],
+  featured = [],
   recentChannels = [],
 }: LandingHomeProps) {
   const introCopy =
@@ -107,6 +111,10 @@ export function LandingHome({
                 </Link>
               </Button>
             </div>
+            <p className="mt-6 inline-flex items-center gap-2 text-sm text-white/75">
+              <ShieldCheck className="size-4" aria-hidden />
+              All content reviewed by AI — safe for the whole family
+            </p>
           </div>
         </section>
       </FullBleed>
@@ -141,11 +149,14 @@ export function LandingHome({
             </p>
           </div>
           <div className="mx-auto w-full max-w-4xl border-x border-border/50 bg-background shadow-[0_0_0_1px_rgba(0,0,0,0.03)] dark:shadow-[0_0_0_1px_rgba(255,255,255,0.06)]">
-            <LandingPublicFeed
-              displayFontClassName={displayFontClassName}
-              feed={feed}
-              recentChannels={recentChannels}
-            />
+            <Suspense fallback={null}>
+              <LandingPublicFeed
+                displayFontClassName={displayFontClassName}
+                feed={feed}
+                featured={featured}
+                recentChannels={recentChannels}
+              />
+            </Suspense>
           </div>
         </section>
       </FullBleed>

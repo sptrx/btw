@@ -26,9 +26,10 @@ export function ThemeToggle({ className }: ThemeToggleProps) {
         size="icon"
         className={cn("size-11 touch-manipulation", className)}
         aria-label="Toggle theme"
+        type="button"
+        suppressHydrationWarning
       >
-        <span className="sr-only">Loading theme</span>
-        <div className="h-4 w-4" aria-hidden />
+        <span className="h-4 w-4" aria-hidden />
       </Button>
     );
   }

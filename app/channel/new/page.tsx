@@ -2,6 +2,7 @@ import { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/actions";
 import { getProfile } from "@/actions";
+import { getAllTopicTags } from "@/actions/tags";
 import CreateChannelForm from "./create-channel-form";
 
 export const metadata: Metadata = {
@@ -18,13 +19,15 @@ export default async function NewChannelPage() {
     redirect("/channel");
   }
 
+  const allTags = await getAllTopicTags();
+
   return (
     <div>
       <h1 className="text-2xl font-bold mb-4">Create a channel</h1>
       <p className="text-gray-600 dark:text-gray-400 mb-6">
         Add sub-pages for videos, podcasts, articles, and discussions. Manage all content from your channel.
       </p>
-      <CreateChannelForm />
+      <CreateChannelForm allTags={allTags} />
     </div>
   );
 }

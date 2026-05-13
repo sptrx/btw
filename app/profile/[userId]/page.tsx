@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { getProfile, getCurrentUser } from "@/actions";
 import { createClient } from "@/utils/supabase/server";
 import Link from "next/link";
+import { RelativeDate } from "@/components/relative-date";
 
 type Props = {
   params: Promise<{ userId: string }>;
@@ -46,9 +47,7 @@ export default async function UserProfile({ params }: Props) {
             href={`/posts/${post.id}`}
             className="block border rounded-lg p-4 hover:bg-gray-50 dark:hover:bg-gray-800"
           >
-            <div className="text-sm text-gray-500 mb-1">
-              {new Date(post.created_at).toLocaleDateString()}
-            </div>
+            <RelativeDate date={post.created_at} className="mb-1 block text-sm text-gray-500" />
             <div>{post.text}</div>
           </Link>
         ))}

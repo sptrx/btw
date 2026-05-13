@@ -4,6 +4,7 @@ import { Suspense, useState, useEffect } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
+import { OAuthButtons } from "@/components/auth/oauth-buttons";
 
 function LoginForm() {
   const searchParams = useSearchParams();
@@ -48,6 +49,7 @@ function LoginForm() {
         <p className="text-muted-foreground text-sm mb-6">
           A safe space for faith, encouragement, and community.
         </p>
+        <OAuthButtons />
         <form onSubmit={handleSubmit} className="flex flex-col gap-4" noValidate suppressHydrationWarning>
           <div className="space-y-2">
             <label htmlFor="login-email" className="text-sm font-medium text-foreground">

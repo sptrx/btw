@@ -1,22 +1,36 @@
+"use client";
+
+import { useCallback, useMemo } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { FileText, Mic, MessagesSquare, Video } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
+import {
+  FileText,
+  Heart,
+  MessageCircle,
+  Mic,
+  MessagesSquare,
+  Sparkles,
+  Video,
+} from "lucide-react";
 import type { LandingChannelPill, LandingFeedItem } from "@/actions/landing";
 import { ChannelContentMedia } from "@/components/channel-content-media";
+import { RelativeDate } from "@/components/relative-date";
+import { TopicTagPill } from "@/components/tags/topic-tag-pill";
 import { cn } from "@/lib/utils";
 
-function formatFeedTime(iso: string): string {
-  const d = new Date(iso);
-  const diff = Date.now() - d.getTime();
-  const sec = Math.floor(diff / 1000);
-  if (sec < 45) return "now";
-  const min = Math.floor(sec / 60);
-  if (min < 60) return `${min}m`;
-  const hr = Math.floor(min / 60);
-  if (hr < 24) return `${hr}h`;
-  const day = Math.floor(hr / 24);
-  if (day < 7) return `${day}d`;
-  return d.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+type FeedFilter = "all" | "video" | "article" | "discussion";
+
+const FILTER_OPTIONS: { value: FeedFilter; label: string }[] = [
+  { value: "all", label: "All" },
+  { value: "video", label: "Videos" },
+  { value: "article", label: "Articles" },
+  { value: "discussion", label: "Discussions" },
+];
+
+function parseFilterParam(raw: string | null): FeedFilter {
+  if (raw === "video" || raw === "article" || raw === "discussion") return raw;
+  return "all";
 }
 
 function cardImageUnoptimized(src: string) {
@@ -37,7 +51,17 @@ function TypeIcon({ type }: { type: LandingFeedItem["type"] }) {
   }
 }
 
-function FeedCard({ item, displayFontClassName }: { item: LandingFeedItem; displayFontClassName: string }) {
+type FeedCardVariant = "default" | "featured";
+
+function FeedCard({
+  item,
+  displayFontClassName,
+  variant = "default",
+}: {
+  item: LandingFeedItem;
+  displayFontClassName: string;
+  variant?: FeedCardVariant;
+}) {
   const previewMedia = item.mediaItems.slice(0, 1);
   const showEmbed = previewMedia.length > 0;
 
@@ -46,8 +70,26 @@ function FeedCard({ item, displayFontClassName }: { item: LandingFeedItem; displ
       ? `/channel/${item.channelSlug}/${item.pageSlug}`
       : null;
 
+  const isFeatured = variant === "featured";
+
   return (
-    <article className="border-b border-border/80 px-4 py-4 sm:px-5 hover:bg-muted/20 transition-colors">
+    <article
+      className={cn(
+        "relative transition-colors",
+        isFeatured
+          ? "snap-start shrink-0 min-w-[320px] sm:min-w-[360px] max-w-[360px] rounded-2xl border border-border/70 bg-background px-4 py-4 sm:px-5 hover:bg-muted/20"
+          : "border-b border-border/80 px-4 py-4 sm:px-5 hover:bg-muted/20"
+      )}
+    >
+      {isFeatured ? (
+        <span
+          className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-primary"
+          aria-label="Featured post"
+        >
+          <Sparkles className="size-3" aria-hidden />
+          Featured
+        </span>
+      ) : null}
       <div className="flex gap-3">
         <Link
           href={`/channel/${item.channelSlug}`}
@@ -91,9 +133,7 @@ function FeedCard({ item, displayFontClassName }: { item: LandingFeedItem; displ
             <span className="text-muted-foreground/80" aria-hidden>
               ·
             </span>
-            <time className="tabular-nums shrink-0" dateTime={item.createdAt}>
-              {formatFeedTime(item.createdAt)}
-            </time>
+            <RelativeDate date={item.createdAt} className="tabular-nums shrink-0" />
             <span className="inline-flex items-center gap-1 rounded-full border border-border/70 bg-background/80 px-1.5 py-0.5 text-[11px] uppercase tracking-wide text-muted-foreground">
               <TypeIcon type={item.type} />
               {item.type}
@@ -141,7 +181,37 @@ function FeedCard({ item, displayFontClassName }: { item: LandingFeedItem; displ
             <Link href={`/channel/${item.channelSlug}`} className="text-muted-foreground hover:text-foreground">
               Channel
             </Link>
+            {item.commentCount > 0 || item.likeCount > 0 ? (
+              <div className="ml-auto inline-flex items-center gap-4 text-xs text-muted-foreground">
+                {item.commentCount > 0 ? (
+                  <span
+                    className="inline-flex items-center gap-1"
+                    aria-label={`${item.commentCount} ${item.commentCount === 1 ? "comment" : "comments"}`}
+                  >
+                    <MessageCircle className="size-3.5" aria-hidden />
+                    <span className="tabular-nums">{item.commentCount}</span>
+                  </span>
+                ) : null}
+                {item.likeCount > 0 ? (
+                  <span
+                    className="inline-flex items-center gap-1"
+                    aria-label={`${item.likeCount} ${item.likeCount === 1 ? "like" : "likes"}`}
+                  >
+                    <Heart className="size-3.5" aria-hidden />
+                    <span className="tabular-nums">{item.likeCount}</span>
+                  </span>
+                ) : null}
+              </div>
+            ) : null}
           </div>
+
+          {item.tags && item.tags.length > 0 ? (
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              {item.tags.map((tag) => (
+                <TopicTagPill key={tag.id} tag={tag} asLink />
+              ))}
+            </div>
+          ) : null}
         </div>
       </div>
     </article>
@@ -151,12 +221,77 @@ function FeedCard({ item, displayFontClassName }: { item: LandingFeedItem; displ
 type Props = {
   displayFontClassName: string;
   feed: LandingFeedItem[];
+  featured?: LandingFeedItem[];
   recentChannels: LandingChannelPill[];
 };
 
-export function LandingPublicFeed({ displayFontClassName, feed, recentChannels }: Props) {
+export function LandingPublicFeed({
+  displayFontClassName,
+  feed,
+  featured = [],
+  recentChannels,
+}: Props) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const activeFilter = parseFilterParam(searchParams.get("type"));
+
+  const filteredFeed = useMemo(() => {
+    if (activeFilter === "all") return feed;
+    return feed.filter((item) => item.type === activeFilter);
+  }, [feed, activeFilter]);
+
+  const setFilter = useCallback(
+    (next: FeedFilter) => {
+      const params = new URLSearchParams(searchParams.toString());
+      if (next === "all") {
+        params.delete("type");
+      } else {
+        params.set("type", next);
+      }
+      const qs = params.toString();
+      router.replace(qs ? `/?${qs}` : "/", { scroll: false });
+    },
+    [router, searchParams]
+  );
+
+  const activeLabel =
+    FILTER_OPTIONS.find((opt) => opt.value === activeFilter)?.label.toLowerCase() ?? "posts";
+
+  const featuredCapped = featured.slice(0, 4);
+
   return (
     <div className="w-full">
+      {featuredCapped.length > 0 ? (
+        <section
+          aria-labelledby="landing-featured-heading"
+          className="border-b border-border/80 bg-muted/15 px-4 py-4 sm:px-5"
+        >
+          <h2
+            id="landing-featured-heading"
+            className={cn(
+              displayFontClassName,
+              "inline-flex items-center gap-1.5 text-lg sm:text-xl font-normal text-foreground"
+            )}
+          >
+            <Sparkles className="size-4 text-muted-foreground" aria-hidden />
+            Featured
+          </h2>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Highlights picked from across the community
+          </p>
+          <div className="mt-3 flex gap-3 overflow-x-auto snap-x snap-mandatory pb-1 [scrollbar-width:thin] -mx-4 sm:-mx-5 px-4 sm:px-5">
+            {featuredCapped.map((item) => (
+              <FeedCard
+                key={item.id}
+                item={item}
+                displayFontClassName={displayFontClassName}
+                variant="featured"
+              />
+            ))}
+          </div>
+        </section>
+      ) : null}
+
       <div className="border-b border-border/80 bg-background/95 px-4 py-3 sm:px-5 backdrop-blur supports-[backdrop-filter]:bg-background/80">
         <h2 className={cn(displayFontClassName, "text-lg sm:text-xl font-normal text-foreground")}>
           Latest
@@ -205,6 +340,37 @@ export function LandingPublicFeed({ displayFontClassName, feed, recentChannels }
         </div>
       ) : null}
 
+      <div className="border-b border-border/60 bg-background px-3 py-2.5 sm:px-4">
+        <div className="overflow-x-auto -mx-3 px-3 sm:mx-0 sm:px-0 [scrollbar-width:thin]">
+          <div
+            role="tablist"
+            aria-label="Filter feed by content type"
+            className="flex gap-2 whitespace-nowrap"
+          >
+            {FILTER_OPTIONS.map((opt) => {
+              const isActive = activeFilter === opt.value;
+              return (
+                <button
+                  key={opt.value}
+                  type="button"
+                  role="tab"
+                  aria-selected={isActive}
+                  onClick={() => setFilter(opt.value)}
+                  className={cn(
+                    "rounded-full px-3.5 py-1.5 text-sm font-medium transition-colors",
+                    isActive
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-muted text-muted-foreground hover:bg-muted/80"
+                  )}
+                >
+                  {opt.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
       {feed.length === 0 ? (
         <div className="px-4 py-16 text-center sm:px-6">
           <p className={cn(displayFontClassName, "text-xl text-foreground")}>Nothing here yet</p>
@@ -218,9 +384,25 @@ export function LandingPublicFeed({ displayFontClassName, feed, recentChannels }
             Browse channels
           </Link>
         </div>
+      ) : filteredFeed.length === 0 ? (
+        <div className="px-4 py-16 text-center sm:px-6">
+          <p className={cn(displayFontClassName, "text-xl text-foreground")}>
+            No {activeLabel} yet
+          </p>
+          <p className="mt-2 text-sm text-muted-foreground max-w-sm mx-auto">
+            Check back soon — or browse all posts to see what the community is sharing.
+          </p>
+          <button
+            type="button"
+            onClick={() => setFilter("all")}
+            className="mt-6 inline-flex text-sm font-medium text-primary hover:underline"
+          >
+            Show all posts
+          </button>
+        </div>
       ) : (
         <div role="feed" aria-label="Latest posts from channels">
-          {feed.map((item) => (
+          {filteredFeed.map((item) => (
             <FeedCard key={item.id} item={item} displayFontClassName={displayFontClassName} />
           ))}
         </div>

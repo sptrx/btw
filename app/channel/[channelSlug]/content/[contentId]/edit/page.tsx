@@ -7,6 +7,7 @@ import {
   getContentById,
   isChannelAuthor,
 } from "@/actions/channels";
+import { getAllTopicTags, getPostTagIds } from "@/actions/tags";
 import { getCurrentUser } from "@/actions";
 import EditContentForm from "./edit-content-form";
 
@@ -36,7 +37,11 @@ export default async function EditContentPage({ params }: Props) {
 
   if (content.topic_id !== channel.id) notFound();
 
-  const pages = await getChannelPages(channel.id);
+  const [pages, allTags, initialTagIds] = await Promise.all([
+    getChannelPages(channel.id),
+    getAllTopicTags(),
+    getPostTagIds(content.id),
+  ]);
 
   return (
     <div>
@@ -59,8 +64,11 @@ export default async function EditContentPage({ params }: Props) {
           body: content.body,
           page_id: content.page_id,
           media_urls: content.media_urls,
+          is_featured: content.is_featured ?? false,
         }}
         pages={pages}
+        allTags={allTags}
+        initialTagIds={initialTagIds}
       />
     </div>
   );

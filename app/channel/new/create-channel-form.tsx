@@ -1,9 +1,18 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import { createChannel } from "@/actions/channels";
+import { TopicTagPicker } from "@/components/tags/topic-tag-picker";
 
-export default function CreateChannelForm() {
+type Tag = { id: string; slug: string; label: string };
+
+type Props = {
+  allTags: Tag[];
+};
+
+export default function CreateChannelForm({ allTags }: Props) {
+  const [tagIds, setTagIds] = useState<string[]>([]);
+
   const [state, formAction] = useActionState(
     async (_prev: { error?: string } | null, formData: FormData) => {
       const result = await createChannel(formData);
@@ -35,6 +44,17 @@ export default function CreateChannelForm() {
           className="w-full px-4 py-2 border rounded dark:bg-gray-800 dark:border-gray-700"
         />
       </div>
+
+      <div>
+        <span className="block text-sm font-medium mb-2">Topics</span>
+        <TopicTagPicker
+          allTags={allTags}
+          value={tagIds}
+          onChange={setTagIds}
+          max={3}
+        />
+      </div>
+
       {state?.error && <p className="text-red-600 text-sm">{state.error}</p>}
       <button
         type="submit"

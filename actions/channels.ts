@@ -6,6 +6,16 @@ import { redirect } from "next/navigation";
 import { moderateContent } from "@/lib/moderation";
 import { fetchScriptureGuideReply, isScriptureGuideConfigured } from "@/lib/bible-ai";
 import { getProfile } from "@/actions";
+import { replaceChannelTags, replacePostTags } from "@/actions/tags";
+
+/** Caller-provided tag IDs from a form's hidden `tag_ids` inputs (capped to 3 client + server side). */
+function readTagIdsFromForm(formData: FormData): string[] {
+  return formData
+    .getAll("tag_ids")
+    .map((v) => (typeof v === "string" ? v.trim() : ""))
+    .filter(Boolean)
+    .slice(0, 3);
+}
 
 export type ContentType = "video" | "podcast" | "article" | "discussion";
 
@@ -126,6 +136,11 @@ export async function createChannel(formData: FormData) {
     sort_order: 0,
   });
 
+  const tagIds = readTagIdsFromForm(formData);
+  if (tagIds.length > 0) {
+    await replaceChannelTags(channel.id, tagIds);
+  }
+
   revalidatePath("/channel");
   revalidatePath("/channel/browse");
   redirect(`/channel/${slug}`);
@@ -134,29 +149,178 @@ export async function createChannel(formData: FormData) {
 export type FetchChannelsOptions = {
   /** Case-insensitive match on title or description (filtered in memory after fetch). */
   search?: string | null;
+  /** When set, restrict to channels tagged with this `topic_tags.slug`. */
+  topicSlug?: string | null;
 };
 
-export async function fetchChannels(options?: FetchChannelsOptions) {
-  const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("topics")
-    .select("id, title, slug, description, created_at, author_id")
-    .order("created_at", { ascending: false });
+/** Shape returned to the browse page (counts already unwrapped from PostgREST arrays). */
+export type ChannelListItem = {
+  id: string;
+  title: string;
+  slug: string;
+  description: string | null;
+  banner_image_url: string | null;
+  created_at: string;
+  author_id: string;
+  follower_count: number;
+  post_count: number;
+  tags: { id: string; slug: string; label: string }[];
+  profiles: { display_name?: string } | null;
+};
 
-  if (error) return [];
-  let channels = data ?? [];
-  const q = options?.search?.trim().toLowerCase();
-  if (q) {
-    channels = channels.filter(
-      (c) =>
-        (c.title && c.title.toLowerCase().includes(q)) ||
-        (c.description && c.description.toLowerCase().includes(q))
-    );
+/**
+ * When `topics.banner_image_url` is not migrated yet, PostgREST rejects selects
+ * that reference it. Callers retry without it so /channel/browse still loads.
+ */
+function isMissingTopicsBannerImageUrlColumn(err: {
+  message?: string;
+  code?: string;
+} | null): boolean {
+  if (!err) return false;
+  const msg = (err.message ?? "").toLowerCase();
+  const code = String(err.code ?? "");
+  if (!msg.includes("banner_image_url")) return false;
+  if (code === "42703") return true;
+  if (code === "PGRST204") return true;
+  return (
+    msg.includes("does not exist") ||
+    msg.includes("schema cache") ||
+    msg.includes("could not find")
+  );
+}
+
+/** Row shape returned by the batched PostgREST select used below. */
+type FetchChannelsRow = {
+  id: string;
+  title: string;
+  slug: string;
+  description: string | null;
+  banner_image_url?: string | null;
+  created_at: string;
+  author_id: string;
+  posts: { count: number }[] | null;
+  followers: { count: number }[] | null;
+  tags?:
+    | { tag: { id: string; slug: string; label: string } | null }[]
+    | null;
+};
+
+/**
+ * Fallback when the topic-tags migration hasn't been applied yet — PostgREST
+ * fails the embed and we drop the `tags:channel_tags(...)` clause. Same
+ * 42P01 / 42703 / PGRST shape as the banner-column fallback above.
+ */
+function isMissingChannelTagsRelation(err: {
+  message?: string;
+  code?: string;
+} | null): boolean {
+  if (!err) return false;
+  const msg = (err.message ?? "").toLowerCase();
+  const code = String(err.code ?? "");
+  if (
+    !msg.includes("channel_tags") &&
+    !msg.includes("topic_tags") &&
+    !msg.includes("post_tags")
+  ) {
+    return false;
   }
-  const withProfiles = await Promise.all(
-    channels.map(async (c) => {
+  if (code === "42P01" || code === "42703" || code.startsWith("PGRST")) return true;
+  return (
+    msg.includes("does not exist") ||
+    msg.includes("schema cache") ||
+    msg.includes("could not find") ||
+    msg.includes("could not embed")
+  );
+}
+
+export async function fetchChannels(options?: FetchChannelsOptions): Promise<ChannelListItem[]> {
+  const supabase = await createClient();
+
+  // Optional topic filter: resolve the slug to the set of channel IDs that
+  // carry that tag, then constrain the main fetch via `.in("id", …)`. Doing
+  // this as a parallel pre-query is simpler/safer than relying on PostgREST's
+  // nested `?tags.tag.slug=` syntax through the JS client.
+  let topicChannelIds: string[] | null = null;
+  const topicSlug = options?.topicSlug?.trim() || null;
+  if (topicSlug) {
+    const { data: tagRows, error: tagErr } = await supabase
+      .from("channel_tags")
+      .select("topic_id, tag:topic_tags!inner(slug)")
+      .eq("tag.slug", topicSlug);
+    if (tagErr) {
+      // If the tags tables aren't there yet, treat the filter as "no matches"
+      // so the page still renders empty rather than crashing.
+      if (isMissingChannelTagsRelation(tagErr)) return [];
+    }
+    topicChannelIds = [
+      ...new Set((tagRows ?? []).map((r) => (r as { topic_id: string }).topic_id)),
+    ];
+    if (topicChannelIds.length === 0) return [];
+  }
+
+  // One batched query: channels + embedded counts for posts (`topic_content`) and
+  // approved followers (`topic_members` filtered to status='approved'). The
+  // embedded filter is applied to the embedded resource only, so parent rows
+  // (channels) with zero followers still come back. Tags are embedded via the
+  // `channel_tags` join, with a "without-tags" fallback for environments where
+  // the migration hasn't run.
+  const run = (sel: string) => {
+    let q = supabase
+      .from("topics")
+      .select(sel)
+      .eq("topic_members.status", "approved")
+      .order("created_at", { ascending: false });
+    if (topicChannelIds) q = q.in("id", topicChannelIds);
+    return q;
+  };
+
+  const baseWithBanner =
+    "id, title, slug, description, banner_image_url, created_at, author_id, posts:topic_content(count), followers:topic_members(count)";
+  const baseWithoutBanner =
+    "id, title, slug, description, created_at, author_id, posts:topic_content(count), followers:topic_members(count)";
+  const tagsEmbed = ", tags:channel_tags(tag:topic_tags(id, slug, label))";
+
+  let { data, error } = await run(baseWithBanner + tagsEmbed);
+  if (error && isMissingChannelTagsRelation(error)) {
+    ({ data, error } = await run(baseWithBanner));
+  }
+  if (error && isMissingTopicsBannerImageUrlColumn(error)) {
+    ({ data, error } = await run(baseWithoutBanner + tagsEmbed));
+    if (error && isMissingChannelTagsRelation(error)) {
+      ({ data, error } = await run(baseWithoutBanner));
+    }
+  }
+  if (error || !data) return [];
+
+  const rows = data as unknown as FetchChannelsRow[];
+  const q = options?.search?.trim().toLowerCase();
+  const filtered = q
+    ? rows.filter(
+        (c) =>
+          (c.title && c.title.toLowerCase().includes(q)) ||
+          (c.description && c.description.toLowerCase().includes(q))
+      )
+    : rows;
+
+  const withProfiles: ChannelListItem[] = await Promise.all(
+    filtered.map(async (c) => {
       const profile = await getProfile(c.author_id);
-      return { ...c, profiles: profile ? { display_name: profile.display_name } : null };
+      const tags = (c.tags ?? [])
+        .map((row) => row.tag)
+        .filter((tag): tag is { id: string; slug: string; label: string } => Boolean(tag));
+      return {
+        id: c.id,
+        title: c.title,
+        slug: c.slug,
+        description: c.description ?? null,
+        banner_image_url: c.banner_image_url ?? null,
+        created_at: c.created_at,
+        author_id: c.author_id,
+        post_count: c.posts?.[0]?.count ?? 0,
+        follower_count: c.followers?.[0]?.count ?? 0,
+        tags,
+        profiles: profile ? { display_name: profile.display_name } : null,
+      };
     })
   );
   return withProfiles;
@@ -241,6 +405,14 @@ export async function updateChannel(formData: FormData) {
 
   if (upErr) return { error: upErr.message };
 
+  // The picker always submits a `tags_present=1` marker so we can distinguish
+  // "form had no picker" from "user cleared every tag" (the latter must wipe
+  // the existing tag set).
+  if (formData.get("tags_present") === "1") {
+    const tagIds = readTagIdsFromForm(formData);
+    await replaceChannelTags(channelId, tagIds);
+  }
+
   revalidatePath("/channel");
   revalidatePath("/channel/browse");
   revalidatePath("/channel/my");
@@ -309,6 +481,138 @@ export async function getChannelPages(channelId: string): Promise<ChannelPageRow
     return [];
   }
   return (data ?? []) as unknown as ChannelPageRow[];
+}
+
+/** Page row enriched with a derived content type + post count, used by the channel sidebar. */
+export type ChannelSidebarPageRow = ChannelPageRow & {
+  post_count: number;
+  derived_type: "video" | "podcast" | "article" | "discussion" | "mixed";
+};
+
+/**
+ * Mirrors the `readEmbeddedCount` defensive shape handling from `actions/landing.ts`:
+ * PostgREST may return `{ count }` or `[{ count }]` depending on the embed.
+ */
+function readEmbeddedCount(value: unknown): number {
+  if (Array.isArray(value)) {
+    const first = value[0] as { count?: unknown } | undefined;
+    if (first && typeof first.count === "number") return first.count;
+  } else if (value && typeof value === "object") {
+    const count = (value as { count?: unknown }).count;
+    if (typeof count === "number") return count;
+  }
+  return 0;
+}
+
+/** Heuristic: if a single content type covers ~60%+ of the page's posts, classify as that type, else "mixed". */
+function classifyPageType(
+  types: ReadonlyArray<string | null | undefined>
+): ChannelSidebarPageRow["derived_type"] {
+  const counts = new Map<string, number>();
+  let total = 0;
+  for (const t of types) {
+    if (!t) continue;
+    counts.set(t, (counts.get(t) ?? 0) + 1);
+    total += 1;
+  }
+  if (total === 0) return "mixed";
+  let topType: string | null = null;
+  let topCount = 0;
+  for (const [t, n] of counts.entries()) {
+    if (n > topCount) {
+      topCount = n;
+      topType = t;
+    }
+  }
+  if (topType && (counts.size === 1 || topCount / total >= 0.6)) {
+    if (
+      topType === "video" ||
+      topType === "podcast" ||
+      topType === "article" ||
+      topType === "discussion"
+    ) {
+      return topType;
+    }
+  }
+  return "mixed";
+}
+
+/**
+ * Sidebar variant of `getChannelPages` that also returns a per-page post count and a derived
+ * content type. We embed `topic_content` once with a `(count)` aggregate (unwrapped via the
+ * `readEmbeddedCount` defensive shape helper) for the badge, and fetch a slim flat list of
+ * `(page_id, type)` pairs in the same channel to classify each page's dominant content type.
+ * Falls back gracefully if either step fails.
+ */
+export async function getChannelSidebarPages(
+  channelId: string
+): Promise<ChannelSidebarPageRow[]> {
+  const supabase = await createClient();
+
+  type EmbedRow = {
+    id: string;
+    slug: string;
+    title: string;
+    sort_order: number | null;
+    description?: string | null;
+    posts?: { count: number }[] | { count: number } | null;
+  };
+
+  const run = (sel: string) =>
+    supabase
+      .from("channel_pages")
+      .select(sel)
+      .eq("channel_id", channelId)
+      .order("sort_order", { ascending: true })
+      .order("created_at", { ascending: true });
+
+  const embedSelect =
+    "id, slug, title, sort_order, description, posts:topic_content(count)";
+
+  let { data, error } = await run(embedSelect);
+  if (error && isMissingChannelPagesDescriptionColumn(error)) {
+    ({ data, error } = await run(
+      "id, slug, title, sort_order, posts:topic_content(count)"
+    ));
+  }
+
+  if (error) {
+    console.error("getChannelSidebarPages", error.message);
+    const fallback = await getChannelPages(channelId);
+    return fallback.map((p) => ({
+      ...p,
+      post_count: 0,
+      derived_type: "mixed" as const,
+    }));
+  }
+
+  const rows = (data ?? []) as unknown as EmbedRow[];
+
+  const { data: typeRows, error: typeErr } = await supabase
+    .from("topic_content")
+    .select("page_id, type")
+    .eq("topic_id", channelId);
+  if (typeErr) {
+    console.warn("[channels] getChannelSidebarPages types:", typeErr.message);
+  }
+
+  const typesByPage = new Map<string, string[]>();
+  for (const r of (typeRows ?? []) as { page_id: string | null; type: string | null }[]) {
+    if (!r.page_id) continue;
+    const arr = typesByPage.get(r.page_id) ?? [];
+    if (r.type) arr.push(r.type);
+    typesByPage.set(r.page_id, arr);
+  }
+
+  return rows.map((p) => ({
+    id: p.id,
+    slug: p.slug,
+    title: p.title,
+    sort_order: p.sort_order,
+    description: p.description ?? null,
+    post_count: readEmbeddedCount(p.posts),
+    derived_type: classifyPageType(typesByPage.get(p.id) ?? []),
+  }));
 }
 
 export async function createChannelPage(channelId: string, formData: FormData) {
@@ -611,19 +915,31 @@ export async function createContent(channelId: string, pageId: string, formData:
     } catch {}
   }
 
-  const { error: insertErr } = await supabase.from("topic_content").insert({
-    topic_id: channelId,
-    page_id: pageId || null,
-    author_id: user.id,
-    type,
-    title,
-    body,
-    media_urls: mediaUrls,
-  });
+  const isFeatured = formData.get("is_featured") === "on";
+
+  const { data: inserted, error: insertErr } = await supabase
+    .from("topic_content")
+    .insert({
+      topic_id: channelId,
+      page_id: pageId || null,
+      author_id: user.id,
+      type,
+      title,
+      body,
+      media_urls: mediaUrls,
+      is_featured: isFeatured,
+    })
+    .select("id")
+    .single();
 
   if (insertErr) {
     console.error("[createContent] insert", insertErr);
     return { error: insertErr.message };
+  }
+
+  if (inserted?.id && formData.get("tags_present") === "1") {
+    const tagIds = readTagIdsFromForm(formData);
+    await replacePostTags(inserted.id, tagIds);
   }
 
   revalidatePath(`/channel/${channel.slug}`);
@@ -676,6 +992,8 @@ export async function updateContent(contentId: string, formData: FormData) {
     } catch {}
   }
 
+  const isFeatured = formData.get("is_featured") === "on";
+
   const { error: upErr } = await supabase
     .from("topic_content")
     .update({
@@ -684,10 +1002,16 @@ export async function updateContent(contentId: string, formData: FormData) {
       body,
       page_id: pageId || null,
       media_urls: mediaUrls,
+      is_featured: isFeatured,
     })
     .eq("id", contentId);
 
   if (upErr) return { error: upErr.message };
+
+  if (formData.get("tags_present") === "1") {
+    const tagIds = readTagIdsFromForm(formData);
+    await replacePostTags(contentId, tagIds);
+  }
 
   revalidatePath(`/channel/${topic.slug}`);
   revalidatePath(`/channel/${topic.slug}/content/${contentId}`);
@@ -924,14 +1248,31 @@ export async function shareContent(contentId: string) {
 
 export async function getContentById(contentId: string) {
   const supabase = await createClient();
-  const { data, error } = await supabase
+  const baseCols =
+    "id, topic_id, page_id, type, title, body, media_urls, created_at, author_id";
+  let { data, error } = await supabase
     .from("topic_content")
-    .select("id, topic_id, page_id, type, title, body, media_urls, created_at, author_id")
+    .select(`${baseCols}, is_featured`)
     .eq("id", contentId)
     .single();
+  // Fallback if the `is_featured` migration hasn't been applied yet in this env.
+  if (error) {
+    const msg = (error.message ?? "").toLowerCase();
+    if (msg.includes("is_featured")) {
+      ({ data, error } = await supabase
+        .from("topic_content")
+        .select(baseCols)
+        .eq("id", contentId)
+        .single());
+    }
+  }
   if (error || !data) return null;
   const profile = await getProfile(data.author_id);
-  return { ...data, profiles: profile ? { display_name: profile.display_name } : null };
+  return {
+    ...data,
+    is_featured: (data as { is_featured?: boolean | null }).is_featured ?? false,
+    profiles: profile ? { display_name: profile.display_name } : null,
+  };
 }
 
 export async function getFeedbackCounts(contentId: string) {

@@ -1,15 +1,20 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { updateChannel } from "@/actions/channels";
 import { authInputClass, authPrimaryButtonClass } from "@/lib/auth-form-styles";
+import { TopicTagPicker } from "@/components/tags/topic-tag-picker";
+
+type Tag = { id: string; slug: string; label: string };
 
 type Props = {
   channelId: string;
   initialTitle: string;
   initialDescription: string;
   initialSlug: string;
+  allTags: Tag[];
+  initialTagIds: string[];
 };
 
 export function ChannelSettingsForm({
@@ -17,9 +22,12 @@ export function ChannelSettingsForm({
   initialTitle,
   initialDescription,
   initialSlug,
+  allTags,
+  initialTagIds,
 }: Props) {
   const searchParams = useSearchParams();
   const updated = searchParams.get("updated") === "1";
+  const [tagIds, setTagIds] = useState<string[]>(initialTagIds);
 
   const [state, formAction, pending] = useActionState(
     async (_prev: { error?: string } | null, formData: FormData) => {
@@ -65,6 +73,16 @@ export function ChannelSettingsForm({
           defaultValue={initialDescription}
           className={`${authInputClass} min-h-[6rem] resize-y`}
           placeholder="What this channel is about…"
+        />
+      </div>
+
+      <div className="space-y-2">
+        <label className="text-sm font-medium text-foreground">Topics</label>
+        <TopicTagPicker
+          allTags={allTags}
+          value={tagIds}
+          onChange={setTagIds}
+          max={3}
         />
       </div>
 

@@ -2,10 +2,12 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { Sparkles } from "lucide-react";
 import { createContent } from "@/actions/channels";
 import { Button } from "@/components/ui/button";
 import { MediaUploadField, type MediaItem } from "@/components/media-upload-field";
 import { ContentSubmissionDisclaimer } from "@/components/content-submission-disclaimer";
+import { TopicTagPicker } from "@/components/tags/topic-tag-picker";
 
 const CONTENT_TYPES = [
   { value: "video", label: "Video" },
@@ -15,18 +17,21 @@ const CONTENT_TYPES = [
 ] as const;
 
 type Page = { id: string; slug: string; title: string };
+type Tag = { id: string; slug: string; label: string };
 
 type Props = {
   channelId: string;
   channelSlug: string;
   pages: Page[];
   defaultPageId: string | null;
+  allTags: Tag[];
 };
 
-export default function AddContentForm({ channelId, channelSlug, pages, defaultPageId }: Props) {
+export default function AddContentForm({ channelId, channelSlug, pages, defaultPageId, allTags }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [pageId, setPageId] = useState(defaultPageId ?? pages[0]?.id ?? "");
   const [mediaUrls, setMediaUrls] = useState<MediaItem[]>([]);
+  const [tagIds, setTagIds] = useState<string[]>([]);
   const [acceptedDisclaimer, setAcceptedDisclaimer] = useState(false);
   const router = useRouter();
 
@@ -158,6 +163,28 @@ export default function AddContentForm({ channelId, channelSlug, pages, defaultP
             </div>
           ))}
         </div>
+      </div>
+
+      <div>
+        <span className="block text-sm font-medium mb-2">Topics</span>
+        <TopicTagPicker allTags={allTags} value={tagIds} onChange={setTagIds} max={3} />
+      </div>
+
+      <div className="rounded-xl border border-border/70 bg-muted/15 p-4">
+        <label className="flex items-start gap-3 text-sm font-medium text-foreground cursor-pointer">
+          <input
+            type="checkbox"
+            name="is_featured"
+            className="mt-0.5 size-4 rounded border-input"
+          />
+          <span className="flex items-center gap-1.5">
+            <Sparkles className="size-4 text-muted-foreground" aria-hidden />
+            Feature on homepage
+          </span>
+        </label>
+        <p className="mt-1.5 pl-7 text-xs text-muted-foreground">
+          Featured posts appear in the highlighted strip on the homepage.
+        </p>
       </div>
 
       <ContentSubmissionDisclaimer

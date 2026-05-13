@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { getChannelBySlug, getChannelPages, isChannelAuthor } from "@/actions/channels";
+import { getChannelBySlug, getChannelSidebarPages, isChannelAuthor } from "@/actions/channels";
 import ChannelSidebar from "./channel-sidebar";
 
 type Props = {
@@ -13,7 +13,7 @@ export default async function ChannelSlugLayout({ children, params }: Props) {
   if (!channel) notFound();
 
   const [pages, isAuthor] = await Promise.all([
-    getChannelPages(channel.id),
+    getChannelSidebarPages(channel.id),
     isChannelAuthor(channel.id),
   ]);
 

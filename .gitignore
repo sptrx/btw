@@ -13,6 +13,9 @@
 /.next/
 /out/
 
+#Git
+/cli/
+
 # production
 /build
 

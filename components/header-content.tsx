@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { GlobalSearch } from "@/components/global-search/global-search";
 import { NotificationBell } from "@/components/notification-bell";
+import { bibleAiPublicAskUrl } from "@/lib/bible-ai-config";
 import { cn } from "@/lib/utils";
 
 type Props = { user: User | null; isChannelAuthor?: boolean };
@@ -29,12 +30,7 @@ function headerDisplayName(user: User): string {
   return "Account";
 }
 
-/** Scripture Chat (bible-ai); defaults to local dev server. Set NEXT_PUBLIC_BIBLE_AI_URL in .env.local for production. */
-const bibleAiUrl =
-  typeof process.env.NEXT_PUBLIC_BIBLE_AI_URL === "string" &&
-  process.env.NEXT_PUBLIC_BIBLE_AI_URL.trim().length > 0
-    ? process.env.NEXT_PUBLIC_BIBLE_AI_URL.trim()
-    : "http://localhost:3040/ask";
+const bibleAiUrl = bibleAiPublicAskUrl();
 
 const navLinks = [
   { href: "/", label: "Home" as const },

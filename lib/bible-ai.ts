@@ -1,7 +1,9 @@
 import "server-only";
 
+import { bibleAiServerBaseUrl } from "@/lib/bible-ai-config";
+
 function baseUrl(): string {
-  return (process.env.BIBLE_AI_BASE_URL ?? "").replace(/\/$/, "").trim();
+  return bibleAiServerBaseUrl();
 }
 
 function apiKey(): string {
@@ -17,14 +19,18 @@ export type ScriptureGuideInput = {
 
 /**
  * Server-to-server call to bible-ai `/api/v1/guide`.
- * Set BIBLE_AI_BASE_URL (e.g. http://localhost:3040) and optionally BIBLE_AI_API_KEY to match bible-ai.
+ * Set BIBLE_AI_BASE_URL (e.g. http://localhost:3040) for local/dev; production defaults to the hosted
+ * bible-ai origin in bible-ai-config. Optionally set BIBLE_AI_API_KEY to match bible-ai's shared secret.
  */
 export async function fetchScriptureGuideReply(
   input: ScriptureGuideInput
 ): Promise<{ response: string } | { error: string }> {
   const base = baseUrl();
   if (!base) {
-    return { error: "BIBLE_AI_BASE_URL is not set." };
+    return {
+      error:
+        "Scripture guide URL is not configured. Set BIBLE_AI_BASE_URL for local development.",
+    };
   }
 
   const url = `${base}/api/v1/guide`;

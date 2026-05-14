@@ -36,6 +36,9 @@ export async function fetchScriptureGuideReply(
     headers.Authorization = `Bearer ${key}`;
   }
 
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), 15_000)
+
   let res: Response;
   try {
     res = await fetch(url, {
@@ -48,10 +51,14 @@ export async function fetchScriptureGuideReply(
         translationId: input.translationId ?? "kjv",
       }),
       cache: "no-store",
+      signal: controller.signal,
     });
   } catch (e) {
     const msg = e instanceof Error ? e.message : "Network error";
-    return { error: `Scripture guide unreachable: ${msg}` };
+    const isTimeout = e instanceof Error && e.name === "AbortError";
+    return { error: isTimeout ? "Scripture guide timed out (>15 s). Your comment was posted." : `Scripture guide unreachable: ${msg}` };
+  } finally {
+    clearTimeout(timeout)
   }
 
   const data = (await res.json()) as {

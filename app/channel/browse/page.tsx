@@ -65,13 +65,13 @@ export default async function BrowseChannelsPage({ searchParams }: Props) {
       <BrowseTopicFilter tags={allTags} />
 
       {channels.length === 0 ? (
-        <p className="py-12 text-center text-muted-foreground">
+        <div className="btw-empty">
           {q.trim()
             ? "No channels match your search. Try different words."
             : activeTagLabel
               ? `No channels tagged "${activeTagLabel}" yet.`
-              : "No channels yet."}
-        </p>
+              : "No channels yet — check back soon."}
+        </div>
       ) : (
         <ChannelCardGrid channels={channels} />
       )}

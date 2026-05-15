@@ -76,7 +76,7 @@ export default function PasswordChangeForm({ userEmail }: Props) {
       <div>
         <label
           htmlFor="current_password"
-          className="block text-sm font-medium mb-1 text-warm-700 dark:text-warm-300"
+          className="mb-1 block text-sm font-medium text-foreground"
         >
           Current password
         </label>
@@ -86,16 +86,16 @@ export default function PasswordChangeForm({ userEmail }: Props) {
           type="password"
           autoComplete="current-password"
           placeholder="Enter your current password (leave blank if you use magic link/OAuth)"
-          className="w-full px-4 py-2.5 border-2 border-warm-300 dark:border-warm-600 rounded-xl dark:bg-warm-800"
+          className="w-full min-h-11 rounded-xl border border-input bg-background px-4 py-3 text-base text-foreground placeholder:text-muted-foreground/60 transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background sm:text-sm"
         />
-        <p className="text-xs text-warm-500 mt-1">
+        <p className="mt-1 text-xs text-muted-foreground">
           Required for email/password accounts. OAuth users can leave this blank.
         </p>
       </div>
       <div>
         <label
           htmlFor="new_password"
-          className="block text-sm font-medium mb-1 text-warm-700 dark:text-warm-300"
+          className="mb-1 block text-sm font-medium text-foreground"
         >
           New password
         </label>
@@ -107,13 +107,13 @@ export default function PasswordChangeForm({ userEmail }: Props) {
           minLength={6}
           autoComplete="new-password"
           placeholder="At least 6 characters"
-          className="w-full px-4 py-2.5 border-2 border-warm-300 dark:border-warm-600 rounded-xl dark:bg-warm-800"
+          className="w-full min-h-11 rounded-xl border border-input bg-background px-4 py-3 text-base text-foreground placeholder:text-muted-foreground/60 transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background sm:text-sm"
         />
       </div>
       <div>
         <label
           htmlFor="confirm_password"
-          className="block text-sm font-medium mb-1 text-warm-700 dark:text-warm-300"
+          className="mb-1 block text-sm font-medium text-foreground"
         >
           Confirm new password
         </label>
@@ -125,19 +125,17 @@ export default function PasswordChangeForm({ userEmail }: Props) {
           minLength={6}
           autoComplete="new-password"
           placeholder="Repeat new password"
-          className="w-full px-4 py-2.5 border-2 border-warm-300 dark:border-warm-600 rounded-xl dark:bg-warm-800"
+          className="w-full min-h-11 rounded-xl border border-input bg-background px-4 py-3 text-base text-foreground placeholder:text-muted-foreground/60 transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background sm:text-sm"
         />
       </div>
-      {error && <p className="text-terracotta-600 text-sm">{error}</p>}
+      {error && <p className="text-sm text-destructive">{error}</p>}
       {success && (
-        <p className="text-sage-600 dark:text-sage-400 text-sm">
-          Password updated successfully.
-        </p>
+        <p className="text-sm text-primary">Password updated successfully.</p>
       )}
       <button
         type="submit"
         disabled={loading}
-        className="px-4 py-2.5 bg-terracotta-500 text-white rounded-xl hover:bg-terracotta-600 font-medium transition-colors w-fit disabled:opacity-50"
+        className="w-fit rounded-xl bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50 touch-manipulation"
       >
         {loading ? "Updating…" : "Change password"}
       </button>

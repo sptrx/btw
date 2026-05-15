@@ -20,43 +20,36 @@ export default async function Settings() {
 
   return (
     <div className="space-y-10">
-      <h1 className="text-2xl font-bold text-warm-800 dark:text-warm-100">Settings</h1>
+      <div>
+        <p className="btw-section-eyebrow">Account</p>
+        <h1 className="btw-page-title">Settings</h1>
+      </div>
 
       <section>
-        <h2 className="text-lg font-semibold mb-4 text-warm-800 dark:text-warm-100">
-          Profile
-        </h2>
+        <h2 className="mb-4 text-lg font-semibold text-foreground">Profile</h2>
         <ProfileSettingsForm
           displayName={profile?.display_name ?? ""}
           bio={profile?.bio ?? ""}
         />
       </section>
 
-      <section className="pt-6 border-t border-warm-200 dark:border-warm-700">
-        <h2 className="text-lg font-semibold mb-4 text-warm-800 dark:text-warm-100">
-          Change email
-        </h2>
+      <section className="border-t border-border pt-6">
+        <h2 className="mb-4 text-lg font-semibold text-foreground">Change email</h2>
         <EmailChangeForm currentEmail={user.email ?? ""} />
       </section>
 
-      <section className="pt-6 border-t border-warm-200 dark:border-warm-700">
-        <h2 className="text-lg font-semibold mb-4 text-warm-800 dark:text-warm-100">
-          Change password
-        </h2>
+      <section className="border-t border-border pt-6">
+        <h2 className="mb-4 text-lg font-semibold text-foreground">Change password</h2>
         <PasswordChangeForm userEmail={user.email ?? ""} />
       </section>
 
-      <section className="pt-6 border-t border-warm-200 dark:border-warm-700">
-        <h2 className="text-lg font-semibold mb-4 text-warm-800 dark:text-warm-100">
-          Session management
-        </h2>
+      <section className="border-t border-border pt-6">
+        <h2 className="mb-4 text-lg font-semibold text-foreground">Session management</h2>
         <SessionManagement />
       </section>
 
-      <section className="pt-6 border-t border-terracotta-300 dark:border-terracotta-800">
-        <h2 className="text-lg font-semibold mb-4 text-terracotta-700 dark:text-terracotta-300">
-          Danger zone
-        </h2>
+      <section className="border-t border-destructive/30 pt-6">
+        <h2 className="mb-4 text-lg font-semibold text-destructive">Danger zone</h2>
         <DeleteAccountForm userEmail={user.email ?? ""} />
       </section>
     </div>

@@ -21,21 +21,24 @@ export default async function Post({ params }: Props) {
   const isOwner = user?.id === user_id;
 
   return (
-    <div className="border rounded-lg p-4">
-      <div className="text-sm text-gray-500 dark:text-gray-400 mb-2">
-        <Link href={`/profile/${user_id}`} className="hover:underline">
+    <div className="btw-content-panel">
+      <div className="mb-2 text-sm text-muted-foreground">
+        <Link
+          href={`/profile/${user_id}`}
+          className="font-medium text-foreground transition-colors hover:text-primary hover:underline"
+        >
           {displayName}
         </Link>
       </div>
-      <div className="text-lg">{text}</div>
+      <div className="whitespace-pre-wrap text-lg leading-relaxed text-foreground">{text}</div>
 
-      <div className="flex space-x-4 mt-2 text-sm text-gray-500">
+      <div className="mt-3 flex gap-4 text-sm text-muted-foreground">
         <span>Likes: {likes ?? 0}</span>
         <span>Reposts: {reposts ?? 0}</span>
       </div>
 
       {isOwner && (
-        <div className="flex justify-end space-x-4 mt-4 pt-2 border-t">
+        <div className="mt-4 flex justify-end gap-3 border-t border-border pt-3">
           <Button btnText="Delete" postId={postId} handler={deletePost} />
           <Button btnText="Edit" postId={postId} handler={navigateToEditPage} />
         </div>

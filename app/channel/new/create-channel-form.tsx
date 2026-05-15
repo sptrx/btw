@@ -24,24 +24,24 @@ export default function CreateChannelForm({ allTags }: Props) {
   return (
     <form action={formAction} className="max-w-lg space-y-4">
       <div>
-        <label htmlFor="title" className="block text-sm font-medium mb-1">Title</label>
+        <label htmlFor="title" className="mb-1 block text-sm font-medium text-foreground">Title</label>
         <input
           id="title"
           name="title"
           type="text"
           required
           placeholder="e.g. Bible Study Basics"
-          className="w-full px-4 py-2 border rounded dark:bg-gray-800 dark:border-gray-700"
+          className="w-full min-h-11 rounded-xl border border-input bg-background px-4 py-3 text-base text-foreground placeholder:text-muted-foreground/60 transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background sm:text-sm"
         />
       </div>
       <div>
-        <label htmlFor="description" className="block text-sm font-medium mb-1">Description</label>
+        <label htmlFor="description" className="mb-1 block text-sm font-medium text-foreground">Description</label>
         <textarea
           id="description"
           name="description"
           rows={3}
           placeholder="What this channel is about..."
-          className="w-full px-4 py-2 border rounded dark:bg-gray-800 dark:border-gray-700"
+          className="w-full rounded-xl border border-input bg-background px-4 py-3 text-base text-foreground placeholder:text-muted-foreground/60 transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background sm:text-sm"
         />
       </div>
 
@@ -55,10 +55,10 @@ export default function CreateChannelForm({ allTags }: Props) {
         />
       </div>
 
-      {state?.error && <p className="text-red-600 text-sm">{state.error}</p>}
+      {state?.error && <p className="text-sm text-destructive">{state.error}</p>}
       <button
         type="submit"
-        className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700"
+        className="rounded-xl bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50 touch-manipulation"
       >
         Create channel
       </button>

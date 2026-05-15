@@ -1,3 +1,5 @@
+import { RelativeDate } from "@/components/relative-date";
+
 type Comment = {
   id: string;
   body: string;
@@ -10,22 +12,31 @@ type Props = { comments: Comment[] };
 
 export default function CommentList({ comments }: Props) {
   if (comments.length === 0) {
-    return <p className="text-gray-500 text-sm">No comments yet.</p>;
+    return <p className="text-sm text-muted-foreground">No comments yet.</p>;
   }
 
   return (
     <div className="space-y-3">
       {comments.map((c) => (
-        <div key={c.id} className="border rounded p-3">
-          <p className="text-sm text-gray-500">{c.profiles?.display_name ?? "Anonymous"}</p>
-          <p className="mt-1 whitespace-pre-wrap">{c.body}</p>
-          <p className="text-xs text-gray-400 mt-1">{new Date(c.created_at).toLocaleString()}</p>
+        <div
+          key={c.id}
+          className="rounded-xl border border-border bg-card p-3 text-card-foreground sm:p-4"
+        >
+          <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+            <p className="text-sm font-medium text-foreground">
+              {c.profiles?.display_name ?? "Anonymous"}
+            </p>
+            <RelativeDate date={c.created_at} className="text-xs text-muted-foreground" />
+          </div>
+          <p className="mt-1 whitespace-pre-wrap text-sm leading-relaxed text-foreground/90">
+            {c.body}
+          </p>
           {c.scripture_guide_reply ? (
-            <div className="mt-3 rounded-md border border-indigo-200 bg-indigo-50/80 px-3 py-2 dark:border-indigo-800 dark:bg-indigo-950/40">
-              <p className="text-xs font-semibold uppercase tracking-wide text-indigo-800 dark:text-indigo-200">
+            <div className="mt-3 rounded-lg border border-primary/25 bg-primary/5 px-3 py-2">
+              <p className="text-xs font-semibold uppercase tracking-wide text-primary">
                 Scripture guide
               </p>
-              <p className="mt-1 text-sm text-gray-800 dark:text-gray-200 whitespace-pre-wrap">
+              <p className="mt-1 whitespace-pre-wrap text-sm leading-relaxed text-foreground/90">
                 {c.scripture_guide_reply}
               </p>
             </div>

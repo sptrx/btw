@@ -35,12 +35,10 @@ export default function DeleteAccountForm({ userEmail }: Props) {
   };
 
   return (
-    <div className="border-2 border-terracotta-300 dark:border-terracotta-700 bg-terracotta-50/30 dark:bg-terracotta-950/20 rounded-2xl p-5 max-w-md space-y-3">
+    <div className="max-w-md space-y-3 rounded-2xl border border-destructive/30 bg-destructive/5 p-5">
       <div>
-        <h3 className="font-semibold text-terracotta-800 dark:text-terracotta-200">
-          Delete account
-        </h3>
-        <p className="text-sm text-warm-700 dark:text-warm-300 mt-1">
+        <h3 className="font-semibold text-destructive">Delete account</h3>
+        <p className="mt-1 text-sm text-muted-foreground">
           Permanently remove your BTW account and all associated data — profile, posts,
           comments, likes, notifications, and channel memberships. This action cannot be
           undone.
@@ -51,7 +49,7 @@ export default function DeleteAccountForm({ userEmail }: Props) {
         <button
           type="button"
           onClick={() => setExpanded(true)}
-          className="px-4 py-2.5 border-2 border-terracotta-400 dark:border-terracotta-600 text-terracotta-700 dark:text-terracotta-300 rounded-xl hover:bg-terracotta-100 dark:hover:bg-terracotta-950/40 font-medium transition-colors"
+          className="rounded-xl border border-destructive/30 px-5 py-2.5 text-sm font-medium text-destructive transition-colors hover:bg-destructive/10"
         >
           Delete my account…
         </button>
@@ -60,7 +58,7 @@ export default function DeleteAccountForm({ userEmail }: Props) {
           <div>
             <label
               htmlFor="delete_current_password"
-              className="block text-sm font-medium mb-1 text-warm-700 dark:text-warm-300"
+              className="mb-1 block text-sm font-medium text-foreground"
             >
               Current password
             </label>
@@ -72,9 +70,9 @@ export default function DeleteAccountForm({ userEmail }: Props) {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Enter your password (leave blank if you use magic link/OAuth)"
-              className="w-full px-4 py-2.5 border-2 border-warm-300 dark:border-warm-600 rounded-xl dark:bg-warm-800"
+              className="w-full min-h-11 rounded-xl border border-input bg-background px-4 py-3 text-base text-foreground placeholder:text-muted-foreground/60 transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background sm:text-sm"
             />
-            <p className="text-xs text-warm-500 mt-1">
+            <p className="mt-1 text-xs text-muted-foreground">
               Required for email/password accounts ({userEmail || "your account email"}).
               OAuth users can leave this blank — your active session is your confirmation.
             </p>
@@ -82,7 +80,7 @@ export default function DeleteAccountForm({ userEmail }: Props) {
           <div>
             <label
               htmlFor="delete_confirm_text"
-              className="block text-sm font-medium mb-1 text-warm-700 dark:text-warm-300"
+              className="mb-1 block text-sm font-medium text-foreground"
             >
               Type <span className="font-mono font-bold">DELETE</span> to confirm
             </label>
@@ -95,15 +93,15 @@ export default function DeleteAccountForm({ userEmail }: Props) {
               value={confirmText}
               onChange={(e) => setConfirmText(e.target.value)}
               placeholder="DELETE"
-              className="w-full px-4 py-2.5 border-2 border-warm-300 dark:border-warm-600 rounded-xl dark:bg-warm-800 font-mono"
+              className="w-full min-h-11 rounded-xl border border-input bg-background px-4 py-3 font-mono text-base text-foreground placeholder:text-muted-foreground/60 transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background sm:text-sm"
             />
           </div>
-          {error && <p className="text-terracotta-600 text-sm">{error}</p>}
+          {error && <p className="text-sm text-destructive">{error}</p>}
           <div className="flex flex-wrap gap-2">
             <button
               type="submit"
               disabled={!canSubmit}
-              className="px-4 py-2.5 bg-terracotta-600 text-white rounded-xl hover:bg-terracotta-700 font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="rounded-xl bg-destructive px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-destructive/90 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {pending ? "Deleting…" : "Permanently delete account"}
             </button>
@@ -111,7 +109,7 @@ export default function DeleteAccountForm({ userEmail }: Props) {
               type="button"
               onClick={cancel}
               disabled={pending}
-              className="px-4 py-2.5 border-2 border-warm-300 dark:border-warm-600 rounded-xl hover:bg-warm-100 dark:hover:bg-warm-800 font-medium transition-colors disabled:opacity-50"
+              className="rounded-xl border border-input bg-background px-5 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-muted disabled:opacity-50"
             >
               Cancel
             </button>

@@ -45,17 +45,21 @@ export default async function Dashboard() {
         {stats.map(({ label, value, Icon }) => (
           <div
             key={label}
-            className="rounded-2xl border border-border bg-card p-4 text-card-foreground shadow-sm"
+            className="rounded-2xl border border-border bg-card p-5 text-card-foreground shadow-sm"
           >
-            <Icon
-              className="size-4 text-muted-foreground"
-              aria-hidden
-            />
-            <div className="mt-2 text-3xl font-semibold tabular-nums">
-              {value}
+            <div className="flex items-center gap-2.5">
+              <span
+                aria-hidden
+                className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary"
+              >
+                <Icon className="size-4" />
+              </span>
+              <span className="text-[10px] font-medium uppercase tracking-[0.18em] text-muted-foreground sm:text-xs">
+                {label}
+              </span>
             </div>
-            <div className="mt-1 text-xs uppercase tracking-wide text-muted-foreground">
-              {label}
+            <div className="mt-4 text-3xl font-semibold tabular-nums text-foreground sm:text-4xl">
+              {value}
             </div>
           </div>
         ))}

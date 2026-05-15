@@ -79,17 +79,17 @@ export default function EmailChangeForm({ currentEmail }: Props) {
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-4 max-w-md">
       <div>
-        <label className="block text-sm font-medium mb-1 text-warm-700 dark:text-warm-300">
+        <label className="mb-1 block text-sm font-medium text-foreground">
           Current email
         </label>
-        <p className="px-4 py-2.5 border-2 border-warm-200 dark:border-warm-700 rounded-xl bg-warm-50/40 dark:bg-warm-800/40 text-warm-800 dark:text-warm-100 break-all">
+        <p className="break-all rounded-xl border border-border bg-muted/50 px-4 py-3 text-sm text-foreground">
           {currentEmail || "—"}
         </p>
       </div>
       <div>
         <label
           htmlFor="new_email"
-          className="block text-sm font-medium mb-1 text-warm-700 dark:text-warm-300"
+          className="mb-1 block text-sm font-medium text-foreground"
         >
           New email
         </label>
@@ -102,13 +102,13 @@ export default function EmailChangeForm({ currentEmail }: Props) {
           value={newEmail}
           onChange={(e) => setNewEmail(e.target.value)}
           placeholder="you@example.com"
-          className="w-full px-4 py-2.5 border-2 border-warm-300 dark:border-warm-600 rounded-xl dark:bg-warm-800"
+          className="w-full min-h-11 rounded-xl border border-input bg-background px-4 py-3 text-base text-foreground placeholder:text-muted-foreground/60 transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background sm:text-sm"
         />
       </div>
       <div>
         <label
           htmlFor="email_current_password"
-          className="block text-sm font-medium mb-1 text-warm-700 dark:text-warm-300"
+          className="mb-1 block text-sm font-medium text-foreground"
         >
           Current password
         </label>
@@ -120,21 +120,21 @@ export default function EmailChangeForm({ currentEmail }: Props) {
           value={currentPassword}
           onChange={(e) => setCurrentPassword(e.target.value)}
           placeholder="Enter your current password (leave blank if you use magic link/OAuth)"
-          className="w-full px-4 py-2.5 border-2 border-warm-300 dark:border-warm-600 rounded-xl dark:bg-warm-800"
+          className="w-full min-h-11 rounded-xl border border-input bg-background px-4 py-3 text-base text-foreground placeholder:text-muted-foreground/60 transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background sm:text-sm"
         />
-        <p className="text-xs text-warm-500 mt-1">
+        <p className="mt-1 text-xs text-muted-foreground">
           Required for email/password accounts. OAuth users can leave this blank.
         </p>
       </div>
-      {error && <p className="text-terracotta-600 text-sm">{error}</p>}
+      {error && <p className="text-sm text-destructive">{error}</p>}
       {pendingEmail && (
-        <div className="text-sm text-sage-700 dark:text-sage-300 bg-sage-50 dark:bg-sage-950/30 border border-sage-200 dark:border-sage-800 rounded-xl px-4 py-3 space-y-1">
+        <div className="space-y-1 rounded-xl border border-primary/25 bg-primary/5 px-4 py-3 text-sm text-foreground">
           <p>
             We sent a verification link to{" "}
             <span className="font-medium break-all">{pendingEmail}</span>. Open it on this
             browser to finish the change.
           </p>
-          <p className="text-warm-600 dark:text-warm-400">
+          <p className="text-muted-foreground">
             For security, we may also email your current address ({currentEmail}) to confirm
             this change.
           </p>
@@ -143,7 +143,7 @@ export default function EmailChangeForm({ currentEmail }: Props) {
       <button
         type="submit"
         disabled={loading}
-        className="px-4 py-2.5 bg-terracotta-500 text-white rounded-xl hover:bg-terracotta-600 font-medium transition-colors w-fit disabled:opacity-50"
+        className="w-fit rounded-xl bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50 touch-manipulation"
       >
         {loading ? "Sending verification…" : "Change email"}
       </button>

@@ -65,7 +65,7 @@ export default function CommentForm({
         onChange={(e) => setBody(e.target.value)}
         placeholder="Add a comment..."
         rows={3}
-        className="w-full px-4 py-2 border rounded dark:bg-gray-800 dark:border-gray-700"
+        className="w-full rounded-xl border border-input bg-background px-4 py-3 text-base text-foreground placeholder:text-muted-foreground/60 transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background sm:text-sm"
       />
       {hasAlreadyAcceptedDisclaimer ? (
         <div className="mt-3">
@@ -85,8 +85,8 @@ export default function CommentForm({
         htmlFor="comment-request-scripture-guide"
         className={`mt-4 block cursor-pointer rounded-xl border-2 px-4 py-3 transition-colors ${
           requestScriptureGuide
-            ? "border-indigo-500 bg-indigo-50/80 dark:border-indigo-400 dark:bg-indigo-950/40"
-            : "border-dashed border-indigo-300 bg-indigo-50/30 hover:border-indigo-400 hover:bg-indigo-50/60 dark:border-indigo-800 dark:bg-indigo-950/20 dark:hover:border-indigo-700 dark:hover:bg-indigo-950/30"
+            ? "border-primary/50 bg-primary/10"
+            : "border-dashed border-primary/30 bg-primary/5 hover:border-primary/50 hover:bg-primary/10"
         }`}
       >
         <div className="flex items-start gap-3">
@@ -95,33 +95,33 @@ export default function CommentForm({
             type="checkbox"
             checked={requestScriptureGuide}
             onChange={(e) => setRequestScriptureGuide(e.target.checked)}
-            className="mt-1 size-4 shrink-0 rounded border-indigo-400 accent-indigo-600"
+            className="mt-1 size-4 shrink-0 rounded border-input accent-primary"
           />
           <div className="flex-1">
-            <div className="flex items-center gap-1.5 text-sm font-semibold text-indigo-900 dark:text-indigo-100">
-              <Sparkles className="size-4 text-indigo-600 dark:text-indigo-300" aria-hidden="true" />
+            <div className="flex items-center gap-1.5 text-sm font-semibold text-foreground">
+              <Sparkles className="size-4 text-primary" aria-hidden="true" />
               Add a Scripture guide reply
-              <span className="ml-1 rounded-full bg-indigo-200/70 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-indigo-800 dark:bg-indigo-800/60 dark:text-indigo-100">
+              <span className="ml-1 rounded-full bg-primary/15 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-primary">
                 AI
               </span>
             </div>
-            <p className="mt-1 text-xs leading-relaxed text-indigo-900/80 dark:text-indigo-200/80">
+            <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
               Opt in to receive a thoughtful, scripture-grounded reply alongside your comment.
               Powered by the bible-ai service &mdash; may take a few seconds after your comment posts.
             </p>
           </div>
         </div>
       </label>
-      {error && <p className="text-red-600 text-sm mt-1">{error}</p>}
+      {error && <p className="mt-1 text-sm text-destructive">{error}</p>}
       {info && (
-        <p className="text-amber-800 dark:text-amber-200 text-sm mt-2 whitespace-pre-wrap border border-amber-200 dark:border-amber-800 rounded-md px-3 py-2 bg-amber-50 dark:bg-amber-950/40">
+        <p className="mt-2 whitespace-pre-wrap rounded-lg border border-border bg-muted px-3 py-2 text-sm text-muted-foreground">
           {info}
         </p>
       )}
       <button
         type="submit"
         disabled={loading || !body.trim() || !effectiveAccepted}
-        className="mt-2 px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 disabled:opacity-50"
+        className="mt-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50"
       >
         {loading ? "Posting..." : "Comment"}
       </button>

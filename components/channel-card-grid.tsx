@@ -65,7 +65,9 @@ export function ChannelCardGrid({ channels }: Props) {
               )}
             </div>
 
-            <h3 className="text-lg font-semibold tracking-tight">{ch.title}</h3>
+            <h3 className="text-lg font-semibold tracking-tight transition-colors group-hover:text-primary">
+              {ch.title}
+            </h3>
 
             {hasMeta && (
               <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">

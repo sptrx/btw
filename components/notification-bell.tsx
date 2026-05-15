@@ -198,7 +198,7 @@ function NotificationRow({
   const actorName = item.actor.display_name?.trim() || "Someone";
   const isUnread = item.read_at === null;
   const Icon = item.type === "like" ? Heart : MessageCircle;
-  const iconTint = item.type === "like" ? "text-rose-500" : "text-indigo-500";
+  const iconTint = item.type === "like" ? "text-rose-500" : "text-primary";
   const action = item.type === "like" ? "liked your post" : "commented on your post";
 
   const body = (

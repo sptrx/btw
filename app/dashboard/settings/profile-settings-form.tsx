@@ -15,7 +15,7 @@ export default function ProfileSettingsForm({ displayName, bio }: Props) {
   return (
     <form action={updateProfile} className="flex flex-col gap-4 max-w-md">
       <div>
-        <label htmlFor="display_name" className="block text-sm font-medium mb-1">
+        <label htmlFor="display_name" className="mb-1 block text-sm font-medium text-foreground">
           Display name
         </label>
         <input
@@ -24,11 +24,11 @@ export default function ProfileSettingsForm({ displayName, bio }: Props) {
           type="text"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          className="w-full px-4 py-2 border rounded dark:bg-gray-800 dark:border-gray-700"
+          className="w-full min-h-11 rounded-xl border border-input bg-background px-4 py-3 text-base text-foreground placeholder:text-muted-foreground/60 transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background sm:text-sm"
         />
       </div>
       <div>
-        <label htmlFor="bio" className="block text-sm font-medium mb-1">
+        <label htmlFor="bio" className="mb-1 block text-sm font-medium text-foreground">
           Bio
         </label>
         <textarea
@@ -37,12 +37,12 @@ export default function ProfileSettingsForm({ displayName, bio }: Props) {
           rows={3}
           value={bioText}
           onChange={(e) => setBioText(e.target.value)}
-          className="w-full px-4 py-2 border rounded dark:bg-gray-800 dark:border-gray-700"
+          className="w-full rounded-xl border border-input bg-background px-4 py-3 text-base text-foreground placeholder:text-muted-foreground/60 transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background sm:text-sm"
         />
       </div>
       <button
         type="submit"
-        className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700"
+        className="self-start rounded-xl bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50 touch-manipulation"
       >
         Save
       </button>

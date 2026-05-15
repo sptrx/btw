@@ -12,7 +12,7 @@ export default function DeleteContentButton({ contentId }: Props) {
         onClick={(e) => {
           if (!confirm("Delete this content?")) e.preventDefault();
         }}
-        className="px-3 py-1 text-sm text-red-600 border border-red-600 rounded hover:bg-red-50 dark:hover:bg-red-900/20"
+        className="rounded-lg border border-destructive/30 px-3 py-1.5 text-sm font-medium text-destructive transition-colors hover:bg-destructive/10"
       >
         Delete content
       </button>

@@ -57,11 +57,11 @@ export function LandingHome({
       {/* Hero */}
       <FullBleed>
         <section
-          className="relative min-h-0 md:min-h-[min(38vh,22rem)] flex flex-col justify-end"
+          className="relative min-h-[26rem] sm:min-h-[28rem] md:min-h-[min(44vh,26rem)] flex flex-col justify-end"
           aria-labelledby="landing-hero-heading"
         >
           <Image
-            src="https://images.unsplash.com/photo-1438232992991-995b7058bbb3?auto=format&fit=crop&w=1920&q=85"
+            src="/sunrise-hero.jpg"
             alt=""
             fill
             priority
@@ -73,7 +73,8 @@ export function LandingHome({
             aria-hidden
           />
           <div className="relative z-10 container mx-auto max-w-6xl px-4 sm:px-5 pt-14 pb-6 sm:pt-16 sm:pb-8 md:pt-20 md:pb-9">
-            <p className="text-white/80 text-[10px] sm:text-xs font-medium tracking-[0.18em] uppercase mb-1.5 sm:mb-2">
+            <p className="flex items-center gap-2.5 text-white/80 text-[10px] sm:text-xs font-medium tracking-[0.18em] uppercase mb-2 sm:mb-2.5">
+              <span aria-hidden className="h-px w-6 bg-white/40" />
               Believe The Works
             </p>
             <h1
@@ -120,8 +121,9 @@ export function LandingHome({
       </FullBleed>
 
       {/* Intro strip */}
-      <section className="py-8 sm:py-10 md:py-12 border-b border-border/60">
+      <section className="py-10 sm:py-12 md:py-14 border-b border-border/60">
         <div className="max-w-3xl">
+          <p className="btw-section-eyebrow">Welcome</p>
           <p className={cn(displayFontClassName, "text-xl sm:text-2xl md:text-3xl text-foreground leading-snug text-pretty")}>
             {introCopy.headline}
           </p>
@@ -161,24 +163,47 @@ export function LandingHome({
         </section>
       </FullBleed>
 
-      {/* Quote */}
-      <section className="py-16 sm:py-20 md:py-24">
-        <blockquote
-          className={cn(
-            displayFontClassName,
-            "text-2xl sm:text-3xl md:text-4xl font-normal text-center text-foreground max-w-3xl mx-auto leading-snug text-balance"
-          )}
-        >
-          “They triumphed by the blood of the Lamb and by the word of their testimony.”
-        </blockquote>
-        <p className="text-center text-sm text-muted-foreground mt-6 tracking-wide">Revelation 12:11</p>
-      </section>
+      {/* Quote — a quiet brand moment */}
+      <FullBleed className="bg-muted/30 dark:bg-muted/15 border-y border-border/60">
+        <section className="py-16 sm:py-20 md:py-24">
+          <div className="container mx-auto max-w-3xl px-4 sm:px-5 text-center">
+            <span
+              aria-hidden
+              className={cn(
+                displayFontClassName,
+                "block text-7xl sm:text-8xl leading-[0.8] text-primary/20 select-none"
+              )}
+            >
+              &ldquo;
+            </span>
+            <blockquote
+              className={cn(
+                displayFontClassName,
+                "mt-3 text-2xl sm:text-3xl md:text-4xl font-normal text-foreground leading-snug text-balance"
+              )}
+            >
+              They triumphed by the blood of the Lamb and by the word of their testimony.
+            </blockquote>
+            <div className="mt-7 flex items-center justify-center gap-3" aria-hidden>
+              <span className="h-px w-8 bg-border" />
+              <span className="size-1 rounded-full bg-muted-foreground/50" />
+              <span className="h-px w-8 bg-border" />
+            </div>
+            <p className="mt-4 text-xs sm:text-sm text-muted-foreground tracking-[0.16em] uppercase">
+              Revelation 12:11
+            </p>
+          </div>
+        </section>
+      </FullBleed>
 
       {/* CTA */}
       <FullBleed>
         <section className="bg-primary text-primary-foreground py-14 sm:py-16 md:py-20">
           <div className="container mx-auto max-w-6xl px-4 sm:px-5 flex flex-col md:flex-row md:items-center md:justify-between gap-8">
             <div className="max-w-xl">
+              <p className="mb-2 text-[10px] font-medium uppercase tracking-[0.18em] text-primary-foreground/70 sm:text-xs">
+                Take the next step
+              </p>
               <h2 className={cn(displayFontClassName, "text-3xl sm:text-4xl font-normal text-balance")}>
                 Join the community
               </h2>

@@ -48,7 +48,7 @@ export default async function ChannelPage({ params }: Props) {
       )}
       <div className="space-y-3">
         {content.length === 0 && (
-          <p className="text-muted-foreground py-8 text-center">No content yet.</p>
+          <div className="btw-empty">No content yet.</div>
         )}
         {content.map((item) => (
           <Link

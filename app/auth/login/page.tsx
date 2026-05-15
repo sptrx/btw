@@ -3,6 +3,7 @@
 import { Suspense, useState, useEffect } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import { ShieldCheck } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
 import { OAuthButtons } from "@/components/auth/oauth-buttons";
 
@@ -50,8 +51,12 @@ function LoginForm() {
     <div className="max-w-md mx-auto mt-12 sm:mt-20">
       <div className="btw-auth-panel">
         <h1 className="text-2xl font-semibold tracking-tight mb-1">Sign in</h1>
-        <p className="text-muted-foreground text-sm mb-6">
+        <p className="text-muted-foreground text-sm mb-2">
           A safe space for faith, encouragement, and community.
+        </p>
+        <p className="mb-6 inline-flex items-center gap-2 text-sm text-muted-foreground">
+          <ShieldCheck className="size-4" aria-hidden />
+          Every conversation is AI-moderated for safety
         </p>
         <OAuthButtons />
         <form onSubmit={handleSubmit} className="flex flex-col gap-4" noValidate suppressHydrationWarning>

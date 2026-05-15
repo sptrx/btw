@@ -68,14 +68,14 @@ export default async function ChannelContentPage({ params }: Props) {
     <div>
       <Link
         href={`/channel/${channelSlug}`}
-        className="text-sm text-indigo-600 hover:underline mb-4 inline-block"
+        className="mb-4 inline-flex items-center gap-1 text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
       >
-        ← Back to {channel.title}
+        <span aria-hidden>←</span> Back to {channel.title}
       </Link>
 
-      <div className="border rounded-lg p-6 mb-6">
-        <h1 className="text-2xl font-bold">{content.title}</h1>
-        <p className="text-sm text-gray-500 mt-1">
+      <div className="btw-content-panel mb-6">
+        <h1 className="btw-page-title">{content.title}</h1>
+        <p className="mt-1.5 text-sm text-muted-foreground">
           by {(content.profiles as { display_name?: string })?.display_name ?? "Anonymous"}
           {content.created_at ? (
             <>
@@ -86,8 +86,10 @@ export default async function ChannelContentPage({ params }: Props) {
         </p>
 
         {content.body && (
-          <div className="mt-4 prose dark:prose-invert max-w-none">
-            <p className="whitespace-pre-wrap">{content.body}</p>
+          <div className="mt-4 max-w-none">
+            <p className="whitespace-pre-wrap text-[15px] leading-relaxed text-foreground/90 sm:text-base">
+              {content.body}
+            </p>
           </div>
         )}
 
@@ -106,13 +108,13 @@ export default async function ChannelContentPage({ params }: Props) {
         />
 
         {!user && (
-          <p className="mt-4 text-sm text-amber-600 dark:text-amber-400">
+          <p className="mt-4 rounded-lg border border-border bg-muted/50 px-3 py-2 text-sm text-muted-foreground">
             Sign up to comment, give feedback, or repost to your feed.
           </p>
         )}
 
         {isAuthor && (
-          <div className="mt-4 pt-4 border-t flex flex-wrap gap-3">
+          <div className="mt-4 flex flex-wrap gap-3 border-t border-border pt-4">
             <Button variant="secondary" className="touch-manipulation" asChild>
               <Link href={`/channel/${channelSlug}/content/${contentId}/edit`}>Edit content</Link>
             </Button>
@@ -122,7 +124,7 @@ export default async function ChannelContentPage({ params }: Props) {
       </div>
 
       <section className="mt-8">
-        <h2 className="text-lg font-semibold mb-3">Comments</h2>
+        <h2 className="mb-3 text-lg font-semibold text-foreground">Comments</h2>
         {user && (
           <CommentForm
             contentId={contentId}

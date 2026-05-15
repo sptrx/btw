@@ -118,15 +118,15 @@ export default function ContentActions({
   };
 
   return (
-    <div className="flex flex-wrap items-center gap-3 mt-4 pt-4 border-t">
+    <div className="mt-4 flex flex-wrap items-center gap-3 border-t border-border pt-4">
       <button
         type="button"
         onClick={handleLike}
         aria-pressed={liked}
-        className={`px-3 py-1 rounded text-sm border transition-all duration-150 ease-out active:scale-95 ${
+        className={`rounded-lg border px-3 py-1.5 text-sm font-medium transition-all duration-150 ease-out active:scale-95 ${
           liked
-            ? "bg-indigo-600 border-indigo-600 text-white shadow-sm dark:bg-indigo-500 dark:border-indigo-500"
-            : "border-transparent hover:bg-gray-100 dark:hover:bg-gray-800"
+            ? "border-primary bg-primary text-primary-foreground shadow-sm"
+            : "border-border text-foreground hover:bg-muted"
         } ${pulse === "like" ? "scale-110" : "scale-100"}`}
       >
         <span aria-hidden className="inline-block mr-1">
@@ -138,10 +138,10 @@ export default function ContentActions({
         type="button"
         onClick={handleHelpful}
         aria-pressed={helpfulGiven}
-        className={`px-3 py-1 rounded text-sm border transition-all duration-150 ease-out active:scale-95 ${
+        className={`rounded-lg border px-3 py-1.5 text-sm font-medium transition-all duration-150 ease-out active:scale-95 ${
           helpfulGiven
-            ? "bg-emerald-600 border-emerald-600 text-white shadow-sm dark:bg-emerald-500 dark:border-emerald-500"
-            : "border-transparent hover:bg-gray-100 dark:hover:bg-gray-800"
+            ? "border-primary bg-primary text-primary-foreground shadow-sm"
+            : "border-border text-foreground hover:bg-muted"
         } ${pulse === "helpful" ? "scale-110" : "scale-100"}`}
       >
         <span aria-hidden className="inline-block mr-1">✓</span>

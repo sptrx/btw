@@ -1,12 +1,12 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { User } from "@supabase/supabase-js";
 import {
   Menu,
   X,
-  MessageCircle,
   ChevronDown,
   LayoutDashboard,
   Folder,
@@ -96,12 +96,12 @@ export function HeaderContent({ user, isChannelAuthor }: Props) {
         "sticky top-0 z-50 w-full pt-[env(safe-area-inset-top)] transition-[background,box-shadow,border-color] duration-300",
         onHero
           ? "border-b border-white/15 bg-black/35 text-white shadow-none backdrop-blur-md dark:border-white/10 dark:bg-black/40"
-          : "border-b border-header bg-header/90 shadow-[0_1px_0_0_var(--header-border)] backdrop-blur-sm dark:border-border/50 dark:bg-background/85 dark:shadow-none dark:backdrop-blur-md"
+          : "border-b border-header bg-[oklch(0.72_0.04_108)]/95 shadow-[0_1px_0_0_var(--header-border)] backdrop-blur-sm dark:border-border/50 dark:bg-neutral-900/90 dark:shadow-none dark:backdrop-blur-md"
       )}
       role="banner"
     >
-      <div className="container mx-auto flex min-h-14 max-w-6xl items-center justify-between gap-2 px-4 sm:px-5">
-        {/* Logo — Playfair wordmark to match landing */}
+      <div className="container mx-auto flex min-h-14 max-w-6xl items-center justify-between gap-2 px-4 pt-3 pb-1 sm:px-5 sm:pt-4 sm:pb-2">
+        {/* Logo — left-anchored brand mark */}
         <Link
           href="/"
           className={cn(
@@ -112,13 +112,15 @@ export function HeaderContent({ user, isChannelAuthor }: Props) {
               : "text-foreground hover:bg-accent/80 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
           )}
         >
-          <MessageCircle
-            className={cn("h-5 w-5 shrink-0 sm:h-6 sm:w-6", onHero ? "text-white/90" : "text-primary")}
-            aria-hidden
+          <Image
+            //src="/assets/btw-logo-converted-04.svg"
+            src="/assets/btw-logo-withought-gold-shipe-in-b-export-olive.svg"
+            alt="Believe The Works"
+            width={1536}
+            height={1024}
+            priority
+            className="h-16 w-auto shrink-0 object-contain sm:h-35"
           />
-          <span className="whitespace-nowrap text-base font-normal leading-none tracking-tight md:text-lg">
-            Believe The Works
-          </span>
         </Link>
 
         {/* Desktop nav — segmented pill group with active-section indicator */}

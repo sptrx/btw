@@ -72,14 +72,10 @@ const dropdownItemClass =
 
 export function HeaderContent({ user, isChannelAuthor }: Props) {
   const pathname = usePathname();
-  const isHome = pathname === "/";
   const [mobileOpen, setMobileOpen] = useState(false);
   const userLabel = user ? headerDisplayName(user) : null;
 
   const closeMobile = useCallback(() => setMobileOpen(false), []);
-
-  const onHero = isHome;
-  const ghostOnHero = onHero ? "text-white hover:bg-white/15 hover:text-white" : "";
 
   useEffect(() => {
     if (!mobileOpen) return;
@@ -92,12 +88,7 @@ export function HeaderContent({ user, isChannelAuthor }: Props) {
 
   return (
     <header
-      className={cn(
-        "sticky top-0 z-50 w-full pt-[env(safe-area-inset-top)] transition-[background,box-shadow,border-color] duration-300",
-        onHero
-          ? "border-b border-white/15 bg-black/35 text-white shadow-none backdrop-blur-md dark:border-white/10 dark:bg-black/40"
-          : "border-b border-header bg-[oklch(0.72_0.04_108)]/95 shadow-[0_1px_0_0_var(--header-border)] backdrop-blur-sm dark:border-border/50 dark:bg-neutral-900/90 dark:shadow-none dark:backdrop-blur-md"
-      )}
+      className="sticky top-0 z-50 w-full border-b border-header bg-[oklch(0.72_0.04_108)]/95 pt-[env(safe-area-inset-top)] shadow-[0_1px_0_0_var(--header-border)] backdrop-blur-sm transition-[background,box-shadow,border-color] duration-300 dark:border-border/50 dark:bg-neutral-900/90 dark:shadow-none dark:backdrop-blur-md"
       role="banner"
     >
       <div className="container mx-auto flex min-h-14 max-w-6xl items-center justify-between gap-2 px-4 pt-3 pb-1 sm:px-5 sm:pt-4 sm:pb-2">
@@ -105,16 +96,13 @@ export function HeaderContent({ user, isChannelAuthor }: Props) {
         <Link
           href="/"
           className={cn(
-            "flex min-h-11 shrink-0 items-center gap-1.5 rounded-lg px-1 -ml-1 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-            displayFont,
-            onHero
-              ? "text-white hover:bg-white/10 focus-visible:ring-offset-2 focus-visible:ring-offset-black/40"
-              : "text-foreground hover:bg-accent/80 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+            "flex min-h-11 shrink-0 items-center gap-1.5 rounded-lg px-1 -ml-1 text-foreground transition-colors hover:bg-accent/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+            displayFont
           )}
         >
           <Image
             //src="/assets/btw-logo-converted-04.svg"
-            src="/assets/btw-logo-withought-gold-shipe-in-b-export-olive.svg"
+            src="/assets/btw-logo-withought-gold-shipe-in-b-export-bright-blue.svg"
             alt="Believe The Works"
             width={1536}
             height={1024}
@@ -125,12 +113,7 @@ export function HeaderContent({ user, isChannelAuthor }: Props) {
 
         {/* Desktop nav — segmented pill group with active-section indicator */}
         <nav
-          className={cn(
-            "hidden md:flex md:items-center md:gap-0.5 md:rounded-full md:border md:p-1",
-            onHero
-              ? "border-white/20 bg-white/10"
-              : "border-border/60 bg-muted/50 dark:md:border-transparent dark:md:bg-transparent"
-          )}
+          className="hidden md:flex md:items-center md:gap-0.5 md:rounded-full md:border md:border-border/60 md:bg-muted/50 md:p-1 dark:md:border-transparent dark:md:bg-transparent"
           aria-label="Primary"
         >
           {navLinks.map((link) => {
@@ -145,13 +128,9 @@ export function HeaderContent({ user, isChannelAuthor }: Props) {
                 aria-current={active ? "page" : undefined}
                 className={cn(
                   "rounded-full font-medium transition-colors",
-                  onHero
-                    ? active
-                      ? "bg-white/20 text-white hover:bg-white/20 hover:text-white"
-                      : "text-white/80 hover:bg-white/15 hover:text-white"
-                    : active
-                      ? "bg-primary/10 text-primary hover:bg-primary/10 hover:text-primary"
-                      : "text-muted-foreground"
+                  active
+                    ? "bg-primary/10 text-primary hover:bg-primary/10 hover:text-primary"
+                    : "text-muted-foreground"
                 )}
               >
                 {external ? (
@@ -168,34 +147,14 @@ export function HeaderContent({ user, isChannelAuthor }: Props) {
 
         {/* Right: search, theme, account */}
         <div className="flex min-w-0 items-center gap-2">
-          <GlobalSearch
-            className={
-              onHero ? "text-white hover:bg-white/15 hover:text-white [&_svg]:text-white" : undefined
-            }
-          />
-          {user && (
-            <NotificationBell
-              className={
-                onHero
-                  ? "text-white hover:bg-white/15 hover:text-white [&_svg]:text-white"
-                  : undefined
-              }
-            />
-          )}
-          <ThemeToggle
-            className={
-              onHero ? "text-white hover:bg-white/15 hover:text-white [&_svg]:text-white" : undefined
-            }
-          />
+          <GlobalSearch />
+          {user && <NotificationBell />}
+          <ThemeToggle />
           <div className="hidden min-w-0 md:flex md:items-center md:gap-2">
             {user ? (
               <>
                 {isChannelAuthor && (
-                  <Button
-                    size="sm"
-                    asChild
-                    className={onHero ? "bg-white text-neutral-900 hover:bg-white/90" : undefined}
-                  >
+                  <Button size="sm" asChild>
                     <Link href="/channel/new">Create Channel</Link>
                   </Button>
                 )}
@@ -204,25 +163,12 @@ export function HeaderContent({ user, isChannelAuthor }: Props) {
                     <button
                       type="button"
                       aria-label="Account menu"
-                      className={cn(
-                        "flex shrink-0 items-center gap-1 rounded-full p-0.5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-                        onHero
-                          ? "hover:bg-white/15 focus-visible:ring-offset-2 focus-visible:ring-offset-black/40"
-                          : "hover:bg-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-                      )}
+                      className="flex shrink-0 items-center gap-1 rounded-full p-0.5 transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                     >
-                      <span
-                        className={cn(
-                          "flex size-8 items-center justify-center rounded-full text-xs font-semibold",
-                          onHero ? "bg-white/20 text-white" : "bg-primary/10 text-primary"
-                        )}
-                      >
+                      <span className="flex size-8 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
                         {initialsFrom(userLabel ?? "")}
                       </span>
-                      <ChevronDown
-                        className={cn("size-4", onHero ? "text-white/70" : "text-muted-foreground")}
-                        aria-hidden
-                      />
+                      <ChevronDown className="size-4 text-muted-foreground" aria-hidden />
                     </button>
                   </DropdownMenu.Trigger>
                   <DropdownMenu.Portal>
@@ -279,7 +225,7 @@ export function HeaderContent({ user, isChannelAuthor }: Props) {
               </>
             ) : (
               <>
-                <Button variant="ghost" size="sm" asChild className={ghostOnHero}>
+                <Button variant="ghost" size="sm" asChild>
                   <Link href="/auth/login">Sign in</Link>
                 </Button>
                 <Button size="sm" asChild>
@@ -293,7 +239,7 @@ export function HeaderContent({ user, isChannelAuthor }: Props) {
           <Button
             variant="ghost"
             size="icon"
-            className={cn("size-11 shrink-0 touch-manipulation md:hidden", onHero && ghostOnHero)}
+            className="size-11 shrink-0 touch-manipulation md:hidden"
             onClick={() => setMobileOpen((o) => !o)}
             aria-expanded={mobileOpen}
             aria-controls={MOBILE_NAV_ID}
@@ -310,12 +256,7 @@ export function HeaderContent({ user, isChannelAuthor }: Props) {
         className={cn(
           "md:hidden",
           mobileOpen
-            ? cn(
-                "block border-t px-3 pb-3 pt-1",
-                onHero
-                  ? "border-white/15 bg-black/50 backdrop-blur-md"
-                  : "border-header-border bg-muted/30 dark:border-border/40 dark:bg-background/95"
-              )
+            ? "block border-t border-header-border bg-muted/30 px-3 pb-3 pt-1 dark:border-border/40 dark:bg-background/95"
             : "hidden"
         )}
       >

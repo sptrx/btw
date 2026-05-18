@@ -53,7 +53,7 @@ export function LandingHome({
         }
       : DEFAULT_INTRO;
   return (
-    <article className="-mt-6 sm:-mt-10">
+    <article>
       {/* Hero */}
       <FullBleed>
         <section
@@ -69,31 +69,32 @@ export function LandingHome({
             className="object-cover max-md:object-[50%_35%]"
           />
           <div
-            className="absolute inset-0 bg-gradient-to-t from-black/88 via-black/50 to-black/30"
+            className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/65 to-black/35"
             aria-hidden
           />
           <div className="relative z-10 container mx-auto max-w-6xl px-4 sm:px-5 pt-14 pb-6 sm:pt-16 sm:pb-8 md:pt-20 md:pb-9">
-            <p className="flex items-center gap-2.5 text-white/80 text-[10px] sm:text-xs font-medium tracking-[0.18em] uppercase mb-2 sm:mb-2.5">
-              <span aria-hidden className="h-px w-6 bg-white/40" />
-              Believe The Works
+            <p className="mb-2 flex items-center gap-2.5 text-[10px] font-medium uppercase tracking-[0.18em] text-amber-200/95 sm:mb-2.5 sm:text-xs [text-shadow:0_1px_3px_rgba(0,0,0,0.6)]">
+              <span aria-hidden className="h-px w-6 bg-amber-300/85" />
+              Believe The Works is a powerful invitation to look at the actions and evidence of Jesus Christ when words alone are hard to accept. Refer: John 10:38
             </p>
             <h1
               id="landing-hero-heading"
               className={cn(
                 displayFontClassName,
-                "text-white text-2xl sm:text-3xl md:text-4xl lg:text-[2.75rem] font-normal tracking-tight max-w-3xl leading-[1.12] text-balance"
+                "max-w-3xl text-balance text-2xl font-normal leading-[1.12] tracking-tight text-amber-50 sm:text-3xl md:text-4xl lg:text-[2.75rem]",
+                "[text-shadow:0_2px_14px_rgba(0,0,0,0.55),0_1px_2px_rgba(0,0,0,0.45)]"
               )}
             >
               Testify boldly in a space guarded by grace
             </h1>
-            <p className="mt-2 sm:mt-3 text-sm sm:text-base text-white/85 max-w-xl leading-snug text-pretty line-clamp-2 sm:line-clamp-none">
-              Scroll a live feed of channels, pages, clips, and posts—like a calm timeline built for encouragement and faith.
+            <p className="mt-2 max-w-2xl text-pretty text-sm leading-snug text-amber-100/95 sm:mt-3 sm:text-base [text-shadow:0_1px_6px_rgba(0,0,0,0.55)]">
+              Sign up in a minute, open your own channel, and publish your testimony — through written posts, pages, photos, podcasts, and videos. Your story might be the encouragement someone needs today. Or simply scroll the live feed for daily inspiration from a community walking in faith.
             </p>
-            <div className="mt-4 sm:mt-5 flex flex-col sm:flex-row gap-2 sm:gap-3 sm:items-center">
+            <div className="mt-4 flex flex-col gap-2 sm:mt-5 sm:flex-row sm:items-center sm:gap-3">
               <Button
                 asChild
                 size="lg"
-                className="min-h-10 sm:min-h-11 rounded-full px-6 sm:px-8 text-sm sm:text-base bg-white text-neutral-950 hover:bg-white/90 hover:text-neutral-950"
+                className="min-h-10 rounded-full bg-amber-50 px-6 text-sm text-neutral-950 hover:bg-amber-50/90 hover:text-neutral-950 sm:min-h-11 sm:px-8 sm:text-base"
               >
                 <Link href="/auth/signup">
                   Get started
@@ -104,7 +105,7 @@ export function LandingHome({
                 asChild
                 size="lg"
                 variant="outline"
-                className="min-h-10 sm:min-h-11 rounded-full px-6 sm:px-8 text-sm sm:text-base border-white/40 bg-white/10 text-white backdrop-blur-sm hover:bg-white/20 hover:text-white"
+                className="min-h-10 rounded-full border-amber-200/50 bg-white/10 px-6 text-sm text-amber-50 backdrop-blur-sm hover:bg-white/20 hover:text-amber-50 sm:min-h-11 sm:px-8 sm:text-base"
               >
                 <Link href="/channel/browse">
                   <Play className="mr-2 h-4 w-4 fill-current" aria-hidden />
@@ -112,7 +113,7 @@ export function LandingHome({
                 </Link>
               </Button>
             </div>
-            <p className="mt-6 inline-flex items-center gap-2 text-sm text-white/75">
+            <p className="mt-6 inline-flex items-center gap-2 text-sm text-amber-100/85 [text-shadow:0_1px_4px_rgba(0,0,0,0.6)]">
               <ShieldCheck className="size-4" aria-hidden />
               All content reviewed by AI — safe for the whole family
             </p>

@@ -102,7 +102,7 @@ export function HeaderContent({ user, isChannelAuthor }: Props) {
         >
           <Image
             //src="/assets/btw-logo-converted-04.svg"
-            src="/assets/btw-logo-withought-gold-shipe-in-b-export-bright-blue.svg"
+            src="/assets/btw-logo-v3.svg" 
             alt="Believe The Works"
             width={1536}
             height={1024}

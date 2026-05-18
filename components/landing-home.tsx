@@ -87,9 +87,20 @@ export function LandingHome({
             >
               Testify boldly in a space guarded by grace
             </h1>
+            {/*
             <p className="mt-2 max-w-2xl text-pretty text-sm leading-snug text-amber-100/95 sm:mt-3 sm:text-base [text-shadow:0_1px_6px_rgba(0,0,0,0.55)]">
-              Sign up in a minute, open your own channel, and publish your testimony — through written posts, pages, photos, podcasts, and videos. Your story might be the encouragement someone needs today. Or simply scroll the live feed for daily inspiration from a community walking in faith.
+              Sign up in a minute, open your own channel, and publish your testimony — through written posts, pages, photos, podcasts, and videos. Your story might be the encouragement someone needs today. 
+              Or simply scroll the live feed for daily inspiration from a community walking in faith.
             </p>
+            */}
+            
+            <p className="mt-2 max-w-2xl text-pretty text-sm leading-snug text-amber-100/95 sm:mt-3 sm:text-base [text-shadow:0_1px_6px_rgba(0,0,0,0.55)]">
+            As it is written, they overcame by the word of their testimony. Sign up, start a channel, 
+            and share what God has done — through posts, photos, podcasts, or video. Your witness may strengthen another.""As it is written, they overcame by the word of their 
+            testimony. Sign up, start a channel, and share what God has done — through posts, photos, podcasts, or video. Your witness may strengthen another.
+            </p>
+
+
             <div className="mt-4 flex flex-col gap-2 sm:mt-5 sm:flex-row sm:items-center sm:gap-3">
               <Button
                 asChild

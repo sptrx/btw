@@ -1,5 +1,4 @@
 import { notFound } from "next/navigation";
-import Link from "next/link";
 import {
   getChannelBySlug,
   getChannelPages,
@@ -9,6 +8,7 @@ import {
 } from "@/actions/channels";
 import AddContentLink from "./add-content-link";
 import { ShareButton } from "@/components/share-button";
+import { ChannelPageContentList } from "@/components/channel-page-content-list";
 import { getCurrentUser } from "@/actions";
 
 type Props = { params: Promise<{ channelSlug: string }> };
@@ -46,29 +46,12 @@ export default async function ChannelPage({ params }: Props) {
           <p className="text-sm text-muted-foreground whitespace-pre-wrap">{homePage.description}</p>
         </div>
       )}
-      <div className="space-y-3">
-        {content.length === 0 && (
-          <div className="btw-empty">No content yet.</div>
-        )}
-        {content.map((item) => (
-          <Link
-            key={item.id}
-            href={`/channel/${channelSlug}/content/${item.id}`}
-            className="btw-app-row"
-          >
-            <h3 className="font-medium">{item.title}</h3>
-            {item.body && (
-              <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
-                {item.body}
-              </p>
-            )}
-          </Link>
-        ))}
-      </div>
+
+      <ChannelPageContentList channelSlug={channelSlug} items={content} showPage />
 
       {isAuthor && (
         <section
-          className="btw-callout-section"
+          className="btw-callout-section mt-14 pt-10 border-t border-border/60"
           aria-labelledby="channel-home-add-content-heading"
         >
           <h2 id="channel-home-add-content-heading" className="text-lg font-semibold mb-2">

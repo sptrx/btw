@@ -12,6 +12,9 @@ import {
 } from "@/actions";
 import { replaceChannelTags, replacePostTags } from "@/actions/tags";
 import { createNotification } from "@/actions/notifications";
+import { contentTypeLabel, type ContentType } from "@/lib/content-types";
+
+export type { ContentType };
 
 /** Caller-provided tag IDs from a form's hidden `tag_ids` inputs (capped to 3 client + server side). */
 function readTagIdsFromForm(formData: FormData): string[] {
@@ -21,8 +24,6 @@ function readTagIdsFromForm(formData: FormData): string[] {
     .filter(Boolean)
     .slice(0, 3);
 }
-
-export type ContentType = "video" | "podcast" | "article" | "discussion";
 
 /** Row from `channel_pages` (description optional when DB not migrated) */
 export type ChannelPageRow = {
@@ -830,22 +831,70 @@ export async function updateChannelPage(formData: FormData) {
 export type PageContentListItem = {
   id: string;
   type: string;
+  type_label: string;
   title: string;
   body: string | null;
   media_urls: unknown;
   created_at: string;
+  page_id: string | null;
+  page_title: string | null;
+  page_slug: string | null;
 };
+
+type PageContentRow = {
+  id: string;
+  type: string;
+  title: string;
+  body: string | null;
+  media_urls: unknown;
+  created_at: string;
+  page_id: string | null;
+};
+
+async function enrichPageContentRows(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  rows: PageContentRow[]
+): Promise<PageContentListItem[]> {
+  const pageIds = [...new Set(rows.map((r) => r.page_id).filter((id): id is string => Boolean(id)))];
+  const pageById = new Map<string, { title: string; slug: string }>();
+
+  if (pageIds.length > 0) {
+    const { data: pages } = await supabase
+      .from("channel_pages")
+      .select("id, title, slug")
+      .in("id", pageIds);
+    for (const p of pages ?? []) {
+      pageById.set(p.id, { title: p.title, slug: p.slug });
+    }
+  }
+
+  return rows.map((r) => {
+    const page = r.page_id ? pageById.get(r.page_id) : null;
+    return {
+      id: r.id,
+      type: r.type,
+      type_label: contentTypeLabel(r.type),
+      title: r.title,
+      body: r.body,
+      media_urls: r.media_urls,
+      created_at: r.created_at,
+      page_id: r.page_id,
+      page_title: page?.title ?? (r.page_id ? null : "Home"),
+      page_slug: page?.slug ?? (r.page_id ? null : "home"),
+    };
+  });
+}
 
 export async function getPageContent(channelId: string, pageId: string | null) {
   const supabase = await createClient();
   let q = supabase
     .from("topic_content")
-    .select("id, type, title, body, media_urls, created_at")
+    .select("id, type, title, body, media_urls, created_at, page_id")
     .eq("topic_id", channelId);
   if (pageId) q = q.eq("page_id", pageId);
   else q = q.is("page_id", null);
   const { data } = await q.order("created_at", { ascending: false });
-  return (data ?? []) as PageContentListItem[];
+  return enrichPageContentRows(supabase, (data ?? []) as PageContentRow[]);
 }
 
 /**

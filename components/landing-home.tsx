@@ -73,35 +73,46 @@ export function LandingHome({
             aria-hidden
           />
           <div className="relative z-10 container mx-auto max-w-6xl px-4 sm:px-5 pt-14 pb-6 sm:pt-16 sm:pb-8 md:pt-20 md:pb-9">
-            <p className="mb-2 flex items-center gap-2.5 text-[10px] font-medium uppercase tracking-[0.18em] text-amber-200/95 sm:mb-2.5 sm:text-xs [text-shadow:0_1px_3px_rgba(0,0,0,0.6)]">
-              <span aria-hidden className="h-px w-6 bg-amber-300/85" />
-              Believe The Works is a powerful invitation to look at the actions and evidence of Jesus Christ when words alone are hard to accept. Refer: John 10:38
-            </p>
-            <h1
-              id="landing-hero-heading"
-              className={cn(
-                displayFontClassName,
-                "max-w-3xl text-balance text-2xl font-normal leading-[1.12] tracking-tight text-amber-50 sm:text-3xl md:text-4xl lg:text-[2.75rem]",
-                "[text-shadow:0_2px_14px_rgba(0,0,0,0.55),0_1px_2px_rgba(0,0,0,0.45)]"
-              )}
-            >
-              Testify boldly in a space guarded by grace
-            </h1>
-            {/*
-            <p className="mt-2 max-w-2xl text-pretty text-sm leading-snug text-amber-100/95 sm:mt-3 sm:text-base [text-shadow:0_1px_6px_rgba(0,0,0,0.55)]">
-              Sign up in a minute, open your own channel, and publish your testimony — through written posts, pages, photos, podcasts, and videos. Your story might be the encouragement someone needs today. 
-              Or simply scroll the live feed for daily inspiration from a community walking in faith.
-            </p>
-            */}
-            
-            <p className="mt-2 max-w-2xl text-pretty text-sm leading-snug text-amber-100/95 sm:mt-3 sm:text-base [text-shadow:0_1px_6px_rgba(0,0,0,0.55)]">
-            As it is written, they overcame by the word of their testimony. Sign up, start a channel, 
-            and share what God has done — through posts, photos, podcasts, or video. Your witness may strengthen another.""As it is written, they overcame by the word of their 
-            testimony. Sign up, start a channel, and share what God has done — through posts, photos, podcasts, or video. Your witness may strengthen another.
-            </p>
+            <div className="max-w-2xl space-y-4 sm:space-y-5">
+              <div className="space-y-2">
+                <p className="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-[10px] font-medium uppercase tracking-[0.18em] text-amber-200/95 sm:text-xs [text-shadow:0_1px_3px_rgba(0,0,0,0.6)]">
+                  <span className="flex items-center gap-2.5">
+                    <span aria-hidden className="h-px w-6 shrink-0 bg-amber-300/85" />
+                    <span>Believe The Works</span>
+                  </span>
+                  <span className="text-amber-200/60" aria-hidden>
+                    ·
+                  </span>
+                  <span className="normal-case tracking-normal text-amber-200/80">John 10:38</span>
+                </p>
+                <p className="text-pretty text-xs leading-relaxed text-amber-100/80 sm:text-sm [text-shadow:0_1px_4px_rgba(0,0,0,0.5)]">
+                  An invitation to weigh the actions and evidence of Christ when words alone are hard
+                  to accept.
+                </p>
+              </div>
+              <h1
+                id="landing-hero-heading"
+                className={cn(
+                  displayFontClassName,
+                  "text-balance text-2xl font-normal leading-[1.15] tracking-tight text-amber-50 sm:text-3xl md:text-4xl lg:text-[2.75rem]",
+                  "[text-shadow:0_2px_14px_rgba(0,0,0,0.55),0_1px_2px_rgba(0,0,0,0.45)]"
+                )}
+              >
+                Testify boldly in a space guarded by grace
+              </h1>
 
+              <div className="space-y-3 border-l-2 border-amber-300/40 pl-4 sm:pl-5">
+                <p className="text-pretty text-sm italic leading-relaxed text-amber-50/95 sm:text-base [text-shadow:0_1px_6px_rgba(0,0,0,0.55)]">
+                  As it is written, they overcame by the word of their testimony.
+                </p>
+                <p className="text-pretty text-sm leading-relaxed text-amber-100/90 sm:text-base [text-shadow:0_1px_6px_rgba(0,0,0,0.55)]">
+                  Sign up, start a channel, and share what God has done—through posts, photos,
+                  podcasts, or video. Your witness may strengthen another.
+                </p>
+              </div>
+            </div>
 
-            <div className="mt-4 flex flex-col gap-2 sm:mt-5 sm:flex-row sm:items-center sm:gap-3">
+            <div className="mt-6 flex flex-col gap-2 sm:mt-8 sm:flex-row sm:items-center sm:gap-3">
               <Button
                 asChild
                 size="lg"

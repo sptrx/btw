@@ -109,6 +109,14 @@ Email magic links, **signup confirmation**, and password reset use `/auth/callba
 
 The app sends `redirectTo: ${window.location.origin}/auth/callback?next=/auth/reset-password` when requesting a reset; **Redirect URLs** must include your production callback origin (`https://.../auth/callback` or a `/**` pattern). After changing **Site URL** or **Redirect URLs**, request a **new** reset email (old links keep old hosts).
 
+### Password-changed email (security notification)
+
+The **“Your password was changed”** email is configured in Supabase, not in this app repo’s runtime code. The template lives at `supabase/templates/password_changed.html` and is referenced from `supabase/config.toml`.
+
+- **Do not** use markdown like `[/auth/forgot-password]Reset password now` — that will not render as a link. Use HTML: `<a href="{{ .SiteURL }}/auth/forgot-password">Reset password now</a>`.
+- Deploy to the linked project: `supabase config push` (from the `btw` directory).
+- Or paste the HTML from `supabase/templates/password_changed.html` into the dashboard: **Authentication** → **Email Templates** → **Password changed** (security notification).
+
 ## 8. CI/CD (optional)
 
 Cloudflare’s Workers pipeline often runs **`npm run build`** (`next build` only) and then **`opennextjs-cloudflare deploy`**. That fails with *“Could not find compiled Open Next config”* because **`next build` does not create `.open-next/`** — you must run **`opennextjs-cloudflare build`** before deploy.

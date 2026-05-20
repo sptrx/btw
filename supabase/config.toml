@@ -1,0 +1,27 @@
+# Supabase project config (btw). Only edit sections you intend to push.
+# Push: `supabase config push` from repo root. See docs/cloudflare-deploy.md §7.
+
+project_id = "btw"
+
+[auth]
+site_url = "https://believetheworks.org"
+additional_redirect_urls = [
+  "https://believetheworks.org/**",
+  "https://believetheworks.org/auth/callback",
+  "https://www.believetheworks.org/**",
+  "https://www.believetheworks.org/auth/callback",
+  "https://www.believetheworks.org/auth/callback?next=/auth/reset-password",
+]
+
+[auth.email]
+enable_confirmations = true
+otp_length = 8
+
+[auth.mfa.totp]
+enroll_enabled = true
+verify_enabled = true
+
+[auth.email.notification.password_changed]
+enabled = true
+subject = "Your password was changed"
+content_path = "./templates/password_changed.html"

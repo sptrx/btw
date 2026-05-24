@@ -169,15 +169,33 @@ export async function signOut() {
   redirect("/");
 }
 
-export async function getProfile(userId: string) {
+import { normalizeOptionalText, normalizeWebsiteUrl } from "@/lib/profile-fields";
+
+export type ProfileRow = {
+  id: string;
+  display_name: string | null;
+  avatar_url: string | null;
+  bio: string | null;
+  city: string | null;
+  ministry_name: string | null;
+  website_url: string | null;
+  role?: string | null;
+  created_at?: string;
+  updated_at?: string;
+  content_disclaimer_accepted_at?: string | null;
+};
+
+export async function getProfile(userId: string): Promise<ProfileRow | null> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("profiles")
-    .select("*")
+    .select(
+      "id, display_name, avatar_url, bio, city, ministry_name, website_url, role, created_at, updated_at, content_disclaimer_accepted_at"
+    )
     .eq("id", userId)
     .single();
   if (error || !data) return null;
-  return data;
+  return data as ProfileRow;
 }
 
 /**
@@ -244,7 +262,10 @@ export async function recordContentDisclaimerAcceptance(userId: string): Promise
   }
 }
 
-export async function updateProfile(formData: FormData) {
+export async function updateProfile(
+  _prev: { error?: string } | null,
+  formData: FormData
+): Promise<{ error?: string } | null> {
   const supabase = await createClient();
 
   const {
@@ -252,19 +273,46 @@ export async function updateProfile(formData: FormData) {
   } = await supabase.auth.getUser();
   if (!user) redirect("/auth/login");
 
-  const displayName = formData.get("display_name") as string | null;
-  const bio = formData.get("bio") as string | null;
+  const displayName = normalizeOptionalText(formData.get("display_name"), 80);
+  const bio = normalizeOptionalText(formData.get("bio"), 500);
+  const city = normalizeOptionalText(formData.get("city"), 80);
+  const ministryName = normalizeOptionalText(formData.get("ministry_name"), 120);
+  const avatarRaw = normalizeOptionalText(formData.get("avatar_url"), 2048);
 
-  await supabase
+  const websiteRaw = (formData.get("website_url") as string | null)?.trim() ?? "";
+  let websiteUrl: string | null = null;
+  if (websiteRaw) {
+    websiteUrl = normalizeWebsiteUrl(websiteRaw);
+    if (!websiteUrl) {
+      return { error: "Enter a valid website or social link (e.g. example.com or https://…)." };
+    }
+  }
+
+  if (avatarRaw && !/^https?:\/\//i.test(avatarRaw)) {
+    return { error: "Avatar URL must start with http:// or https://." };
+  }
+
+  const { error } = await supabase
     .from("profiles")
     .update({
-      display_name: displayName?.trim() || null,
-      bio: bio?.trim() || null,
+      display_name: displayName,
+      bio,
+      city,
+      ministry_name: ministryName,
+      website_url: websiteUrl,
+      avatar_url: avatarRaw,
       updated_at: new Date().toISOString(),
     })
     .eq("id", user.id);
 
+  if (error) {
+    console.error("[updateProfile]", error.message);
+    return { error: "Could not save profile. If this persists, run the latest database migrations." };
+  }
+
   revalidatePath("/profile");
+  revalidatePath(`/profile/${user.id}`);
   revalidatePath("/dashboard/settings");
+  revalidatePath("/", "layout");
   redirect("/profile");
 }

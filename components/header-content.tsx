@@ -23,7 +23,14 @@ import { NotificationBell } from "@/components/notification-bell";
 import { bibleAiPublicAskUrl } from "@/lib/bible-ai-config";
 import { cn } from "@/lib/utils";
 
-type Props = { user: User | null; isChannelAuthor?: boolean };
+import { UserAvatar } from "@/components/user-avatar";
+
+type Props = {
+  user: User | null;
+  isChannelAuthor?: boolean;
+  avatarUrl?: string | null;
+  profileDisplayName?: string | null;
+};
 
 function headerDisplayName(user: User): string {
   const meta = user.user_metadata;
@@ -38,14 +45,6 @@ function headerDisplayName(user: User): string {
     return local || email;
   }
   return "Account";
-}
-
-/** Two-letter initials for the account avatar. */
-function initialsFrom(name: string): string {
-  const parts = name.trim().split(/\s+/).filter(Boolean);
-  if (parts.length === 0) return "?";
-  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
-  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 }
 
 /** Whether a primary nav link points at the current section. */
@@ -70,10 +69,12 @@ const displayFont = "font-[family-name:var(--font-landing-display)]";
 const dropdownItemClass =
   "flex w-full cursor-pointer items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm text-foreground no-underline outline-none transition-colors focus:bg-accent focus:text-accent-foreground data-[highlighted]:bg-accent data-[highlighted]:text-accent-foreground";
 
-export function HeaderContent({ user, isChannelAuthor }: Props) {
+export function HeaderContent({ user, isChannelAuthor, avatarUrl, profileDisplayName }: Props) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const userLabel = user ? headerDisplayName(user) : null;
+  const userLabel = user
+    ? profileDisplayName?.trim() || headerDisplayName(user)
+    : null;
 
   const closeMobile = useCallback(() => setMobileOpen(false), []);
 
@@ -102,7 +103,7 @@ export function HeaderContent({ user, isChannelAuthor }: Props) {
         >
           <Image
             //src="/assets/btw-logo-converted-04.svg"
-            src="/assets/btw-logo-v6-deploy.svg" 
+            src="/assets/btw-logo-withought-gold-shipe-in-b-export-bright-blue.svg" 
             alt="Believe The Works"
             width={1536}
             height={1024}
@@ -165,9 +166,7 @@ export function HeaderContent({ user, isChannelAuthor }: Props) {
                       aria-label="Account menu"
                       className="flex shrink-0 items-center gap-1 rounded-full p-0.5 transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                     >
-                      <span className="flex size-8 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
-                        {initialsFrom(userLabel ?? "")}
-                      </span>
+                      <UserAvatar name={userLabel ?? "Account"} avatarUrl={avatarUrl} size="sm" />
                       <ChevronDown className="size-4 text-muted-foreground" aria-hidden />
                     </button>
                   </DropdownMenu.Trigger>
@@ -266,9 +265,7 @@ export function HeaderContent({ user, isChannelAuthor }: Props) {
         >
           {user && userLabel !== null && (
             <div className="mb-1 flex items-center gap-3 border-b border-border px-2 py-2">
-              <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary">
-                {initialsFrom(userLabel)}
-              </span>
+              <UserAvatar name={userLabel} avatarUrl={avatarUrl} size="md" />
               <div className="min-w-0">
                 <p className="truncate text-sm font-medium text-foreground" title={userLabel}>
                   {userLabel}

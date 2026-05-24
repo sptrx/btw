@@ -7,7 +7,7 @@ export default async function Header() {
     const user = await getCurrentUser();
     const profile = user ? await getProfile(user.id) : null;
     const isChannelAuthor = profile?.role === "channel_author";
-    return <HeaderContent user={user} isChannelAuthor={isChannelAuthor} />;
+    return <HeaderContent user={user} isChannelAuthor={isChannelAuthor} avatarUrl={profile?.avatar_url} profileDisplayName={profile?.display_name} />;
   } catch (e) {
     unstable_rethrow(e);
     console.error("[header] auth/profile:", e);

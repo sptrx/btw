@@ -30,6 +30,10 @@ export default async function Settings() {
         <ProfileSettingsForm
           displayName={profile?.display_name ?? ""}
           bio={profile?.bio ?? ""}
+          city={profile?.city ?? ""}
+          ministryName={profile?.ministry_name ?? ""}
+          websiteUrl={profile?.website_url ?? ""}
+          avatarUrl={profile?.avatar_url ?? ""}
         />
       </section>
 

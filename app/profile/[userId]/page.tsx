@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { getProfile, getCurrentUser } from "@/actions";
 import { createClient } from "@/utils/supabase/server";
 import Link from "next/link";
+import { ProfileHeader } from "@/components/profile-header";
 import { RelativeDate } from "@/components/relative-date";
 
 type Props = {
@@ -30,16 +31,9 @@ export default async function UserProfile({ params }: Props) {
 
   return (
     <div>
-      <div className="btw-content-panel mb-6">
-        <h1 className="btw-page-title">
-          {profile.display_name ?? "Anonymous"}
-        </h1>
-        {profile.bio && (
-          <p className="mt-2 whitespace-pre-wrap text-muted-foreground">{profile.bio}</p>
-        )}
-      </div>
+      <ProfileHeader profile={profile} showEditLink={isOwnProfile} />
 
-      <h2 className="mb-3 text-lg font-semibold text-foreground">Posts</h2>
+      <h2 className="mb-3 mt-8 text-lg font-semibold text-foreground">Posts</h2>
       <div className="space-y-3">
         {!posts || posts.length === 0 ? (
           <div className="btw-empty">No posts yet.</div>

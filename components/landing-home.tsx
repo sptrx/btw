@@ -69,50 +69,50 @@ export function LandingHome({
             className="object-cover max-md:object-[50%_35%]"
           />
           <div
-            className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/65 to-black/35"
+            className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/75 to-black/45"
             aria-hidden
           />
-          <div className="relative z-10 container mx-auto max-w-6xl px-4 sm:px-5 pt-14 pb-6 sm:pt-16 sm:pb-8 md:pt-20 md:pb-9">
-            <div className="max-w-2xl space-y-4 sm:space-y-5">
-              <div className="space-y-2">
-                <p className="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-[10px] font-medium uppercase tracking-[0.18em] text-amber-200/95 sm:text-xs [text-shadow:0_1px_3px_rgba(0,0,0,0.6)]">
+          <div className="relative z-10 container mx-auto max-w-6xl px-4 sm:px-5 pt-14 pb-8 sm:pt-16 sm:pb-10 md:pt-20 md:pb-12">
+            <div className="max-w-xl space-y-5 sm:max-w-2xl sm:space-y-6">
+              <div className="space-y-2.5 sm:space-y-3">
+                <p className="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-xs font-medium uppercase tracking-[0.12em] text-amber-200/95 sm:text-sm [text-shadow:0_1px_3px_rgba(0,0,0,0.6)]">
                   <span className="flex items-center gap-2.5">
-                    <span aria-hidden className="h-px w-6 shrink-0 bg-amber-300/85" />
+                    <span aria-hidden className="h-px w-6 shrink-0 bg-amber-300/85 sm:w-8" />
                     <span>Believe The Works</span>
                   </span>
                   <span className="text-amber-200/60" aria-hidden>
                     ·
                   </span>
-                  <span className="normal-case tracking-normal text-amber-200/80">John 10:38</span>
+                  <span className="normal-case tracking-normal text-amber-200/85">John 10:38</span>
                 </p>
-                <p className="text-pretty text-xs leading-relaxed text-amber-100/80 sm:text-sm [text-shadow:0_1px_4px_rgba(0,0,0,0.5)]">
-                  An invitation to weigh the actions and evidence of Christ when words alone are hard
-                  to accept.
+                <p className="max-w-lg text-pretty text-sm leading-relaxed text-amber-100/85 sm:text-base sm:leading-relaxed [text-shadow:0_1px_4px_rgba(0,0,0,0.5)]">
+                  An invitation to weigh the actions and evidence of Jesus Christ when words alone are hard to accept.
                 </p>
               </div>
               <h1
                 id="landing-hero-heading"
                 className={cn(
                   displayFontClassName,
-                  "text-balance text-2xl font-normal leading-[1.15] tracking-tight text-amber-50 sm:text-3xl md:text-4xl lg:text-[2.75rem]",
+                  "text-balance text-3xl font-normal leading-[1.18] tracking-tight text-amber-50 sm:text-4xl sm:leading-[1.15] md:text-[2.875rem] lg:text-5xl",
                   "[text-shadow:0_2px_14px_rgba(0,0,0,0.55),0_1px_2px_rgba(0,0,0,0.45)]"
                 )}
               >
-                Testify boldly in a space guarded by grace
+                <span className="block">Share your witness.</span>
+                <span className="mt-1 block sm:mt-1.5">Strengthen another.</span>
               </h1>
 
-              <div className="space-y-3 border-l-2 border-amber-300/40 pl-4 sm:pl-5">
-                <p className="text-pretty text-sm italic leading-relaxed text-amber-50/95 sm:text-base [text-shadow:0_1px_6px_rgba(0,0,0,0.55)]">
+              <div className="space-y-3 rounded-r-xl border border-white/10 border-l-[3px] border-l-amber-300/80 bg-black/50 px-4 py-4 shadow-[0_8px_32px_rgba(0,0,0,0.35)] backdrop-blur-sm sm:space-y-3.5 sm:px-5 sm:py-5">
+                <p className="text-pretty text-base italic leading-relaxed text-amber-50 sm:text-lg sm:leading-relaxed [text-shadow:0_1px_2px_rgba(0,0,0,0.85),0_2px_12px_rgba(0,0,0,0.65)]">
                   As it is written, they overcame by the word of their testimony.
                 </p>
-                <p className="text-pretty text-sm leading-relaxed text-amber-100/90 sm:text-base [text-shadow:0_1px_6px_rgba(0,0,0,0.55)]">
+                <p className="text-pretty text-sm leading-relaxed text-stone-100 sm:text-[15px] sm:leading-7 md:text-base [text-shadow:0_1px_2px_rgba(0,0,0,0.85),0_2px_12px_rgba(0,0,0,0.65)]">
                   Sign up, start a channel, and share what God has done—through posts, photos,
                   podcasts, or video. Your witness may strengthen another.
                 </p>
               </div>
             </div>
 
-            <div className="mt-6 flex flex-col gap-2 sm:mt-8 sm:flex-row sm:items-center sm:gap-3">
+            <div className="mt-7 flex max-w-xl flex-col gap-2.5 sm:mt-9 sm:max-w-none sm:flex-row sm:items-center sm:gap-3">
               <Button
                 asChild
                 size="lg"
@@ -135,7 +135,7 @@ export function LandingHome({
                 </Link>
               </Button>
             </div>
-            <p className="mt-6 inline-flex items-center gap-2 text-sm text-amber-100/85 [text-shadow:0_1px_4px_rgba(0,0,0,0.6)]">
+            <p className="mt-7 inline-flex max-w-xl items-center gap-2 text-xs text-amber-100/85 sm:mt-8 sm:text-sm [text-shadow:0_1px_4px_rgba(0,0,0,0.6)]">
               <ShieldCheck className="size-4" aria-hidden />
               All content reviewed by AI — safe for the whole family
             </p>

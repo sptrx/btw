@@ -26,7 +26,7 @@ type ChannelSidebarChannel = {
   id: string;
   title: string;
   description: string | null;
-  profiles: { display_name?: string } | null;
+  profiles: { display_name?: string | null } | null;
 };
 
 type Props = {

@@ -16,7 +16,7 @@ type Channel = {
   follower_count?: number;
   post_count?: number;
   tags?: { id: string; slug: string; label: string }[];
-  profiles: { display_name?: string } | null;
+  profiles: { display_name?: string | null } | null;
 };
 
 type Props = { channels: Channel[] };

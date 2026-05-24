@@ -1,5 +1,8 @@
 /** Shared profile field helpers (client + server safe). */
 
+/** Minimal author shape attached to channels, posts, comments, etc. */
+export type ProfileNameSnippet = { display_name?: string | null } | null;
+
 export type ProfilePublicFields = {
   id: string;
   display_name: string | null;

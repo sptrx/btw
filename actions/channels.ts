@@ -13,6 +13,7 @@ import {
 import { replaceChannelTags, replacePostTags } from "@/actions/tags";
 import { createNotification } from "@/actions/notifications";
 import { contentTypeLabel, type ContentType } from "@/lib/content-types";
+import type { ProfileNameSnippet } from "@/lib/profile-fields";
 
 export type { ContentType };
 
@@ -171,7 +172,7 @@ export type ChannelListItem = {
   follower_count: number;
   post_count: number;
   tags: { id: string; slug: string; label: string }[];
-  profiles: { display_name?: string } | null;
+  profiles: ProfileNameSnippet;
 };
 
 /**

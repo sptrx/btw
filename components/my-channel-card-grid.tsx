@@ -9,7 +9,7 @@ type Channel = {
   title: string;
   slug: string;
   description?: string | null;
-  profiles: { display_name?: string } | null;
+  profiles: { display_name?: string | null } | null;
 };
 
 type Props = { channels: Channel[] };

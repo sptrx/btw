@@ -5,7 +5,7 @@ type Comment = {
   body: string;
   created_at: string;
   scripture_guide_reply?: string | null;
-  profiles: { display_name?: string } | null;
+  profiles: { display_name?: string | null } | null;
 };
 
 type Props = { comments: Comment[] };

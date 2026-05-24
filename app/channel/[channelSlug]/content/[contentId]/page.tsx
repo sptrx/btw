@@ -11,6 +11,7 @@ import {
 } from "@/actions/channels";
 import DeleteContentButton from "./delete-content-button";
 import { getCurrentUser, hasAcceptedContentDisclaimer } from "@/actions";
+import { isContentKept } from "@/actions/library";
 import ContentActions from "./content-actions";
 import { Button } from "@/components/ui/button";
 import CommentForm from "./comment-form";
@@ -33,12 +34,13 @@ export default async function ChannelContentPage({ params }: Props) {
 
   if (!content || !channel) notFound();
 
-  const [comments, feedbackCounts, shareCount, hasLiked, hasHelpful, isAuthor, hasAlreadyAcceptedDisclaimer] = await Promise.all([
+  const [comments, feedbackCounts, shareCount, hasLiked, hasHelpful, hasKept, isAuthor, hasAlreadyAcceptedDisclaimer] = await Promise.all([
     getComments(contentId),
     getFeedbackCounts(contentId),
     getShareCount(contentId),
     user ? getUserHasFeedback(contentId, "like") : false,
     user ? getUserHasFeedback(contentId, "helpful") : false,
+    user ? isContentKept(contentId, user.id) : false,
     user ? isChannelAuthor(content.topic_id) : false,
     user ? hasAcceptedContentDisclaimer(user.id) : false,
   ]);
@@ -104,12 +106,13 @@ export default async function ChannelContentPage({ params }: Props) {
           shareCount={shareCount}
           hasLiked={hasLiked}
           hasHelpful={hasHelpful}
+          hasKept={hasKept}
           isAuthenticated={!!user}
         />
 
         {!user && (
           <p className="mt-4 rounded-lg border border-border bg-muted/50 px-3 py-2 text-sm text-muted-foreground">
-            Sign up to comment, give feedback, or repost to your feed.
+            Sign up to comment, keep posts, give feedback, or repost to your feed.
           </p>
         )}
 

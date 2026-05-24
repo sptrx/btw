@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import AddPageLink from "./add-page-link";
+import { WalkWithChannelButton } from "@/components/walk-with-channel-button";
 
 export type ChannelSidebarPage = {
   id: string;
@@ -35,6 +36,9 @@ type Props = {
   pages: ChannelSidebarPage[];
   isAuthor: boolean;
   homePageId: string | null;
+  showWalkWith?: boolean;
+  walkingWith?: boolean;
+  isAuthenticated?: boolean;
 };
 
 const ROW_BASE =
@@ -65,6 +69,9 @@ export default function ChannelSidebar({
   pages,
   isAuthor,
   homePageId,
+  showWalkWith = false,
+  walkingWith = false,
+  isAuthenticated = false,
 }: Props) {
   const pathname = usePathname();
   const base = `/channel/${channelSlug}`;
@@ -100,6 +107,17 @@ export default function ChannelSidebar({
         {channel.description && (
           <p className="mt-3 text-sm text-muted-foreground line-clamp-6">{channel.description}</p>
         )}
+
+        {showWalkWith ? (
+          <div className="mt-4">
+            <WalkWithChannelButton
+              topicId={channel.id}
+              channelSlug={channelSlug}
+              initialWalkingWith={walkingWith}
+              isAuthenticated={isAuthenticated}
+            />
+          </div>
+        ) : null}
 
         <nav
           className="mt-5 flex flex-col gap-0.5 border-t border-border pt-4"

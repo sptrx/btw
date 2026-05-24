@@ -9,6 +9,7 @@ import {
   getProfile,
   hasAcceptedContentDisclaimer,
   recordContentDisclaimerAcceptance,
+  promoteToChannelAuthor,
 } from "@/actions";
 import { replaceChannelTags, replacePostTags } from "@/actions/tags";
 import { createNotification } from "@/actions/notifications";
@@ -107,7 +108,8 @@ export async function createChannel(formData: FormData) {
 
   const profile = await getProfile(user.id);
   if (profile?.role !== "channel_author") {
-    return { error: "Only channel authors can create channels. Sign up as a channel author." };
+    const promoted = await promoteToChannelAuthor(user.id);
+    if ("error" in promoted) return promoted;
   }
 
   const title = (formData.get("title") as string)?.trim();

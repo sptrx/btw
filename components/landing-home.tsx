@@ -121,18 +121,13 @@ export function LandingHome({ displayFontClassName, feed = [] }: LandingHomeProp
       {/* Public feed — single-column timeline */}
       <FullBleed className="bg-muted/35 dark:bg-muted/15 border-y border-border/60">
         <section className="py-10 sm:py-12 md:py-14" aria-labelledby="landing-feed-heading">
-          <div className="container mx-auto max-w-6xl px-4 sm:px-5 mb-6 md:mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <h2
-                id="landing-feed-heading"
-                className={cn(displayFontClassName, "text-3xl sm:text-4xl font-normal text-foreground")}
-              >
-                Feed
-              </h2>
-              <p className="mt-2 text-sm sm:text-base text-muted-foreground max-w-2xl">
-                Latest posts from channels across the community.
-              </p>
-            </div>
+          <div className="container mx-auto max-w-6xl px-4 sm:px-5 mb-6 md:mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <p
+              id="landing-feed-heading"
+              className="text-sm sm:text-base text-muted-foreground max-w-2xl"
+            >
+              Latest posts from channels across the community.
+            </p>
             <Link
               href="/channel/browse"
               className="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:underline shrink-0"

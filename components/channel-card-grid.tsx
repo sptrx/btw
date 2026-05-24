@@ -5,6 +5,7 @@ import { FileText, Users } from "lucide-react";
 import { InteractiveLinkCard } from "@/components/interactive-link-card";
 import { TopicTagPill } from "@/components/tags/topic-tag-pill";
 import { getChannelGradient } from "@/lib/channel-gradient";
+import { LIBRARY_LABELS } from "@/lib/library-vocabulary";
 import { cn } from "@/lib/utils";
 
 type Channel = {
@@ -74,7 +75,7 @@ export function ChannelCardGrid({ channels }: Props) {
                 {followerCount > 0 && (
                   <span className="inline-flex items-center gap-1">
                     <Users className="h-3.5 w-3.5" aria-hidden="true" />
-                    {followerCount} {followerCount === 1 ? "follower" : "followers"}
+                    {LIBRARY_LABELS.walkWith.count(followerCount)}
                   </span>
                 )}
                 {postCount > 0 && (

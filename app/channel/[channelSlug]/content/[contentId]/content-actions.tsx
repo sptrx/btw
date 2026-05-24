@@ -8,6 +8,7 @@ import {
   shareContent,
 } from "@/actions/channels";
 import { ShareButton } from "@/components/share-button";
+import { KeepContentButton } from "@/components/keep-content-button";
 
 type Props = {
   contentId: string;
@@ -18,6 +19,7 @@ type Props = {
   shareCount: number;
   hasLiked?: boolean;
   hasHelpful?: boolean;
+  hasKept?: boolean;
   /**
    * When false, like/helpful/"share to feed" become sign-in prompts but the
    * primary share button (copy link / native share) still works.
@@ -34,6 +36,7 @@ export default function ContentActions({
   shareCount,
   hasLiked = false,
   hasHelpful = false,
+  hasKept = false,
   isAuthenticated = false,
 }: Props) {
   const router = useRouter();
@@ -147,6 +150,13 @@ export default function ContentActions({
         <span aria-hidden className="inline-block mr-1">✓</span>
         {h} Helpful
       </button>
+
+      <KeepContentButton
+        contentId={contentId}
+        channelSlug={channelSlug}
+        initialKept={hasKept}
+        isAuthenticated={isAuthenticated}
+      />
 
       <ShareButton
         path={sharePath}

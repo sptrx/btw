@@ -66,6 +66,9 @@ export default async function Dashboard() {
       </div>
 
       <div className="space-y-3">
+        <Link href="/dashboard/library" className="btw-app-row font-medium">
+          Your library
+        </Link>
         <Link href="/channel/browse" className="btw-app-row font-medium">
           Browse channels
         </Link>

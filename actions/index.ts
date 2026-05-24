@@ -198,6 +198,35 @@ export async function getProfile(userId: string): Promise<ProfileRow | null> {
   return data as ProfileRow;
 }
 
+/** Upgrade a regular user so they can create and manage channels. */
+export async function promoteToChannelAuthor(
+  userId: string
+): Promise<{ success: true } | { error: string }> {
+  const supabase = await createClient();
+  const { error: profileError } = await supabase
+    .from("profiles")
+    .update({ role: "channel_author", updated_at: new Date().toISOString() })
+    .eq("id", userId);
+
+  if (profileError) {
+    console.error("[promoteToChannelAuthor]", profileError.message);
+    return { error: "Could not enable channel creation. Please try again." };
+  }
+
+  const { error: authError } = await supabase.auth.updateUser({
+    data: { role: "channel_author" },
+  });
+  if (authError) {
+    console.warn("[promoteToChannelAuthor] auth metadata:", authError.message);
+  }
+
+  revalidatePath("/", "layout");
+  revalidatePath("/channel");
+  revalidatePath("/channel/new");
+  revalidatePath("/dashboard");
+  return { success: true };
+}
+
 /**
  * True when the disclaimer-acceptance column is missing entirely. Lets us
  * gracefully fall back to the legacy "ask on every submission" behavior in

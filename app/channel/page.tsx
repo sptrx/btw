@@ -32,14 +32,20 @@ export default async function ChannelsHubPage({ searchParams }: PageProps) {
       <div className="space-y-6">
         <div>
           <p className="btw-section-eyebrow">Channels</p>
-          <h1 className="btw-page-title">Your channels</h1>
+          <h1 className="btw-page-title">Start a channel</h1>
           <p className="mt-2 max-w-xl text-pretty text-sm text-muted-foreground sm:text-base">
-            Channel management is available to channel authors. You can still explore every channel on the site.
+            Share your witness through posts, photos, podcasts, or video. Creating a channel takes
+            just a minute—you can browse and walk with other channels anytime too.
           </p>
         </div>
-        <Button asChild className="min-h-11 touch-manipulation">
-          <Link href="/channel/browse">Browse all channels</Link>
-        </Button>
+        <div className="flex flex-col gap-2 sm:flex-row">
+          <Button asChild className="min-h-11 touch-manipulation">
+            <Link href="/channel/new">Create your channel</Link>
+          </Button>
+          <Button asChild variant="outline" className="min-h-11 touch-manipulation">
+            <Link href="/channel/browse">Browse all channels</Link>
+          </Button>
+        </div>
       </div>
     );
   }

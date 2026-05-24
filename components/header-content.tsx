@@ -9,6 +9,7 @@ import {
   X,
   ChevronDown,
   LayoutDashboard,
+  Bookmark,
   Folder,
   UserRound,
   LogOut,
@@ -194,6 +195,12 @@ export function HeaderContent({ user, isChannelAuthor, avatarUrl, profileDisplay
                           Dashboard
                         </Link>
                       </DropdownMenu.Item>
+                      <DropdownMenu.Item asChild>
+                        <Link href="/dashboard/library" className={dropdownItemClass}>
+                          <Bookmark className="size-4 text-muted-foreground" aria-hidden />
+                          Your library
+                        </Link>
+                      </DropdownMenu.Item>
                       {isChannelAuthor && (
                         <DropdownMenu.Item asChild>
                           <Link href="/channel" className={dropdownItemClass}>
@@ -312,6 +319,14 @@ export function HeaderContent({ user, isChannelAuthor, avatarUrl, profileDisplay
                 onClick={() => setMobileOpen(false)}
               >
                 <Link href="/dashboard">Dashboard</Link>
+              </Button>
+              <Button
+                variant="ghost"
+                className="h-11 justify-start rounded-lg"
+                asChild
+                onClick={() => setMobileOpen(false)}
+              >
+                <Link href="/dashboard/library">Your library</Link>
               </Button>
               {isChannelAuthor && (
                 <Button

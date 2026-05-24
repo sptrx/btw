@@ -24,9 +24,10 @@ type LandingHomeProps = {
   displayFontClassName: string;
   /** Recent posts for the public feed */
   feed?: LandingFeedItem[];
+  isAuthenticated?: boolean;
 };
 
-export function LandingHome({ displayFontClassName, feed = [] }: LandingHomeProps) {
+export function LandingHome({ displayFontClassName, feed = [], isAuthenticated = false }: LandingHomeProps) {
   return (
     <article>
       {/* Hero */}
@@ -88,16 +89,18 @@ export function LandingHome({ displayFontClassName, feed = [] }: LandingHomeProp
             </div>
 
             <div className="mt-7 flex max-w-xl flex-col gap-2.5 sm:mt-9 sm:max-w-none sm:flex-row sm:items-center sm:gap-3">
-              <Button
-                asChild
-                size="lg"
-                className="min-h-10 rounded-full bg-amber-50 px-6 text-sm text-neutral-950 hover:bg-amber-50/90 hover:text-neutral-950 sm:min-h-11 sm:px-8 sm:text-base"
-              >
-                <Link href="/auth/signup">
-                  Get started
-                  <ArrowRight className="ml-2 h-4 w-4" aria-hidden />
-                </Link>
-              </Button>
+              {!isAuthenticated ? (
+                <Button
+                  asChild
+                  size="lg"
+                  className="min-h-10 rounded-full bg-amber-50 px-6 text-sm text-neutral-950 hover:bg-amber-50/90 hover:text-neutral-950 sm:min-h-11 sm:px-8 sm:text-base"
+                >
+                  <Link href="/auth/signup">
+                    Get started
+                    <ArrowRight className="ml-2 h-4 w-4" aria-hidden />
+                  </Link>
+                </Button>
+              ) : null}
               <Button
                 asChild
                 size="lg"

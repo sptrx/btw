@@ -172,6 +172,11 @@ function snippet(body: string | null | undefined, max = 160): string | null {
   return t.length <= max ? t : `${t.slice(0, max).trim()}…`;
 }
 
+function unwrapRelation<T>(value: T | T[] | null | undefined): T | null {
+  if (!value) return null;
+  return Array.isArray(value) ? (value[0] ?? null) : value;
+}
+
 export async function getUserLibrary(userId: string): Promise<UserLibrary> {
   const supabase = await createClient();
 
@@ -186,15 +191,24 @@ export async function getUserLibrary(userId: string): Promise<UserLibrary> {
 
   const walkingWith: WalkingWithChannel[] = [];
   for (const row of memberRows ?? []) {
-    const topic = row.topics as
-      | {
-          id: string;
-          title: string;
-          slug: string;
-          description: string | null;
-          cover_image_url: string | null;
-        }
-      | null;
+    const topic = unwrapRelation(
+      row.topics as unknown as
+        | {
+            id: string;
+            title: string;
+            slug: string;
+            description: string | null;
+            cover_image_url: string | null;
+          }
+        | {
+            id: string;
+            title: string;
+            slug: string;
+            description: string | null;
+            cover_image_url: string | null;
+          }[]
+        | null
+    );
     if (!topic) continue;
     walkingWith.push({
       topicId: topic.id,
@@ -225,16 +239,32 @@ export async function getUserLibrary(userId: string): Promise<UserLibrary> {
 
   const kept: KeptPost[] = [];
   for (const row of savedRows ?? []) {
-    const content = row.topic_content as
-      | {
-          id: string;
-          title: string;
-          type: ContentType;
-          body: string | null;
-          topics: { title: string; slug: string } | null;
-        }
-      | null;
-    if (!content?.topics) continue;
+    const content = unwrapRelation(
+      row.topic_content as unknown as
+        | {
+            id: string;
+            title: string;
+            type: ContentType;
+            body: string | null;
+            topics:
+              | { title: string; slug: string }
+              | { title: string; slug: string }[]
+              | null;
+          }
+        | {
+            id: string;
+            title: string;
+            type: ContentType;
+            body: string | null;
+            topics:
+              | { title: string; slug: string }
+              | { title: string; slug: string }[]
+              | null;
+          }[]
+        | null
+    );
+    const channel = unwrapRelation(content?.topics ?? null);
+    if (!content || !channel) continue;
     const type = content.type ?? "article";
     kept.push({
       savedAt: row.created_at,
@@ -242,9 +272,9 @@ export async function getUserLibrary(userId: string): Promise<UserLibrary> {
       title: content.title,
       type,
       typeLabel: CONTENT_TYPE_LABELS[type] ?? type,
-      channelSlug: content.topics.slug,
-      channelTitle: content.topics.title,
-      href: `/channel/${content.topics.slug}/content/${content.id}`,
+      channelSlug: channel.slug,
+      channelTitle: channel.title,
+      href: `/channel/${channel.slug}/content/${content.id}`,
       bodySnippet: snippet(content.body),
     });
   }

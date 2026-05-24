@@ -99,13 +99,34 @@ If you change `NEXT_PUBLIC_*`, **rebuild** (`cf:build`) and **redeploy**.
 
 ### Variables disappearing after a deploy
 
-**Wrangler’s default behavior** is to **remove** Worker **plain-text variables** that are not defined in `wrangler.jsonc` before applying the new deployment. Dashboard-only variables are therefore wiped unless you use **`--keep-vars`**.
+**Wrangler’s default behavior** is to **remove** Worker **plain-text variables** that are not listed in `wrangler.jsonc` every time a deployment runs. That is why R2 / Supabase vars you typed into the dashboard vanish after a **Workers Builds** push.
 
-- This repo’s **`npm run cf:deploy`** / **`npm run deploy`** already pass **`--keep-vars`** to Wrangler (via `opennextjs-cloudflare deploy -- --keep-vars`), so CLI deploys keep dashboard variables.
-- If you deploy another way (e.g. raw `wrangler deploy` or a custom CI step), add **`--keep-vars`** there too.
-- **Secrets** are not deleted by deploys in the same way; if something still vanishes, confirm you used **Secrets** vs **Variables** and that the right **environment** (production vs preview) is selected in the dashboard.
+**Secrets** (`R2_SECRET_ACCESS_KEY`, etc.) usually survive; **plain-text Variables** do not unless you use **`--keep-vars`**.
 
-To **manage vars in Git** instead, define them under `[vars]` in `wrangler.jsonc` (non-secrets only) or use **`wrangler secret put`** / **`--var`** for scripted deploys—then Wrangler won’t need to “replace” dashboard-only values.
+#### Fix: Cloudflare Workers Builds (Git-connected)
+
+In **Workers & Pages → btw → Settings → Builds**, use **one** of these:
+
+| Approach | Build / deploy command |
+| -------- | ---------------------- |
+| **Recommended (single step)** | `npm ci && npm run cf:deploy` |
+| **Two steps** | Build: `npm ci && npm run cf:build` — then set a custom deploy step or non-interactive deploy: `npm run cf:deploy:upload` |
+
+Do **not** use a deploy step of only `npx wrangler deploy` or `opennextjs-cloudflare deploy` **without** `-- --keep-vars` — that resets dashboard Variables to empty.
+
+If the UI has no separate deploy command and only runs `npm run build`, change the build command to **`npm ci && npm run cf:deploy`** (not plain `npm run build`).
+
+#### Fix: deploy from your machine
+
+```bash
+npm run cf:deploy
+```
+
+That runs `opennextjs-cloudflare deploy -- --keep-vars` and keeps dashboard Variables.
+
+#### Alternative: define non-secret vars in `wrangler.jsonc`
+
+Add a `"vars": { ... }` block in `wrangler.jsonc` for values you are OK storing in git (e.g. `R2_ACCOUNT_ID`, `R2_BUCKET_NAME`, `R2_PUBLIC_URL`). Each deploy then **sets** those from the file. Keep **`R2_SECRET_ACCESS_KEY`** and API keys as **Secrets** (`wrangler secret put` or dashboard Secrets), not in `vars`.
 
 ## 6. Custom domain: believetheworks.org
 
@@ -141,8 +162,8 @@ Cloudflare’s Workers pipeline often runs **`npm run build`** (`next build` onl
 
 **Do not** point the dashboard **Build command** at plain `npm run build` if the next step is `opennextjs-cloudflare deploy`. Use one of these:
 
-1. **Build command:** `npm ci && npm run cf:build` — then let the platform run deploy, **or**
-2. **Single command** for build+deploy: `npm ci && npm run cf:deploy` (set env vars so `NEXT_PUBLIC_*` and secrets are available during `cf:build`).
+1. **Build command:** `npm ci && npm run cf:build` — deploy with **`npm run cf:deploy:upload`** (includes **`--keep-vars`**), **or**
+2. **Single command** for build+deploy: `npm ci && npm run cf:deploy` (includes **`--keep-vars`**; set Build variables so `NEXT_PUBLIC_*` are available during `cf:build`).
 
 `opennextjs-cloudflare build` runs `next build` internally, so you must **not** set `package.json`’s `"build"` script to `opennextjs-cloudflare build` (that would recurse).
 

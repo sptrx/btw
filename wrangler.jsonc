@@ -1,5 +1,8 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
+  // Plain-text Variables you set only in the Cloudflare dashboard are REMOVED on each
+  // `wrangler deploy` unless you pass --keep-vars. Use `npm run cf:deploy` (Git/CLI) or
+  // see docs/cloudflare-deploy.md → "Variables disappearing after a deploy".
   "name": "btw",
   "main": ".open-next/worker.js",
   "compatibility_date": "2025-03-25",

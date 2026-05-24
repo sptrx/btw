@@ -336,6 +336,22 @@ export async function fetchChannels(options?: FetchChannelsOptions): Promise<Cha
 }
 
 /** Channels owned by the signed-in user (for /channel hub) */
+export async function userOwnsAnyChannel(userId: string): Promise<boolean> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("topics")
+    .select("id")
+    .eq("author_id", userId)
+    .limit(1)
+    .maybeSingle();
+  if (error) {
+    console.warn("[userOwnsAnyChannel]", error.message);
+    return false;
+  }
+  return Boolean(data);
+}
+
+/** Channels owned by the signed-in user (for /channel hub) */
 export async function fetchMyChannels() {
   const supabase = await createClient();
   const {

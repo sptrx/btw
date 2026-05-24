@@ -26,8 +26,10 @@ export default async function ChannelsHubPage({ searchParams }: PageProps) {
   }
 
   const profile = await getProfile(user.id);
+  const channels = await fetchMyChannels();
+  const managesChannels = profile?.role === "channel_author" || channels.length > 0;
 
-  if (profile?.role !== "channel_author") {
+  if (!managesChannels) {
     return (
       <div className="space-y-6">
         <div>
@@ -49,8 +51,6 @@ export default async function ChannelsHubPage({ searchParams }: PageProps) {
       </div>
     );
   }
-
-  const channels = await fetchMyChannels();
 
   return (
     <div>

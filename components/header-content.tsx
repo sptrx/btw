@@ -28,7 +28,7 @@ import { UserAvatar } from "@/components/user-avatar";
 
 type Props = {
   user: User | null;
-  isChannelAuthor?: boolean;
+  showMyChannels?: boolean;
   avatarUrl?: string | null;
   profileDisplayName?: string | null;
 };
@@ -70,7 +70,7 @@ const displayFont = "font-[family-name:var(--font-landing-display)]";
 const dropdownItemClass =
   "flex w-full cursor-pointer items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm text-foreground no-underline outline-none transition-colors focus:bg-accent focus:text-accent-foreground data-[highlighted]:bg-accent data-[highlighted]:text-accent-foreground";
 
-export function HeaderContent({ user, isChannelAuthor, avatarUrl, profileDisplayName }: Props) {
+export function HeaderContent({ user, showMyChannels, avatarUrl, profileDisplayName }: Props) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
   const userLabel = user
@@ -155,7 +155,7 @@ export function HeaderContent({ user, isChannelAuthor, avatarUrl, profileDisplay
           <div className="hidden min-w-0 md:flex md:items-center md:gap-2">
             {user ? (
               <>
-                {isChannelAuthor && (
+                {user && (
                   <Button size="sm" asChild>
                     <Link href="/channel/new">Create Channel</Link>
                   </Button>
@@ -201,7 +201,7 @@ export function HeaderContent({ user, isChannelAuthor, avatarUrl, profileDisplay
                           Your library
                         </Link>
                       </DropdownMenu.Item>
-                      {isChannelAuthor && (
+                      {showMyChannels && (
                         <DropdownMenu.Item asChild>
                           <Link href="/channel" className={dropdownItemClass}>
                             <Folder className="size-4 text-muted-foreground" aria-hidden />
@@ -328,7 +328,7 @@ export function HeaderContent({ user, isChannelAuthor, avatarUrl, profileDisplay
               >
                 <Link href="/dashboard/library">Your library</Link>
               </Button>
-              {isChannelAuthor && (
+              {showMyChannels && (
                 <Button
                   variant="ghost"
                   className="h-11 justify-start rounded-lg"
@@ -346,15 +346,13 @@ export function HeaderContent({ user, isChannelAuthor, avatarUrl, profileDisplay
               >
                 <Link href="/profile">Profile</Link>
               </Button>
-              {isChannelAuthor && (
-                <Button
-                  className="mt-1 h-11 justify-start rounded-lg"
-                  asChild
-                  onClick={() => setMobileOpen(false)}
-                >
-                  <Link href="/channel/new">Create Channel</Link>
-                </Button>
-              )}
+              <Button
+                className="mt-1 h-11 justify-start rounded-lg"
+                asChild
+                onClick={() => setMobileOpen(false)}
+              >
+                <Link href="/channel/new">Create Channel</Link>
+              </Button>
               <form
                 action={signOut}
                 onSubmit={() => setMobileOpen(false)}

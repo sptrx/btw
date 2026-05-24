@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Info, Mic, User } from "lucide-react";
-import { createClient } from "@/utils/supabase/client";
+import { setAccountRole } from "@/actions";
 import { authPrimaryButtonClass } from "@/lib/auth-form-styles";
 
 type Role = "user" | "channel_author";
@@ -34,11 +34,8 @@ export function OnboardingRoleForm() {
     setError(null);
     setLoading(true);
     try {
-      const supabase = createClient();
-      const { error: updateError } = await supabase.auth.updateUser({
-        data: { role },
-      });
-      if (updateError) throw updateError;
+      const result = await setAccountRole(role);
+      if ("error" in result) throw new Error(result.error);
       router.push("/");
       router.refresh();
     } catch (err: unknown) {

@@ -1,10 +1,9 @@
-import { Suspense } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, Play, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import type { LandingChannelPill, LandingFeedItem, LandingIntroCopy } from "@/actions/landing";
+import type { LandingFeedItem } from "@/actions/landing";
 import { LandingPublicFeed } from "@/components/landing-public-feed";
 
 /** Break out of layout `main` container to full viewport width */
@@ -21,37 +20,13 @@ function FullBleed({ className, children }: { className?: string; children: Reac
   );
 }
 
-const DEFAULT_INTRO: LandingIntroCopy = {
-  headline: "A calm place to discover, share, and grow—moderated for safety, designed for depth.",
-  body: "You can edit this intro in Supabase (`site_home_copy`) or sync it from your CMS.",
-};
-
 type LandingHomeProps = {
   displayFontClassName: string;
-  /** From site_home_copy; if null, DEFAULT_INTRO is used */
-  intro?: LandingIntroCopy | null;
   /** Recent posts for the public feed */
   feed?: LandingFeedItem[];
-  /** Author-flagged posts surfaced above the main feed */
-  featured?: LandingFeedItem[];
-  /** Recent channels for the horizontal strip above the feed */
-  recentChannels?: LandingChannelPill[];
 };
 
-export function LandingHome({
-  displayFontClassName,
-  intro,
-  feed = [],
-  featured = [],
-  recentChannels = [],
-}: LandingHomeProps) {
-  const introCopy =
-    intro && (intro.headline || intro.body)
-      ? {
-          headline: intro.headline || DEFAULT_INTRO.headline,
-          body: intro.body || "",
-        }
-      : DEFAULT_INTRO;
+export function LandingHome({ displayFontClassName, feed = [] }: LandingHomeProps) {
   return (
     <article>
       {/* Hero */}
@@ -143,45 +118,31 @@ export function LandingHome({
         </section>
       </FullBleed>
 
-      {/* Intro strip */}
-      <section className="py-10 sm:py-12 md:py-14 border-b border-border/60">
-        <div className="max-w-3xl">
-          <p className="btw-section-eyebrow">Welcome</p>
-          <p className={cn(displayFontClassName, "text-xl sm:text-2xl md:text-3xl text-foreground leading-snug text-pretty")}>
-            {introCopy.headline}
-          </p>
-          {introCopy.body ? (
-            <p className="mt-4 sm:mt-5 text-muted-foreground text-sm sm:text-base leading-relaxed">{introCopy.body}</p>
-          ) : null}
-        </div>
-      </section>
-
-      {/* Public feed — narrow column like a social timeline */}
+      {/* Public feed — single-column timeline */}
       <FullBleed className="bg-muted/35 dark:bg-muted/15 border-y border-border/60">
-        <section
-          className="py-10 sm:py-12 md:py-14"
-          aria-labelledby="landing-feed-heading"
-        >
-          <div className="container mx-auto max-w-6xl px-4 sm:px-5 mb-6 md:mb-8">
-            <h2
-              id="landing-feed-heading"
-              className={cn(displayFontClassName, "text-3xl sm:text-4xl font-normal text-foreground")}
+        <section className="py-10 sm:py-12 md:py-14" aria-labelledby="landing-feed-heading">
+          <div className="container mx-auto max-w-6xl px-4 sm:px-5 mb-6 md:mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <h2
+                id="landing-feed-heading"
+                className={cn(displayFontClassName, "text-3xl sm:text-4xl font-normal text-foreground")}
+              >
+                Feed
+              </h2>
+              <p className="mt-2 text-sm sm:text-base text-muted-foreground max-w-2xl">
+                Latest posts from channels across the community.
+              </p>
+            </div>
+            <Link
+              href="/channel/browse"
+              className="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:underline shrink-0"
             >
-              Discover
-            </h2>
-            <p className="mt-2 text-sm sm:text-base text-muted-foreground max-w-2xl">
-              Embedded and direct video, podcast links, articles, and threads—organized by channel and page.
-            </p>
+              Browse channels
+              <ArrowRight className="h-4 w-4" aria-hidden />
+            </Link>
           </div>
-          <div className="mx-auto w-full max-w-4xl border-x border-border/50 bg-background shadow-[0_0_0_1px_rgba(0,0,0,0.03)] dark:shadow-[0_0_0_1px_rgba(255,255,255,0.06)]">
-            <Suspense fallback={null}>
-              <LandingPublicFeed
-                displayFontClassName={displayFontClassName}
-                feed={feed}
-                featured={featured}
-                recentChannels={recentChannels}
-              />
-            </Suspense>
+          <div className="mx-auto w-full max-w-5xl border-x border-border/50 bg-background shadow-[0_0_0_1px_rgba(0,0,0,0.03)] dark:shadow-[0_0_0_1px_rgba(255,255,255,0.06)]">
+            <LandingPublicFeed displayFontClassName={displayFontClassName} feed={feed} />
           </div>
         </section>
       </FullBleed>

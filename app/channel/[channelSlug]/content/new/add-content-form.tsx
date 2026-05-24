@@ -199,7 +199,7 @@ export default function AddContentForm({
           </span>
         </label>
         <p className="mt-1.5 pl-7 text-xs text-muted-foreground">
-          Featured posts appear in the highlighted strip on the homepage.
+          Optional editorial flag for this post.
         </p>
       </div>
 

@@ -11,39 +11,6 @@ export type LandingFeaturedCard = {
   accent: string;
 };
 
-export type LandingIntroCopy = {
-  headline: string;
-  body: string;
-};
-
-/**
- * Intro copy for the public home from Supabase (`site_home_copy`).
- * Manage rows in the Dashboard (SQL editor / Table editor) or sync from a headless CMS.
- */
-export async function getLandingHomeData(): Promise<{
-  intro: LandingIntroCopy | null;
-}> {
-  const supabase = await createClient();
-
-  let intro: LandingIntroCopy | null = null;
-  const { data: copyRow, error: copyErr } = await supabase
-    .from("site_home_copy")
-    .select("intro_headline, intro_body")
-    .eq("id", 1)
-    .maybeSingle();
-
-  if (copyErr) {
-    console.warn("[landing] site_home_copy:", copyErr.message);
-  } else if (copyRow?.intro_headline || copyRow?.intro_body) {
-    intro = {
-      headline: copyRow.intro_headline?.trim() || "",
-      body: copyRow.intro_body?.trim() || "",
-    };
-  }
-
-  return { intro };
-}
-
 /** Public home feed — mirrors `topic_content` + channel + optional page */
 export type LandingFeedItem = {
   id: string;

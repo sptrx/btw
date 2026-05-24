@@ -9,13 +9,14 @@ import {
   isR2Configured,
   sanitizeFileName,
 } from "@/lib/cloudflare-r2";
+import { getR2UploadStatus, isR2UploadAvailable } from "@/lib/r2-upload";
 
-/** GET — upload config for the browser (R2 env + proxy size limit for server-side uploads). */
+/** GET — upload config for the browser (R2 binding and/or S3 API + proxy size limit). */
 export async function GET() {
-  const enabled = isR2Configured();
+  const status = await getR2UploadStatus();
   return NextResponse.json({
-    uploadEnabled: enabled,
-    proxyMaxBytes: enabled ? getProxyMaxBytes() : 0,
+    ...status,
+    proxyMaxBytes: status.uploadEnabled ? getProxyMaxBytes() : 0,
   });
 }
 
@@ -27,7 +28,7 @@ type PresignBody = {
 };
 
 export async function POST(req: NextRequest) {
-  if (!isR2Configured()) {
+  if (!(await isR2UploadAvailable()) || !isR2Configured()) {
     return NextResponse.json(
       {
         error:

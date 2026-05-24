@@ -20,5 +20,13 @@
       "binding": "WORKER_SELF_REFERENCE",
       "service": "btw"
     }
+  ],
+  // binding = code name (env.R2_MEDIA_BUCKET) — NOT a dashboard variable; do not create R2_MEDIA_BUCKET in Settings.
+  // bucket_name = actual R2 bucket in Cloudflare — must equal the VALUE of your R2_BUCKET_NAME Worker variable.
+  "r2_buckets": [
+    {
+      "binding": "R2_MEDIA_BUCKET",
+      "bucket_name": "btw-bucket"
+    }
   ]
 }

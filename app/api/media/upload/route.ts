@@ -2,21 +2,24 @@ import { randomBytes } from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
 import {
-  buildPublicUrl,
   getMaxBytesForMime,
   getProxyMaxBytes,
-  isR2Configured,
   sanitizeFileName,
-  uploadBufferToR2,
 } from "@/lib/cloudflare-r2";
+import {
+  buildPublicUrl,
+  isR2UploadAvailable,
+  safeUploadErrorMessage,
+  uploadBytesToR2,
+} from "@/lib/r2-upload";
 
 export const runtime = "nodejs";
 export const maxDuration = 120;
 
 export async function POST(req: NextRequest) {
-  if (!isR2Configured()) {
+  if (!(await isR2UploadAvailable())) {
     return NextResponse.json(
-      { error: "R2 is not configured. Set R2_* environment variables." },
+      { error: "R2 is not configured. Set R2_* environment variables and/or the R2 bucket binding." },
       { status: 503 }
     );
   }
@@ -76,13 +79,16 @@ export async function POST(req: NextRequest) {
   const key = `channels/${channelId}/${Date.now()}-${randomBytes(8).toString("hex")}-${safeName}`;
 
   try {
-    const buf = Buffer.from(await file.arrayBuffer());
-    await uploadBufferToR2(key, buf, contentType);
+    const bytes = new Uint8Array(await file.arrayBuffer());
+    await uploadBytesToR2(key, bytes, contentType);
     const publicUrl = buildPublicUrl(key);
     const mediaType = contentType.startsWith("video/") ? "video" : "image";
     return NextResponse.json({ publicUrl, key, mediaType });
   } catch (e) {
     console.error("[media/upload]", e);
-    return NextResponse.json({ error: "Upload to R2 failed. Check credentials and bucket." }, { status: 500 });
+    return NextResponse.json(
+      { error: safeUploadErrorMessage(e) },
+      { status: 500 }
+    );
   }
 }

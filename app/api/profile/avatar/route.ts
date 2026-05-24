@@ -1,31 +1,42 @@
 import { randomBytes } from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
+import { getProxyMaxBytes, sanitizeFileName } from "@/lib/cloudflare-r2";
 import {
   buildPublicUrl,
-  getProxyMaxBytes,
-  isR2Configured,
-  sanitizeFileName,
-  uploadBufferToR2,
-} from "@/lib/cloudflare-r2";
+  getR2UploadStatus,
+  isR2UploadAvailable,
+  safeUploadErrorMessage,
+  uploadBytesToR2,
+} from "@/lib/r2-upload";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
 
 const AVATAR_MAX_BYTES = 5 * 1024 * 1024;
 
-const R2_SETUP_HINT =
-  "Set R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY (secret), R2_BUCKET_NAME, and R2_PUBLIC_URL on the Cloudflare Worker.";
-
-/** GET — whether avatar upload is available (same R2 config as channel media). */
+/** GET — upload diagnostics (no secrets). */
 export async function GET() {
-  return NextResponse.json({ uploadEnabled: isR2Configured() });
+  const status = await getR2UploadStatus();
+  return NextResponse.json(status);
 }
 
 export async function POST(req: NextRequest) {
-  if (!isR2Configured()) {
+  if (!(await isR2UploadAvailable())) {
+    const status = await getR2UploadStatus();
     return NextResponse.json(
-      { error: `Avatar upload is not configured. Paste an image URL instead. ${R2_SETUP_HINT}` },
+      {
+        error:
+          "Avatar upload is not configured. Paste an image URL instead, or set R2_* Worker variables and/or the R2 bucket binding in wrangler.jsonc.",
+        ...status,
+      },
+      { status: 503 }
+    );
+  }
+
+  if (!process.env.R2_PUBLIC_URL?.trim()) {
+    return NextResponse.json(
+      { error: "R2_PUBLIC_URL is missing on the Worker. Add it as a plain-text variable." },
       { status: 503 }
     );
   }
@@ -65,12 +76,15 @@ export async function POST(req: NextRequest) {
   const key = `profiles/${user.id}/avatar-${Date.now()}-${randomBytes(8).toString("hex")}-${safeName}`;
 
   try {
-    const buf = Buffer.from(await file.arrayBuffer());
-    await uploadBufferToR2(key, buf, contentType);
+    const bytes = new Uint8Array(await file.arrayBuffer());
+    await uploadBytesToR2(key, bytes, contentType);
     const publicUrl = buildPublicUrl(key);
     return NextResponse.json({ publicUrl, key });
   } catch (e) {
     console.error("[profile/avatar]", e);
-    return NextResponse.json({ error: "Upload failed. Try again or use an image URL." }, { status: 500 });
+    return NextResponse.json(
+      { error: `${safeUploadErrorMessage(e)} Or paste an image URL instead.` },
+      { status: 500 }
+    );
   }
 }

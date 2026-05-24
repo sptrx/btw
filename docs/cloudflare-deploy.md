@@ -93,6 +93,20 @@ After adding variables, **redeploy is not required** for plain Worker variables/
 
 Copy the same values from your working `.env.local` into **Workers & Pages → btw → Settings → Variables and Secrets** (production environment).
 
+#### R2 bucket binding (required for uploads on Workers)
+
+Server-side uploads on Cloudflare Workers use the **R2 bucket binding** in `wrangler.jsonc` (not only the S3 API keys). Ensure:
+
+```jsonc
+"r2_buckets": [
+  { "binding": "R2_MEDIA_BUCKET", "bucket_name": "<same as R2_BUCKET_NAME>" }
+]
+```
+
+This repo sets `bucket_name` to `btw-bucket` — change it if your bucket name differs, then **`npm run cf:deploy`** with **`--keep-vars`**.
+
+You still need **`R2_PUBLIC_URL`** as a Worker variable so the app can build public image URLs after upload.
+
 **Workers Builds → Build variables:** still set **`NEXT_PUBLIC_*`** if you want the client bundle to embed Supabase without relying on injection; otherwise **`SUPABASE_*` on the Worker** alone is sufficient after this app’s layout injection.
 
 If you change `NEXT_PUBLIC_*`, **rebuild** (`cf:build`) and **redeploy**.

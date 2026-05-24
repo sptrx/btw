@@ -19,7 +19,7 @@ export function ProfileAvatarField({ displayName, initialAvatarUrl }: Props) {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch("/api/media/presign", { credentials: "include" })
+    fetch("/api/profile/avatar", { credentials: "include" })
       .then((res) => (res.ok ? res.json() : null))
       .then((data: { uploadEnabled?: boolean } | null) => {
         setUploadEnabled(Boolean(data?.uploadEnabled));

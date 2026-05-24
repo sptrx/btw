@@ -6,6 +6,10 @@ R2 serves files over **HTTPS** using a **public bucket URL**: either an **[R2 cu
 
 ## Environment variables
 
+Add to `.env.local` (and to your **Cloudflare Worker** variables for production — see `docs/cloudflare-deploy.md` §5):
+
+**Profile avatars** use `POST /api/profile/avatar` and store objects under `profiles/{userId}/…` in the same bucket.
+
 Add to `.env.local`:
 
 | Variable | Description |

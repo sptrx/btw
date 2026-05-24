@@ -72,8 +72,26 @@ In the [Cloudflare dashboard](https://dash.cloudflare.com) → **Workers & Pages
 - **Supabase (pick one style or use both):**
   - **`SUPABASE_URL`** + **`SUPABASE_ANON_KEY`** — same values as Supabase **Project Settings → API** (Project URL and `anon` `public` key). Enough for server + middleware; the app injects them for the browser so the client works even if `NEXT_PUBLIC_*` was missing at build.
   - **`NEXT_PUBLIC_SUPABASE_URL`** + **`NEXT_PUBLIC_SUPABASE_ANON_KEY`** — duplicate the same strings if you also want them inlined at **build** time (recommended together with Workers Builds → Build variables).
-- Add other **plain-text** vars needed at **runtime** (e.g. `OPENROUTER_API_KEY`, R2 credentials for server routes).
-- Use **Secrets** for sensitive values.
+- Add other **plain-text** vars needed at **runtime** (e.g. `OPENROUTER_API_KEY`).
+- Use **Secrets** for sensitive values (e.g. `R2_SECRET_ACCESS_KEY`, `OPENROUTER_API_KEY`).
+
+### R2 media + profile avatars (required for uploads on production)
+
+Avatar upload and channel media use the same R2 config as local `.env.local`. If any of these are missing on the Worker, uploads return *“not configured”* and users can only paste an image URL.
+
+| Variable | Dashboard type | Notes |
+| -------- | -------------- | ----- |
+| `R2_ACCOUNT_ID` | Variable (plain) | Cloudflare account ID |
+| `R2_ACCESS_KEY_ID` | Variable (plain) | R2 API token access key |
+| `R2_SECRET_ACCESS_KEY` | **Secret** | R2 API token secret — do not use plain text |
+| `R2_BUCKET_NAME` | Variable (plain) | Your bucket name |
+| `R2_PUBLIC_URL` | Variable (plain) | Public base URL, no trailing slash (e.g. `https://pub-xxxxx.r2.dev` or custom domain) |
+
+Optional: `R2_PROXY_MAX_MB`, `R2_MAX_IMAGE_MB`, `R2_MAX_VIDEO_MB` (see `docs/cloudflare-r2.md`).
+
+After adding variables, **redeploy is not required** for plain Worker variables/secrets — they apply on the next request. Hard-refresh the site and try upload again.
+
+Copy the same values from your working `.env.local` into **Workers & Pages → btw → Settings → Variables and Secrets** (production environment).
 
 **Workers Builds → Build variables:** still set **`NEXT_PUBLIC_*`** if you want the client bundle to embed Supabase without relying on injection; otherwise **`SUPABASE_*` on the Worker** alone is sufficient after this app’s layout injection.
 

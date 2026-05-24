@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Loader2, Upload, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { UserAvatar } from "@/components/user-avatar";
@@ -15,7 +15,17 @@ export function ProfileAvatarField({ displayName, initialAvatarUrl }: Props) {
   const [avatarUrl, setAvatarUrl] = useState(initialAvatarUrl);
   const [urlInput, setUrlInput] = useState(initialAvatarUrl);
   const [uploading, setUploading] = useState(false);
+  const [uploadEnabled, setUploadEnabled] = useState<boolean | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetch("/api/media/presign", { credentials: "include" })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data: { uploadEnabled?: boolean } | null) => {
+        setUploadEnabled(Boolean(data?.uploadEnabled));
+      })
+      .catch(() => setUploadEnabled(false));
+  }, []);
 
   const syncUrl = (next: string) => {
     setAvatarUrl(next);
@@ -51,21 +61,23 @@ export function ProfileAvatarField({ displayName, initialAvatarUrl }: Props) {
       <div className="flex flex-wrap items-center gap-4">
         <UserAvatar name={displayName || "Member"} avatarUrl={avatarUrl || null} size="xl" />
         <div className="flex flex-wrap gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            disabled={uploading}
-            className="touch-manipulation"
-            onClick={() => inputRef.current?.click()}
-          >
-            {uploading ? (
-              <Loader2 className="mr-2 size-4 animate-spin" aria-hidden />
-            ) : (
-              <Upload className="mr-2 size-4" aria-hidden />
-            )}
-            {uploading ? "Uploading…" : "Upload photo"}
-          </Button>
+          {uploadEnabled !== false ? (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={uploading || uploadEnabled === null}
+              className="touch-manipulation"
+              onClick={() => inputRef.current?.click()}
+            >
+              {uploading ? (
+                <Loader2 className="mr-2 size-4 animate-spin" aria-hidden />
+              ) : (
+                <Upload className="mr-2 size-4" aria-hidden />
+              )}
+              {uploading ? "Uploading…" : uploadEnabled === null ? "Checking…" : "Upload photo"}
+            </Button>
+          ) : null}
           {avatarUrl ? (
             <Button
               type="button"
@@ -106,7 +118,9 @@ export function ProfileAvatarField({ displayName, initialAvatarUrl }: Props) {
           className="w-full min-h-11 rounded-xl border border-input bg-background px-4 py-3 text-base text-foreground placeholder:text-muted-foreground/60 transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background sm:text-sm"
         />
         <p className="mt-1.5 text-xs text-muted-foreground">
-          Upload a photo or paste a link to an image. Leave empty for initials.
+          {uploadEnabled === false
+            ? "File upload is not enabled on this server — paste an image URL below, or add R2_* variables to your Cloudflare Worker (see docs/cloudflare-deploy.md)."
+            : "Upload a photo or paste a link to an image. Leave empty for initials."}
         </p>
       </div>
 

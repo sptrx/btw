@@ -14,10 +14,18 @@ export const maxDuration = 60;
 
 const AVATAR_MAX_BYTES = 5 * 1024 * 1024;
 
+const R2_SETUP_HINT =
+  "Set R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY (secret), R2_BUCKET_NAME, and R2_PUBLIC_URL on the Cloudflare Worker.";
+
+/** GET — whether avatar upload is available (same R2 config as channel media). */
+export async function GET() {
+  return NextResponse.json({ uploadEnabled: isR2Configured() });
+}
+
 export async function POST(req: NextRequest) {
   if (!isR2Configured()) {
     return NextResponse.json(
-      { error: "Avatar upload is not configured. Paste an image URL instead." },
+      { error: `Avatar upload is not configured. Paste an image URL instead. ${R2_SETUP_HINT}` },
       { status: 503 }
     );
   }

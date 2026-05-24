@@ -9,3 +9,10 @@ NEXTJS_ENV=development
 # BIBLE_AI_API_KEY=your_shared_secret
 # Optional: header "Bible Q&A" link (defaults to localhost in dev; production defaults to Pages URL)
 # NEXT_PUBLIC_BIBLE_AI_URL=http://localhost:3040/ask
+
+# Cloudflare R2 — channel media + profile avatars (copy to Worker Variables/Secrets in production)
+# R2_ACCOUNT_ID=
+# R2_ACCESS_KEY_ID=
+# R2_SECRET_ACCESS_KEY=
+# R2_BUCKET_NAME=
+# R2_PUBLIC_URL=https://pub-xxxxx.r2.dev

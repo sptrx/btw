@@ -196,9 +196,27 @@ function hitDomId(h: Hit, idx: number): string {
   return `gs-opt-${h.kind}-${idx}-${h.id}`;
 }
 
-export function GlobalSearch({ className }: { className?: string }) {
+export function GlobalSearch({
+  className,
+  showTrigger = true,
+  open: openProp,
+  onOpenChange,
+}: {
+  className?: string;
+  showTrigger?: boolean;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+}) {
   const router = useRouter();
-  const [open, setOpen] = React.useState(false);
+  const [internalOpen, setInternalOpen] = React.useState(false);
+  const open = openProp ?? internalOpen;
+  const setOpen = React.useCallback(
+    (next: boolean) => {
+      onOpenChange?.(next);
+      if (openProp === undefined) setInternalOpen(next);
+    },
+    [onOpenChange, openProp]
+  );
   const [query, setQuery] = React.useState("");
   const [grouped, setGrouped] = React.useState<Grouped>({
     channels: [],
@@ -287,7 +305,7 @@ export function GlobalSearch({ className }: { className?: string }) {
     setQuery("");
     setGrouped({ channels: [], posts: [], authors: [] });
     setActiveIdx(0);
-  }, []);
+  }, [setOpen]);
 
   const navigateTo = React.useCallback(
     (h: Hit) => {
@@ -348,17 +366,19 @@ export function GlobalSearch({ className }: { className?: string }) {
 
   return (
     <>
-      <Button
-        ref={triggerRef}
-        type="button"
-        variant="ghost"
-        size="icon"
-        className={cn("size-11 touch-manipulation", className)}
-        aria-label="Search"
-        onClick={() => setOpen(true)}
-      >
-        <Search className="h-4 w-4" aria-hidden />
-      </Button>
+      {showTrigger ? (
+        <Button
+          ref={triggerRef}
+          type="button"
+          variant="ghost"
+          size="icon"
+          className={cn("size-11 touch-manipulation", className)}
+          aria-label="Search"
+          onClick={() => setOpen(true)}
+        >
+          <Search className="h-4 w-4" aria-hidden />
+        </Button>
+      ) : null}
 
       {open && (
         <SearchOverlay

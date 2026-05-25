@@ -14,8 +14,14 @@ import {
   Folder,
   UserRound,
   LogOut,
+  Search,
+  Home,
+  Hash,
+  BookOpen,
+  Sun,
+  Moon,
 } from "lucide-react";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, type ReactNode } from "react";
 import { DropdownMenu } from "radix-ui";
 import { useTheme } from "next-themes";
 import { signOut } from "@/actions";
@@ -73,16 +79,42 @@ const displayFont = "font-[family-name:var(--font-landing-display)]";
 const dropdownItemClass =
   "flex w-full cursor-pointer items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm text-foreground no-underline outline-none transition-colors focus:bg-accent focus:text-accent-foreground data-[highlighted]:bg-accent data-[highlighted]:text-accent-foreground";
 
+const mobileMenuItemClass =
+  "h-11 w-full justify-start gap-3 rounded-lg px-3 font-medium";
+
+function MobileMenuSection({
+  title,
+  children,
+}: {
+  title: string;
+  children: ReactNode;
+}) {
+  return (
+    <section className="space-y-1">
+      <p className="px-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+        {title}
+      </p>
+      <div className="space-y-0.5">{children}</div>
+    </section>
+  );
+}
+
 export function HeaderContent({ user, showMyChannels, showModeration, avatarUrl, profileDisplayName }: Props) {
   const pathname = usePathname();
   const { setTheme, resolvedTheme } = useTheme();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
   const [themeMounted, setThemeMounted] = useState(false);
   const userLabel = user
     ? profileDisplayName?.trim() || headerDisplayName(user)
     : null;
 
   const closeMobile = useCallback(() => setMobileOpen(false), []);
+
+  const openMobileSearch = useCallback(() => {
+    closeMobile();
+    setSearchOpen(true);
+  }, [closeMobile]);
 
   useEffect(() => {
     setThemeMounted(true);
@@ -102,28 +134,28 @@ export function HeaderContent({ user, showMyChannels, showModeration, avatarUrl,
       className="sticky top-0 z-50 w-full overflow-x-clip border-b border-header bg-[oklch(0.72_0.04_108)]/95 pt-[env(safe-area-inset-top)] shadow-[0_1px_0_0_var(--header-border)] backdrop-blur-sm transition-[background,box-shadow,border-color] duration-300 dark:border-border/50 dark:bg-neutral-900/90 dark:shadow-none dark:backdrop-blur-md"
       role="banner"
     >
-      <div className="container mx-auto grid max-w-6xl grid-cols-[minmax(0,1fr)_auto] items-center gap-2 px-3 py-2 sm:px-5 sm:py-3">
-        {/* Logo — wide wordmark; width-capped on small screens so actions stay visible */}
+      <div className="container mx-auto flex max-w-6xl items-center gap-3 px-3 py-2.5 sm:px-5 sm:py-3">
+        {/* Logo — full width on mobile minus menu; no grid wrap */}
         <Link
           href="/"
           className={cn(
-            "flex min-h-10 min-w-0 items-center rounded-lg px-1 -ml-1 text-foreground transition-colors hover:bg-accent/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+            "flex min-w-0 flex-1 items-center rounded-lg px-1 -ml-1 text-foreground transition-colors hover:bg-accent/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background md:flex-none",
             displayFont
           )}
         >
           <Image
             src="/assets/btw-logo-v6-deploy.svg"
             alt="Believe The Works"
-            width={551}
-            height={72}
+            width={700}
+            height={200}
             priority
-            className="h-auto max-h-8 w-[min(42vw,9.75rem)] object-contain object-left sm:max-h-9 sm:w-[min(36vw,12rem)] md:max-h-10 md:w-auto md:max-w-[14rem] lg:max-w-[17rem]"
+            className="h-auto max-h-9 w-full max-w-[min(100%,13.5rem)] object-contain object-left sm:max-h-10 md:max-w-[14rem] lg:max-w-[17rem]"
           />
         </Link>
 
-        {/* Desktop nav — segmented pill group with active-section indicator */}
+        {/* Desktop nav — centered between logo and actions */}
         <nav
-          className="hidden md:flex md:items-center md:gap-0.5 md:rounded-full md:border md:border-border/60 md:bg-muted/50 md:p-1 dark:md:border-transparent dark:md:bg-transparent"
+          className="hidden flex-1 justify-center md:flex md:items-center md:gap-0.5 md:rounded-full md:border md:border-border/60 md:bg-muted/50 md:p-1 dark:md:border-transparent dark:md:bg-transparent"
           aria-label="Primary"
         >
           {navLinks.map((link) => {
@@ -155,11 +187,13 @@ export function HeaderContent({ user, showMyChannels, showModeration, avatarUrl,
           })}
         </nav>
 
-        {/* Right: search, theme, account */}
-        <div className="flex shrink-0 items-center gap-0.5 sm:gap-1.5 md:gap-2">
-          <GlobalSearch className="size-10 sm:size-11" />
-          {user && <NotificationBell className="size-10 sm:size-11" />}
-          <ThemeToggle className="hidden sm:inline-flex size-10 sm:size-11" />
+        {/* Right: desktop tools + compact mobile menu trigger */}
+        <div className="ml-auto flex shrink-0 items-center gap-1 sm:gap-1.5 md:gap-2">
+          <div className="hidden md:block">
+            <GlobalSearch />
+          </div>
+          {user ? <NotificationBell className="shrink-0" /> : null}
+          <ThemeToggle className="hidden md:inline-flex" />
           <div className="hidden min-w-0 md:flex md:items-center md:gap-2">
             {user ? (
               <>
@@ -261,7 +295,7 @@ export function HeaderContent({ user, showMyChannels, showModeration, avatarUrl,
           <Button
             variant="ghost"
             size="icon"
-            className="size-10 shrink-0 touch-manipulation sm:size-11 md:hidden"
+            className="size-11 shrink-0 touch-manipulation md:hidden"
             onClick={() => setMobileOpen((o) => !o)}
             aria-expanded={mobileOpen}
             aria-controls={MOBILE_NAV_ID}
@@ -272,156 +306,158 @@ export function HeaderContent({ user, showMyChannels, showModeration, avatarUrl,
         </div>
       </div>
 
-      {/* Mobile nav — floating card so it doesn't blend into the page */}
+      <GlobalSearch open={searchOpen} onOpenChange={setSearchOpen} showTrigger={false} />
+
+      {/* Mobile nav — single clean panel; tools live here, not under the logo row */}
       <div
         id={MOBILE_NAV_ID}
         className={cn(
           "md:hidden",
           mobileOpen
-            ? "block border-t border-header-border bg-muted/30 px-3 pb-3 pt-1 dark:border-border/40 dark:bg-background/95"
+            ? "border-t border-header-border bg-muted/20 px-3 pb-3 pt-2 dark:border-border/40 dark:bg-background/95"
             : "hidden"
         )}
       >
         <nav
-          className="container mx-auto flex max-w-6xl flex-col gap-0.5 btw-surface p-2 shadow-md shadow-foreground/5 dark:shadow-black/25 pb-[max(0.5rem,env(safe-area-inset-bottom))]"
+          className="container mx-auto max-w-6xl space-y-4 rounded-2xl border border-border/70 bg-card p-3 shadow-sm pb-[max(0.75rem,env(safe-area-inset-bottom))]"
           aria-label="Primary mobile"
         >
-          {user && userLabel !== null && (
-            <div className="mb-1 flex items-center gap-3 border-b border-border px-2 py-2">
+          {user && userLabel !== null ? (
+            <div className="flex items-center gap-3 rounded-xl bg-muted/40 px-3 py-2.5">
               <UserAvatar name={userLabel} avatarUrl={avatarUrl} size="md" />
-              <div className="min-w-0">
+              <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-medium text-foreground" title={userLabel}>
                   {userLabel}
                 </p>
-                {user.email && (
+                {user.email ? (
                   <p className="truncate text-xs text-muted-foreground">{user.email}</p>
-                )}
+                ) : null}
               </div>
             </div>
-          )}
-          {navLinks.map((link) => {
-            const external = "external" in link && link.external;
-            const active = !external && navActive(link.href, pathname);
-            return (
-              <Button
-                key={link.href}
-                variant="ghost"
-                className={cn(
-                  "h-11 justify-start rounded-lg font-medium",
-                  active && "bg-primary/10 text-primary hover:bg-primary/10 hover:text-primary"
-                )}
-                asChild
-                onClick={() => setMobileOpen(false)}
-                aria-current={active ? "page" : undefined}
-              >
-                {external ? (
-                  <a href={link.href} target="_blank" rel="noopener noreferrer">
-                    {link.label}
-                    <span className="sr-only"> (opens in new tab)</span>
-                  </a>
-                ) : (
-                  <Link href={link.href}>{link.label}</Link>
-                )}
-              </Button>
-            );
-          })}
-          <Button
-            variant="ghost"
-            className="h-11 justify-start rounded-lg sm:hidden"
-            type="button"
-            onClick={() => {
-              if (!themeMounted) return;
-              setTheme(resolvedTheme === "dark" ? "light" : "dark");
-            }}
-          >
-            {themeMounted && resolvedTheme === "dark" ? "Light mode" : "Dark mode"}
-          </Button>
+          ) : null}
+
+          <MobileMenuSection title="Explore">
+            {navLinks.map((link) => {
+              const external = "external" in link && link.external;
+              const active = !external && navActive(link.href, pathname);
+              const Icon =
+                link.label === "Home" ? Home : link.label === "Channels" ? Hash : BookOpen;
+              return (
+                <Button
+                  key={link.href}
+                  variant="ghost"
+                  className={cn(
+                    mobileMenuItemClass,
+                    active && "bg-primary/10 text-primary hover:bg-primary/10 hover:text-primary"
+                  )}
+                  asChild
+                  onClick={closeMobile}
+                  aria-current={active ? "page" : undefined}
+                >
+                  {external ? (
+                    <a href={link.href} target="_blank" rel="noopener noreferrer">
+                      <Icon className="size-4 shrink-0 text-muted-foreground" aria-hidden />
+                      {link.label}
+                      <span className="sr-only"> (opens in new tab)</span>
+                    </a>
+                  ) : (
+                    <Link href={link.href}>
+                      <Icon className="size-4 shrink-0 text-muted-foreground" aria-hidden />
+                      {link.label}
+                    </Link>
+                  )}
+                </Button>
+              );
+            })}
+          </MobileMenuSection>
+
+          <MobileMenuSection title="Tools">
+            <Button
+              variant="ghost"
+              type="button"
+              className={mobileMenuItemClass}
+              onClick={openMobileSearch}
+            >
+              <Search className="size-4 shrink-0 text-muted-foreground" aria-hidden />
+              Search
+            </Button>
+            <Button
+              variant="ghost"
+              type="button"
+              className={mobileMenuItemClass}
+              onClick={() => {
+                if (!themeMounted) return;
+                setTheme(resolvedTheme === "dark" ? "light" : "dark");
+              }}
+            >
+              {themeMounted && resolvedTheme === "dark" ? (
+                <Sun className="size-4 shrink-0 text-muted-foreground" aria-hidden />
+              ) : (
+                <Moon className="size-4 shrink-0 text-muted-foreground" aria-hidden />
+              )}
+              {themeMounted && resolvedTheme === "dark" ? "Light mode" : "Dark mode"}
+            </Button>
+          </MobileMenuSection>
+
           {user ? (
-            <>
-              <div className="my-1 border-t border-border" />
-              <Button
-                variant="ghost"
-                className="h-11 justify-start rounded-lg"
-                asChild
-                onClick={() => setMobileOpen(false)}
-              >
-                <Link href="/dashboard">Dashboard</Link>
+            <MobileMenuSection title="Your account">
+              <Button variant="ghost" className={mobileMenuItemClass} asChild onClick={closeMobile}>
+                <Link href="/dashboard">
+                  <LayoutDashboard className="size-4 shrink-0 text-muted-foreground" aria-hidden />
+                  Dashboard
+                </Link>
               </Button>
-              <Button
-                variant="ghost"
-                className="h-11 justify-start rounded-lg"
-                asChild
-                onClick={() => setMobileOpen(false)}
-              >
-                <Link href="/dashboard/library">Your library</Link>
+              <Button variant="ghost" className={mobileMenuItemClass} asChild onClick={closeMobile}>
+                <Link href="/dashboard/library">
+                  <Bookmark className="size-4 shrink-0 text-muted-foreground" aria-hidden />
+                  Your library
+                </Link>
               </Button>
               {showModeration ? (
-                <Button
-                  variant="ghost"
-                  className="h-11 justify-start rounded-lg"
-                  asChild
-                  onClick={() => setMobileOpen(false)}
-                >
-                  <Link href="/dashboard/moderation">Moderation</Link>
+                <Button variant="ghost" className={mobileMenuItemClass} asChild onClick={closeMobile}>
+                  <Link href="/dashboard/moderation">
+                    <ShieldCheck className="size-4 shrink-0 text-muted-foreground" aria-hidden />
+                    Moderation
+                  </Link>
                 </Button>
               ) : null}
-              {showMyChannels && (
-                <Button
-                  variant="ghost"
-                  className="h-11 justify-start rounded-lg"
-                  asChild
-                  onClick={() => setMobileOpen(false)}
-                >
-                  <Link href="/channel">My channels</Link>
+              {showMyChannels ? (
+                <Button variant="ghost" className={mobileMenuItemClass} asChild onClick={closeMobile}>
+                  <Link href="/channel">
+                    <Folder className="size-4 shrink-0 text-muted-foreground" aria-hidden />
+                    My channels
+                  </Link>
                 </Button>
-              )}
-              <Button
-                variant="ghost"
-                className="h-11 justify-start rounded-lg"
-                asChild
-                onClick={() => setMobileOpen(false)}
-              >
-                <Link href="/profile">Profile</Link>
+              ) : null}
+              <Button variant="ghost" className={mobileMenuItemClass} asChild onClick={closeMobile}>
+                <Link href="/profile">
+                  <UserRound className="size-4 shrink-0 text-muted-foreground" aria-hidden />
+                  Profile
+                </Link>
               </Button>
-              <Button
-                className="mt-1 h-11 justify-start rounded-lg"
-                asChild
-                onClick={() => setMobileOpen(false)}
-              >
-                <Link href="/channel/new">Create Channel</Link>
+              <Button className="mt-1 h-11 w-full justify-center rounded-lg" asChild onClick={closeMobile}>
+                <Link href="/channel/new">Create channel</Link>
               </Button>
-              <form
-                action={signOut}
-                onSubmit={() => setMobileOpen(false)}
-                className="mt-1 border-t border-border pt-1"
-              >
+              <form action={signOut} onSubmit={closeMobile} className="pt-1">
                 <Button
                   variant="ghost"
                   type="submit"
-                  className="h-11 w-full justify-start rounded-lg text-destructive hover:text-destructive"
+                  className={cn(mobileMenuItemClass, "text-destructive hover:text-destructive")}
                 >
+                  <LogOut className="size-4 shrink-0" aria-hidden />
                   Sign out
                 </Button>
               </form>
-            </>
+            </MobileMenuSection>
           ) : (
-            <>
-              <Button
-                variant="ghost"
-                className="h-11 justify-start rounded-lg"
-                asChild
-                onClick={() => setMobileOpen(false)}
-              >
+            <MobileMenuSection title="Join">
+              <Button variant="ghost" className={mobileMenuItemClass} asChild onClick={closeMobile}>
                 <Link href="/auth/login">Sign in</Link>
               </Button>
-              <Button
-                className="h-11 justify-start rounded-lg"
-                asChild
-                onClick={() => setMobileOpen(false)}
-              >
+              <Button className="h-11 w-full justify-center rounded-lg" asChild onClick={closeMobile}>
                 <Link href="/auth/signup">Sign up</Link>
               </Button>
-            </>
+            </MobileMenuSection>
           )}
         </nav>
       </div>

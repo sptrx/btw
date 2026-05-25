@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient } from "@/utils/supabase/server";
+import { approvedModerationOrFilter, isMissingModerationStatusColumn } from "@/lib/moderation";
 
 /** Card shape for `FeaturedChannelCarousel` (not used on the public home). */
 export type LandingFeaturedCard = {
@@ -241,23 +242,41 @@ export async function getLandingFeed(limit = 28): Promise<LandingFeedItem[]> {
   const supabase = await createClient();
   const safeLimit = Math.min(Math.max(limit, 1), 50);
 
-  const run = (sel: string) =>
-    supabase
+  const run = (sel: string, withModerationFilter: boolean) => {
+    let q = supabase
       .from("topic_content")
       .select(sel)
-      .eq("likes.type", "like")
-      .order("created_at", { ascending: false })
-      .limit(safeLimit);
+      .eq("likes.type", "like");
+    if (withModerationFilter) {
+      q = q.or(approvedModerationOrFilter());
+    }
+    return q.order("created_at", { ascending: false }).limit(safeLimit);
+  };
 
   // Layered fallbacks: featured column → tags embed → bare select.
-  let { data, error } = await run(FEED_BASE_SELECT + FEED_FEATURED_FRAGMENT + FEED_TAGS_EMBED);
+  let { data, error } = await run(
+    FEED_BASE_SELECT + FEED_FEATURED_FRAGMENT + FEED_TAGS_EMBED,
+    true
+  );
+  if (error && isMissingModerationStatusColumn(error)) {
+    ({ data, error } = await run(FEED_BASE_SELECT + FEED_FEATURED_FRAGMENT + FEED_TAGS_EMBED, false));
+  }
   if (error && isMissingIsFeaturedColumn(error)) {
-    ({ data, error } = await run(FEED_BASE_SELECT + FEED_TAGS_EMBED));
+    ({ data, error } = await run(FEED_BASE_SELECT + FEED_TAGS_EMBED, true));
+    if (error && isMissingModerationStatusColumn(error)) {
+      ({ data, error } = await run(FEED_BASE_SELECT + FEED_TAGS_EMBED, false));
+    }
   }
   if (error && isMissingPostTagsEmbed(error)) {
-    ({ data, error } = await run(FEED_BASE_SELECT + FEED_FEATURED_FRAGMENT));
+    ({ data, error } = await run(FEED_BASE_SELECT + FEED_FEATURED_FRAGMENT, true));
+    if (error && isMissingModerationStatusColumn(error)) {
+      ({ data, error } = await run(FEED_BASE_SELECT + FEED_FEATURED_FRAGMENT, false));
+    }
     if (error && isMissingIsFeaturedColumn(error)) {
-      ({ data, error } = await run(FEED_BASE_SELECT));
+      ({ data, error } = await run(FEED_BASE_SELECT, true));
+      if (error && isMissingModerationStatusColumn(error)) {
+        ({ data, error } = await run(FEED_BASE_SELECT, false));
+      }
     }
   }
 

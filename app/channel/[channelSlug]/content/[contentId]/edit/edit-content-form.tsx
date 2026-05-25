@@ -10,6 +10,7 @@ import {
   ContentSubmissionDisclaimer,
   ContentSubmissionDisclaimerAccepted,
 } from "@/components/content-submission-disclaimer";
+import { ContentMissionHint } from "@/components/content-mission-hint";
 import { TopicTagPicker } from "@/components/tags/topic-tag-picker";
 
 const CONTENT_TYPES = [
@@ -54,6 +55,7 @@ export default function EditContentForm({
   hasAlreadyAcceptedDisclaimer = false,
 }: Props) {
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
   const initialMedia = (content.media_urls as MediaItem[] | null) ?? [];
   const [mediaUrls, setMediaUrls] = useState<MediaItem[]>(
     Array.isArray(initialMedia) ? initialMedia.filter((m) => m?.url) : []
@@ -76,6 +78,7 @@ export default function EditContentForm({
     <form
       action={async (formData) => {
         setError(null);
+        setSuccess(null);
         if (!effectiveAccepted) {
           setError("Please read and accept the content disclaimer before saving.");
           return;
@@ -90,9 +93,13 @@ export default function EditContentForm({
         formData.set("accepted_disclaimer", effectiveAccepted ? "1" : "0");
         const res = await updateContent(content.id, formData);
         if (res?.error) setError(res.error);
+        else if (res && "pendingReview" in res && res.pendingReview) {
+          setSuccess(res.message ?? "Your changes are in review.");
+        }
       }}
       className="max-w-xl space-y-6"
     >
+      <ContentMissionHint />
       <div>
         <label htmlFor="edit-content-page" className="block text-sm font-medium mb-1">
           Page
@@ -230,6 +237,12 @@ export default function EditContentForm({
           checked={acceptedDisclaimer}
           onCheckedChange={setAcceptedDisclaimer}
         />
+      )}
+
+      {success && (
+        <p className="rounded-lg border border-border bg-muted/50 px-3 py-2 text-sm text-foreground" role="status">
+          {success}
+        </p>
       )}
 
       {error && (

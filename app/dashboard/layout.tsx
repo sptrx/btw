@@ -1,10 +1,16 @@
 import Link from "next/link";
+import { getCurrentUser, getProfile } from "@/actions";
+import { isSiteModerator } from "@/lib/site-roles";
 
-export default function DashboardLayout({
+export default async function DashboardLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const user = await getCurrentUser();
+  const profile = user ? await getProfile(user.id) : null;
+  const showModeration = isSiteModerator(profile?.role);
+
   return (
     <div className="grid grid-cols-1 gap-6 md:grid-cols-3 md:gap-8">
       <div className="md:col-span-2">{children}</div>
@@ -18,6 +24,16 @@ export default function DashboardLayout({
               Dashboard
             </Link>
           </li>
+          {showModeration ? (
+            <li>
+              <Link
+                href="/dashboard/moderation"
+                className="block rounded-lg px-3 py-2 text-muted-foreground no-underline motion-safe:transition-colors motion-safe:hover:bg-muted motion-safe:hover:text-foreground"
+              >
+                Moderation
+              </Link>
+            </li>
+          ) : null}
           <li>
             <Link
               href="/dashboard/library"

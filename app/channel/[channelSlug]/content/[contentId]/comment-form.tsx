@@ -8,6 +8,7 @@ import {
   ContentSubmissionDisclaimer,
   ContentSubmissionDisclaimerAccepted,
 } from "@/components/content-submission-disclaimer";
+import { ContentMissionHint } from "@/components/content-mission-hint";
 
 type Props = {
   contentId: string;
@@ -60,10 +61,11 @@ export default function CommentForm({
       }}
       className="mb-6"
     >
+      <ContentMissionHint variant="compact" />
       <textarea
         value={body}
         onChange={(e) => setBody(e.target.value)}
-        placeholder="Add a comment..."
+        placeholder="Encourage, ask a faith question, or share how scripture speaks to this…"
         rows={3}
         className="w-full rounded-xl border border-input bg-background px-4 py-3 text-base text-foreground placeholder:text-muted-foreground/60 transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background sm:text-sm"
       />

@@ -27,9 +27,14 @@ export default function ContentDisclaimerPage() {
         <section className="space-y-2">
           <h2 className="text-lg font-semibold text-foreground">Community and moderation</h2>
           <p>
-            Content should be respectful and appropriate for a faith-encouraging community. Operators may remove content,
-            hide posts, or restrict accounts that violate guidelines, these terms, or applicable law. Moderation decisions
-            are not a substitute for law enforcement where illegal activity is involved.
+            Content should be testimony, encouragement, or faith-focused discussion—not political campaigns or
+            general opinion posts. See our{" "}
+            <Link href="/legal/community-guidelines" className="text-primary font-medium hover:underline">
+              community guidelines
+            </Link>
+            . Operators and AI moderation may remove content, hold posts for review, or restrict accounts that violate
+            guidelines, these terms, or applicable law. Moderation decisions are not a substitute for law enforcement
+            where illegal activity is involved.
           </p>
         </section>
 

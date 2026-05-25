@@ -13,6 +13,8 @@ import DeleteContentButton from "./delete-content-button";
 import { getCurrentUser, hasAcceptedContentDisclaimer } from "@/actions";
 import { isContentKept } from "@/actions/library";
 import ContentActions from "./content-actions";
+import { ReportContentButton } from "@/components/report-content-button";
+import { PENDING_REVIEW_MESSAGE } from "@/lib/moderation-messages";
 import { Button } from "@/components/ui/button";
 import CommentForm from "./comment-form";
 import CommentList from "./comment-list";
@@ -26,10 +28,10 @@ type Props = {
 export default async function ChannelContentPage({ params }: Props) {
   const { channelSlug, contentId } = await params;
 
-  const [content, channel, user] = await Promise.all([
-    getContentById(contentId),
+  const user = await getCurrentUser();
+  const [content, channel] = await Promise.all([
+    getContentById(contentId, { viewerUserId: user?.id }),
     getChannelBySlug(channelSlug),
-    getCurrentUser(),
   ]);
 
   if (!content || !channel) notFound();
@@ -66,6 +68,9 @@ export default async function ChannelContentPage({ params }: Props) {
     }
   }
 
+  const moderationStatus =
+    (content as { moderation_status?: string | null }).moderation_status ?? "approved";
+
   return (
     <div>
       <Link
@@ -74,6 +79,15 @@ export default async function ChannelContentPage({ params }: Props) {
       >
         <span aria-hidden>←</span> Back to {channel.title}
       </Link>
+
+      {moderationStatus === "pending_review" && isAuthor ? (
+        <p
+          className="mb-4 rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-foreground"
+          role="status"
+        >
+          {PENDING_REVIEW_MESSAGE}
+        </p>
+      ) : null}
 
       <div className="btw-content-panel mb-6">
         <h1 className="btw-page-title">{content.title}</h1>
@@ -109,6 +123,14 @@ export default async function ChannelContentPage({ params }: Props) {
           hasKept={hasKept}
           isAuthenticated={!!user}
         />
+
+        <div className="mt-3">
+          <ReportContentButton
+            contentId={contentId}
+            channelSlug={channelSlug}
+            isAuthenticated={!!user}
+          />
+        </div>
 
         {!user && (
           <p className="mt-4 rounded-lg border border-border bg-muted/50 px-3 py-2 text-sm text-muted-foreground">

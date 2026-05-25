@@ -3,7 +3,8 @@
 import { createClient } from "@/utils/supabase/server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { moderateContent } from "@/lib/moderation";
+import { moderateContent, isMissingModerationStatusColumn, approvedModerationOrFilter } from "@/lib/moderation";
+import { PENDING_REVIEW_MESSAGE } from "@/lib/moderation-messages";
 import { fetchScriptureGuideReply, isScriptureGuideConfigured } from "@/lib/bible-ai";
 import {
   getProfile,
@@ -904,16 +905,37 @@ async function enrichPageContentRows(
   });
 }
 
-export async function getPageContent(channelId: string, pageId: string | null) {
+export async function getPageContent(
+  channelId: string,
+  pageId: string | null,
+  options?: { includeNonApproved?: boolean }
+) {
   const supabase = await createClient();
   let q = supabase
     .from("topic_content")
-    .select("id, type, title, body, media_urls, created_at, page_id")
+    .select("id, type, title, body, media_urls, created_at, page_id, moderation_status")
     .eq("topic_id", channelId);
   if (pageId) q = q.eq("page_id", pageId);
   else q = q.is("page_id", null);
-  const { data } = await q.order("created_at", { ascending: false });
-  return enrichPageContentRows(supabase, (data ?? []) as PageContentRow[]);
+  if (!options?.includeNonApproved) {
+    q = q.or(approvedModerationOrFilter());
+  }
+  const ordered = await q.order("created_at", { ascending: false });
+  let rows = (ordered.data ?? null) as PageContentRow[] | null;
+  let error = ordered.error;
+  if (error && isMissingModerationStatusColumn(error)) {
+    let fallback = supabase
+      .from("topic_content")
+      .select("id, type, title, body, media_urls, created_at, page_id")
+      .eq("topic_id", channelId);
+    if (pageId) fallback = fallback.eq("page_id", pageId);
+    else fallback = fallback.is("page_id", null);
+    const fallbackRes = await fallback.order("created_at", { ascending: false });
+    rows = (fallbackRes.data ?? null) as PageContentRow[] | null;
+    error = fallbackRes.error;
+  }
+  if (error) return [];
+  return enrichPageContentRows(supabase, (rows ?? []) as PageContentRow[]);
 }
 
 /**
@@ -922,14 +944,15 @@ export async function getPageContent(channelId: string, pageId: string | null) {
  */
 export async function getPageContentForEditPage(
   channelId: string,
-  page: { id: string; slug: string }
+  page: { id: string; slug: string },
+  options?: { includeNonApproved?: boolean }
 ): Promise<PageContentListItem[]> {
   if (page.slug !== "home") {
-    return getPageContent(channelId, page.id);
+    return getPageContent(channelId, page.id, options);
   }
   const [legacy, linkedToHome] = await Promise.all([
-    getPageContent(channelId, null),
-    getPageContent(channelId, page.id),
+    getPageContent(channelId, null, options),
+    getPageContent(channelId, page.id, options),
   ]);
   const byId = new Map<string, PageContentListItem>();
   for (const item of linkedToHome) {
@@ -982,8 +1005,12 @@ export async function createContent(channelId: string, pageId: string, formData:
   if (!title || !["video", "podcast", "article", "discussion"].includes(type))
     return { error: "Invalid content type or title." };
 
-  const result = await moderateContent([title, body].filter(Boolean).join(" "));
+  const result = await moderateContent([title, body].filter(Boolean).join(" "), {
+    contentType: type,
+  });
   if (!result.allowed) return { error: result.reason ?? "Content not allowed." };
+
+  const moderationStatus = result.pendingReview ? "pending_review" : "approved";
 
   if (!alreadyAccepted && acceptedDisclaimer) {
     await recordContentDisclaimerAcceptance(user.id);
@@ -1000,20 +1027,32 @@ export async function createContent(channelId: string, pageId: string, formData:
 
   const isFeatured = formData.get("is_featured") === "on";
 
-  const { data: inserted, error: insertErr } = await supabase
+  const insertPayload: Record<string, unknown> = {
+    topic_id: channelId,
+    page_id: pageId || null,
+    author_id: user.id,
+    type,
+    title,
+    body,
+    media_urls: mediaUrls,
+    is_featured: isFeatured,
+    moderation_status: moderationStatus,
+  };
+
+  let { data: inserted, error: insertErr } = await supabase
     .from("topic_content")
-    .insert({
-      topic_id: channelId,
-      page_id: pageId || null,
-      author_id: user.id,
-      type,
-      title,
-      body,
-      media_urls: mediaUrls,
-      is_featured: isFeatured,
-    })
+    .insert(insertPayload)
     .select("id")
     .single();
+
+  if (insertErr && isMissingModerationStatusColumn(insertErr)) {
+    delete insertPayload.moderation_status;
+    ({ data: inserted, error: insertErr } = await supabase
+      .from("topic_content")
+      .insert(insertPayload)
+      .select("id")
+      .single());
+  }
 
   if (insertErr) {
     console.error("[createContent] insert", insertErr);
@@ -1026,6 +1065,10 @@ export async function createContent(channelId: string, pageId: string, formData:
   }
 
   revalidatePath(`/channel/${channel.slug}`);
+  revalidatePath("/");
+  if (moderationStatus === "pending_review") {
+    return { success: true, pendingReview: true, message: PENDING_REVIEW_MESSAGE };
+  }
   redirect(`/channel/${channel.slug}`);
 }
 
@@ -1069,8 +1112,12 @@ export async function updateContent(contentId: string, formData: FormData) {
     return { error: "Invalid content type or title." };
   }
 
-  const result = await moderateContent([title, body].filter(Boolean).join(" "));
+  const result = await moderateContent([title, body].filter(Boolean).join(" "), {
+    contentType: type,
+  });
   if (!result.allowed) return { error: result.reason ?? "Content not allowed." };
+
+  const moderationStatus = result.pendingReview ? "pending_review" : "approved";
 
   if (!alreadyAccepted && acceptedDisclaimer) {
     await recordContentDisclaimerAcceptance(user.id);
@@ -1087,17 +1134,28 @@ export async function updateContent(contentId: string, formData: FormData) {
 
   const isFeatured = formData.get("is_featured") === "on";
 
-  const { error: upErr } = await supabase
+  const updatePayload: Record<string, unknown> = {
+    type,
+    title,
+    body,
+    page_id: pageId || null,
+    media_urls: mediaUrls,
+    is_featured: isFeatured,
+    moderation_status: moderationStatus,
+  };
+
+  let { error: upErr } = await supabase
     .from("topic_content")
-    .update({
-      type,
-      title,
-      body,
-      page_id: pageId || null,
-      media_urls: mediaUrls,
-      is_featured: isFeatured,
-    })
+    .update(updatePayload)
     .eq("id", contentId);
+
+  if (upErr && isMissingModerationStatusColumn(upErr)) {
+    delete updatePayload.moderation_status;
+    ({ error: upErr } = await supabase
+      .from("topic_content")
+      .update(updatePayload)
+      .eq("id", contentId));
+  }
 
   if (upErr) return { error: upErr.message };
 
@@ -1108,6 +1166,10 @@ export async function updateContent(contentId: string, formData: FormData) {
 
   revalidatePath(`/channel/${topic.slug}`);
   revalidatePath(`/channel/${topic.slug}/content/${contentId}`);
+  revalidatePath("/");
+  if (moderationStatus === "pending_review") {
+    return { success: true, pendingReview: true, message: PENDING_REVIEW_MESSAGE };
+  }
   redirect(`/channel/${topic.slug}/content/${contentId}?updated=1`);
 }
 
@@ -1220,7 +1282,7 @@ export async function addComment(
     return { error: "Please accept the content disclaimer before commenting." };
   }
 
-  const result = await moderateContent(body);
+  const result = await moderateContent(body, { contentType: "comment" });
   if (!result.allowed) return { error: result.reason ?? "Comment not allowed." };
 
   if (!alreadyAccepted && options?.acceptedDisclaimer) {
@@ -1398,10 +1460,13 @@ export async function shareContent(contentId: string) {
   return { success: true };
 }
 
-export async function getContentById(contentId: string) {
+export async function getContentById(
+  contentId: string,
+  options?: { viewerUserId?: string | null }
+) {
   const supabase = await createClient();
   const baseCols =
-    "id, topic_id, page_id, type, title, body, media_urls, created_at, author_id";
+    "id, topic_id, page_id, type, title, body, media_urls, created_at, author_id, moderation_status";
   let { data, error } = await supabase
     .from("topic_content")
     .select(`${baseCols}, is_featured`)
@@ -1416,12 +1481,35 @@ export async function getContentById(contentId: string) {
         .select(baseCols)
         .eq("id", contentId)
         .single());
+    } else if (isMissingModerationStatusColumn(error)) {
+      ({ data, error } = await supabase
+        .from("topic_content")
+        .select("id, topic_id, page_id, type, title, body, media_urls, created_at, author_id, is_featured")
+        .eq("id", contentId)
+        .single());
     }
   }
   if (error || !data) return null;
+
+  const moderationStatus =
+    (data as { moderation_status?: string | null }).moderation_status ?? "approved";
+  if (moderationStatus !== "approved") {
+    const { data: topicRow } = await supabase
+      .from("topics")
+      .select("author_id")
+      .eq("id", data.topic_id)
+      .maybeSingle();
+    const viewerId = options?.viewerUserId ?? null;
+    const isOwner =
+      viewerId &&
+      (viewerId === data.author_id || viewerId === topicRow?.author_id);
+    if (!isOwner) return null;
+  }
+
   const profile = await getProfile(data.author_id);
   return {
     ...data,
+    moderation_status: moderationStatus,
     is_featured: (data as { is_featured?: boolean | null }).is_featured ?? false,
     profiles: profile ? { display_name: profile.display_name } : null,
   };

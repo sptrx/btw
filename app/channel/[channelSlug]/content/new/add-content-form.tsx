@@ -10,6 +10,7 @@ import {
   ContentSubmissionDisclaimer,
   ContentSubmissionDisclaimerAccepted,
 } from "@/components/content-submission-disclaimer";
+import { ContentMissionHint } from "@/components/content-mission-hint";
 import { TopicTagPicker } from "@/components/tags/topic-tag-picker";
 
 const CONTENT_TYPES = [
@@ -42,6 +43,7 @@ export default function AddContentForm({
   hasAlreadyAcceptedDisclaimer = false,
 }: Props) {
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
   const [pageId, setPageId] = useState(defaultPageId ?? pages[0]?.id ?? "");
   const [mediaUrls, setMediaUrls] = useState<MediaItem[]>([]);
   const [tagIds, setTagIds] = useState<string[]>([]);
@@ -61,6 +63,7 @@ export default function AddContentForm({
     <form
       action={async (formData) => {
         setError(null);
+        setSuccess(null);
         if (!effectiveAccepted) {
           setError("Please read and accept the content disclaimer before publishing.");
           return;
@@ -74,10 +77,14 @@ export default function AddContentForm({
         formData.set("accepted_disclaimer", effectiveAccepted ? "1" : "0");
         const res = await createContent(channelId, targetPage, formData);
         if (res?.error) setError(res.error);
-        else router.push(`/channel/${channelSlug}`);
+        else if (res && "pendingReview" in res && res.pendingReview) {
+          setSuccess(res.message ?? "Your post is in review.");
+        } else router.push(`/channel/${channelSlug}`);
       }}
       className="max-w-xl space-y-6"
     >
+      <ContentMissionHint />
+
       <div>
         <label htmlFor="content-page" className="block text-sm font-medium mb-1">
           Page
@@ -123,6 +130,7 @@ export default function AddContentForm({
           name="title"
           type="text"
           required
+          placeholder="e.g. How Psalm 23 carried me through hospital nights"
           className="w-full min-h-11 rounded-xl border border-input bg-background px-4 py-3 text-sm"
         />
       </div>
@@ -135,6 +143,7 @@ export default function AddContentForm({
           id="body"
           name="body"
           rows={6}
+          placeholder="Share what God has done—your testimony, scripture that met you, or encouragement from your walk."
           className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm"
         />
       </div>
@@ -211,6 +220,12 @@ export default function AddContentForm({
           checked={acceptedDisclaimer}
           onCheckedChange={setAcceptedDisclaimer}
         />
+      )}
+
+      {success && (
+        <p className="rounded-lg border border-border bg-muted/50 px-3 py-2 text-sm text-foreground" role="status">
+          {success}
+        </p>
       )}
 
       {error && (

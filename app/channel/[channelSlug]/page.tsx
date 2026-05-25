@@ -21,14 +21,12 @@ export default async function ChannelPage({ params }: Props) {
 
   const pages = await getChannelPages(channel.id);
   const homePage = pages.find((p) => p.slug === "home");
+  const isAuthor = await isChannelAuthor(channel.id);
   const content = homePage
-    ? await getPageContentForEditPage(channel.id, homePage)
-    : await getPageContent(channel.id, null);
+    ? await getPageContentForEditPage(channel.id, homePage, { includeNonApproved: isAuthor })
+    : await getPageContent(channel.id, null, { includeNonApproved: isAuthor });
 
-  const [isAuthor, user] = await Promise.all([
-    isChannelAuthor(channel.id),
-    getCurrentUser(),
-  ]);
+  const user = await getCurrentUser();
   const defaultPageIdForContent = homePage?.id ?? pages[0]?.id ?? null;
 
   return (

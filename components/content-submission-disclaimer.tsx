@@ -73,7 +73,12 @@ export function ContentSubmissionDisclaimer({
         ) : (
           <>
             By publishing, you confirm you have the right to share this material, that it is respectful and lawful, and
-            that it aligns with our community purpose. Content may be moderated or removed. See the full{" "}
+            that it aligns with our community purpose (testimony and encouragement). Content is AI-moderated and may be
+            held for review. See our{" "}
+            <Link href="/legal/community-guidelines" className="text-primary font-medium underline-offset-2 hover:underline">
+              community guidelines
+            </Link>{" "}
+            and{" "}
             <Link href="/legal/content-disclaimer" className="text-primary font-medium underline-offset-2 hover:underline">
               content disclaimer
             </Link>

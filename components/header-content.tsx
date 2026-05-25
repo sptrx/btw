@@ -8,6 +8,7 @@ import {
   Menu,
   X,
   ChevronDown,
+  ShieldCheck,
   LayoutDashboard,
   Bookmark,
   Folder,
@@ -29,6 +30,7 @@ import { UserAvatar } from "@/components/user-avatar";
 type Props = {
   user: User | null;
   showMyChannels?: boolean;
+  showModeration?: boolean;
   avatarUrl?: string | null;
   profileDisplayName?: string | null;
 };
@@ -70,7 +72,7 @@ const displayFont = "font-[family-name:var(--font-landing-display)]";
 const dropdownItemClass =
   "flex w-full cursor-pointer items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm text-foreground no-underline outline-none transition-colors focus:bg-accent focus:text-accent-foreground data-[highlighted]:bg-accent data-[highlighted]:text-accent-foreground";
 
-export function HeaderContent({ user, showMyChannels, avatarUrl, profileDisplayName }: Props) {
+export function HeaderContent({ user, showMyChannels, showModeration, avatarUrl, profileDisplayName }: Props) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
   const userLabel = user
@@ -195,6 +197,14 @@ export function HeaderContent({ user, showMyChannels, avatarUrl, profileDisplayN
                           Dashboard
                         </Link>
                       </DropdownMenu.Item>
+                      {showModeration ? (
+                        <DropdownMenu.Item asChild>
+                          <Link href="/dashboard/moderation" className={dropdownItemClass}>
+                            <ShieldCheck className="size-4 text-muted-foreground" aria-hidden />
+                            Moderation
+                          </Link>
+                        </DropdownMenu.Item>
+                      ) : null}
                       <DropdownMenu.Item asChild>
                         <Link href="/dashboard/library" className={dropdownItemClass}>
                           <Bookmark className="size-4 text-muted-foreground" aria-hidden />
@@ -328,6 +338,16 @@ export function HeaderContent({ user, showMyChannels, avatarUrl, profileDisplayN
               >
                 <Link href="/dashboard/library">Your library</Link>
               </Button>
+              {showModeration ? (
+                <Button
+                  variant="ghost"
+                  className="h-11 justify-start rounded-lg"
+                  asChild
+                  onClick={() => setMobileOpen(false)}
+                >
+                  <Link href="/dashboard/moderation">Moderation</Link>
+                </Button>
+              ) : null}
               {showMyChannels && (
                 <Button
                   variant="ghost"

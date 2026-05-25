@@ -25,10 +25,8 @@ export default async function ChannelSubPage({ params }: Props) {
   const page = await getChannelPage(channel.id, pageSlug);
   if (!page) notFound();
 
-  const [content, isAuthor] = await Promise.all([
-    getPageContent(channel.id, page.id),
-    isChannelAuthor(channel.id),
-  ]);
+  const isAuthor = await isChannelAuthor(channel.id);
+  const content = await getPageContent(channel.id, page.id, { includeNonApproved: isAuthor });
 
   return (
     <div>

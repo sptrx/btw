@@ -26,10 +26,10 @@ export default async function OnboardingPage() {
   return (
     <div className="max-w-md mx-auto mt-12 sm:mt-20">
       <div className="btw-auth-panel">
-        <h1 className="text-2xl font-semibold tracking-tight mb-1">
+        <h1 className="btw-page-title mb-1">
           One last thing
         </h1>
-        <p className="text-muted-foreground text-sm mb-6">
+        <p className="btw-lead mb-6">
           Choose how you&apos;ll be using Believe The Works.
         </p>
         <OnboardingRoleForm />

@@ -10,16 +10,16 @@ export const metadata: Metadata = {
 export default function CommunityGuidelinesPage() {
   return (
     <div className="container mx-auto max-w-3xl px-4 py-10 sm:py-14">
-      <h1 className="text-3xl font-semibold tracking-tight text-foreground mb-2">Community guidelines</h1>
-      <p className="text-sm text-muted-foreground mb-2">{MISSION_TAGLINE}</p>
-      <p className="text-sm text-muted-foreground mb-8">
+      <h1 className="btw-page-title mb-2">Community guidelines</h1>
+      <p className="btw-lead mb-2">{MISSION_TAGLINE}</p>
+      <p className="btw-lead mb-8">
         Believe The Works exists so Christians can share witness and strengthen one another—not debate politics or
         publish general opinion blogs.
       </p>
 
-      <div className="space-y-8 text-sm leading-relaxed text-muted-foreground">
+      <div className="space-y-8 btw-legal-body">
         <section className="space-y-3">
-          <h2 className="text-lg font-semibold text-foreground">What we encourage</h2>
+          <h2 className="btw-section-title">What we encourage</h2>
           <ul className="list-disc space-y-1.5 pl-5">
             <li>Personal testimony — what God has done in your life</li>
             <li>Scripture shared with reflection or application from your journey</li>
@@ -31,7 +31,7 @@ export default function CommunityGuidelinesPage() {
         </section>
 
         <section className="space-y-3">
-          <h2 className="text-lg font-semibold text-foreground">What we discourage</h2>
+          <h2 className="btw-section-title">What we discourage</h2>
           <ul className="list-disc space-y-1.5 pl-5">
             <li>Political campaigns, partisan messaging, or election appeals</li>
             <li>Culture-war hot takes without a testimony angle</li>
@@ -42,7 +42,7 @@ export default function CommunityGuidelinesPage() {
         </section>
 
         <section className="space-y-3">
-          <h2 className="text-lg font-semibold text-foreground">How moderation works</h2>
+          <h2 className="btw-section-title">How moderation works</h2>
           <p>
             Posts and comments are checked by AI for safety and mission fit before or as they appear. Content that is
             clearly off mission may be blocked with guidance on how to revise. Borderline posts may be held for review
@@ -54,7 +54,7 @@ export default function CommunityGuidelinesPage() {
         </section>
 
         <section className="space-y-3">
-          <h2 className="text-lg font-semibold text-foreground">A simple test before you publish</h2>
+          <h2 className="btw-section-title">A simple test before you publish</h2>
           <p className="rounded-xl border border-border bg-muted/30 px-4 py-3 text-foreground">
             Ask: <em>Is this mainly my testimony or encouragement in Christ?</em> If the honest answer is no, try
             reframing—or save it for another platform.

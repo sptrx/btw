@@ -23,7 +23,7 @@ export function ProfileHeader({ profile, showEditLink = false }: Props) {
         />
         <div className="min-w-0 flex-1 space-y-3">
           <div className="flex flex-wrap items-start justify-between gap-3">
-            <h1 className="btw-page-title text-xl sm:text-2xl">{displayName}</h1>
+            <h1 className="btw-page-title-sm">{displayName}</h1>
             {showEditLink ? (
               <Link
                 href="/dashboard/settings"
@@ -54,7 +54,7 @@ export function ProfileHeader({ profile, showEditLink = false }: Props) {
           )}
 
           {profile.bio ? (
-            <p className="whitespace-pre-wrap text-sm leading-relaxed text-muted-foreground sm:text-base">
+            <p className="whitespace-pre-wrap btw-lead sm:text-base">
               {profile.bio}
             </p>
           ) : null}

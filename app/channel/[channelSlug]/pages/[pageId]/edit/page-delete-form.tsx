@@ -25,7 +25,7 @@ export function PageDeleteForm({ channelId, pageId, pageTitle }: Props) {
 
   return (
     <div className="border border-destructive/30 rounded-2xl p-6 bg-destructive/5 space-y-4 max-w-lg">
-      <h2 className="text-lg font-semibold text-destructive">Delete this page</h2>
+      <h2 className="btw-section-title text-destructive">Delete this page</h2>
       <p className="text-sm text-muted-foreground">
         Posts on this page will be moved to the channel home. This can&apos;t be undone.
       </p>

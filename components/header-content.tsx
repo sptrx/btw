@@ -30,6 +30,7 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { GlobalSearch } from "@/components/global-search/global-search";
 import { NotificationBell } from "@/components/notification-bell";
 import { bibleAiPublicAskUrl } from "@/lib/bible-ai-config";
+import { btwDisplayFont } from "@/lib/btw-ui";
 import { cn } from "@/lib/utils";
 
 import { UserAvatar } from "@/components/user-avatar";
@@ -74,7 +75,7 @@ const navLinks = [
 
 const MOBILE_NAV_ID = "mobile-primary-nav";
 
-const displayFont = "font-[family-name:var(--font-landing-display)]";
+const displayFont = btwDisplayFont;
 
 const dropdownItemClass =
   "flex w-full cursor-pointer items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm text-foreground no-underline outline-none transition-colors focus:bg-accent focus:text-accent-foreground data-[highlighted]:bg-accent data-[highlighted]:text-accent-foreground";
@@ -91,7 +92,7 @@ function MobileMenuSection({
 }) {
   return (
     <section className="space-y-1">
-      <p className="px-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+      <p className={cn("px-3 btw-overline font-semibold")}>
         {title}
       </p>
       <div className="space-y-0.5">{children}</div>

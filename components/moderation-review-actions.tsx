@@ -84,7 +84,7 @@ export function ModerationReviewActions({ contentId }: Props) {
               maxLength={1000}
               className="mt-1.5 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm"
             />
-            <p className="mt-1 text-[11px] text-muted-foreground">
+            <p className="mt-1 btw-meta">
               Shown on the post and in the author&apos;s notification.
             </p>
           </div>

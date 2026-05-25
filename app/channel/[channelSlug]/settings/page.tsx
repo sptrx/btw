@@ -46,14 +46,14 @@ export default async function ChannelSettingsPage({ params }: Props) {
             ← Back to channel
           </Link>
         </p>
-        <h1 className="text-xl font-bold tracking-tight sm:text-2xl">Channel settings</h1>
+        <h1 className="btw-page-title-sm">Channel settings</h1>
         <p className="text-muted-foreground mt-1 text-sm sm:text-base">
           Update how your channel appears, or remove it permanently.
         </p>
       </div>
 
       <section className="rounded-xl border border-border bg-card p-6 shadow-sm">
-        <h2 className="text-lg font-semibold mb-4">Details</h2>
+        <h2 className="btw-section-title mb-4">Details</h2>
         <ChannelSettingsForm
           channelId={channel.id}
           initialTitle={channel.title}
@@ -68,7 +68,7 @@ export default async function ChannelSettingsPage({ params }: Props) {
         className="rounded-xl border-2 border-primary/25 bg-primary/5 p-6 shadow-sm"
         aria-labelledby="settings-add-content-heading"
       >
-        <h2 id="settings-add-content-heading" className="text-lg font-semibold mb-2">
+        <h2 id="settings-add-content-heading" className="btw-section-title mb-2">
           Add content
         </h2>
         <p className="text-sm text-muted-foreground mb-4">
@@ -78,7 +78,7 @@ export default async function ChannelSettingsPage({ params }: Props) {
       </section>
 
       <section className="rounded-xl border border-destructive/30 bg-destructive/5 p-6">
-        <h2 className="text-lg font-semibold text-destructive mb-1">Danger zone</h2>
+        <h2 className="btw-section-title text-destructive mb-1">Danger zone</h2>
         <p className="text-sm text-muted-foreground mb-4">
           Deleting removes the channel, all its pages, and all content. This cannot be undone.
         </p>

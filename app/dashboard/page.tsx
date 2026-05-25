@@ -54,7 +54,7 @@ export default async function Dashboard() {
               >
                 <Icon className="size-4" />
               </span>
-              <span className="text-[10px] font-medium uppercase tracking-[0.18em] text-muted-foreground sm:text-xs">
+              <span className="btw-overline">
                 {label}
               </span>
             </div>
@@ -96,7 +96,7 @@ function RecentCommentsSection({ comments }: { comments: RecentCommentRow[] }) {
     >
       <h2
         id="dashboard-recent-comments"
-        className="text-lg font-semibold text-foreground"
+        className="btw-section-title"
       >
         Recent comments on your content
       </h2>

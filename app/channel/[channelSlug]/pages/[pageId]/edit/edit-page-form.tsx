@@ -53,7 +53,7 @@ export default function EditPageForm({ channelId, channelSlug, page, pageContent
         className="rounded-xl border-2 border-primary/25 bg-primary/5 p-6 shadow-sm"
         aria-labelledby="edit-page-content-heading"
       >
-        <h2 id="edit-page-content-heading" className="text-lg font-semibold mb-2">
+        <h2 id="edit-page-content-heading" className="btw-section-title mb-2">
           Content on this page
         </h2>
         <p className="text-sm text-muted-foreground mb-4">
@@ -98,7 +98,7 @@ export default function EditPageForm({ channelId, channelSlug, page, pageContent
         className="rounded-xl border-2 border-primary/25 bg-primary/5 p-6 shadow-sm"
         aria-labelledby="edit-page-heading"
       >
-        <h2 id="edit-page-heading" className="text-lg font-semibold mb-2">
+        <h2 id="edit-page-heading" className="btw-section-title mb-2">
           Page settings
         </h2>
         <p className="text-sm text-muted-foreground mb-6">
@@ -108,7 +108,7 @@ export default function EditPageForm({ channelId, channelSlug, page, pageContent
 
         {/* Read-only snapshot of what is currently saved (visitors see this) */}
         <div className="rounded-lg border border-border bg-background/90 p-4 sm:p-5 mb-6">
-          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-3">
+          <p className="btw-overline mb-3">
             Currently saved on this page
           </p>
           <dl className="space-y-3 text-sm">

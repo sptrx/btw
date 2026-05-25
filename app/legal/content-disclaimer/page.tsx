@@ -9,14 +9,14 @@ export const metadata: Metadata = {
 export default function ContentDisclaimerPage() {
   return (
     <div className="container mx-auto max-w-3xl px-4 py-10 sm:py-14">
-      <h1 className="text-3xl font-semibold tracking-tight text-foreground mb-2">Content disclaimer</h1>
-      <p className="text-sm text-muted-foreground mb-8">
+      <h1 className="btw-page-title mb-2">Content disclaimer</h1>
+      <p className="btw-lead mb-8">
         This page explains responsibilities when you post or comment on channels.
       </p>
 
-      <div className="space-y-6 text-sm leading-relaxed text-muted-foreground">
+      <div className="space-y-6 btw-legal-body">
         <section className="space-y-2">
-          <h2 className="text-lg font-semibold text-foreground">Your responsibility</h2>
+          <h2 className="btw-section-title">Your responsibility</h2>
           <p>
             You are solely responsible for text, images, audio, video, links, and other material you submit. You confirm
             that you have the rights and permissions needed to share that material and that it does not infringe
@@ -25,7 +25,7 @@ export default function ContentDisclaimerPage() {
         </section>
 
         <section className="space-y-2">
-          <h2 className="text-lg font-semibold text-foreground">Community and moderation</h2>
+          <h2 className="btw-section-title">Community and moderation</h2>
           <p>
             Content should be testimony, encouragement, or faith-focused discussion—not political campaigns or
             general opinion posts. See our{" "}
@@ -39,7 +39,7 @@ export default function ContentDisclaimerPage() {
         </section>
 
         <section className="space-y-2">
-          <h2 className="text-lg font-semibold text-foreground">No professional advice</h2>
+          <h2 className="btw-section-title">No professional advice</h2>
           <p>
             Posts and comments are opinions and experiences of users, not professional advice. Nothing on the Service is
             medical, legal, financial, or therapeutic advice. Always consult qualified professionals for decisions in
@@ -48,7 +48,7 @@ export default function ContentDisclaimerPage() {
         </section>
 
         <section className="space-y-2">
-          <h2 className="text-lg font-semibold text-foreground">Accuracy and third-party links</h2>
+          <h2 className="btw-section-title">Accuracy and third-party links</h2>
           <p>
             We do not verify every statement or link. You use information and external links at your own risk. We are not
             responsible for third-party sites or services.
@@ -56,7 +56,7 @@ export default function ContentDisclaimerPage() {
         </section>
 
         <section className="space-y-2">
-          <h2 className="text-lg font-semibold text-foreground">Indemnity</h2>
+          <h2 className="btw-section-title">Indemnity</h2>
           <p>
             To the extent permitted by law, you agree to hold harmless the operators of the Service from claims arising
             from content you submit or your use of posting features, except where prohibited by law.

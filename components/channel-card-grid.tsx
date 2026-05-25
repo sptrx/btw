@@ -66,7 +66,7 @@ export function ChannelCardGrid({ channels }: Props) {
               )}
             </div>
 
-            <h3 className="text-lg font-semibold tracking-tight transition-colors group-hover:text-primary">
+            <h3 className="btw-card-title transition-colors group-hover:text-primary">
               {ch.title}
             </h3>
 

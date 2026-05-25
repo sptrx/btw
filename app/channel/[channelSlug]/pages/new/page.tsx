@@ -26,7 +26,7 @@ export default async function NewPagePage({ params }: Props) {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-4">Add page to {channel.title}</h1>
+      <h1 className="btw-page-title mb-4">Add page to {channel.title}</h1>
       <CreatePageForm channelId={channel.id} channelSlug={channelSlug} />
     </div>
   );

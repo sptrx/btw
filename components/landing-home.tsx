@@ -72,7 +72,7 @@ export function LandingHome({ displayFontClassName, feed = [], isAuthenticated =
                 <p className="text-pretty text-base italic leading-relaxed text-amber-50 sm:text-lg sm:leading-relaxed [text-shadow:0_1px_2px_rgba(0,0,0,0.85),0_2px_12px_rgba(0,0,0,0.65)]">
                   As it is written, they overcame by the word of their testimony.
                 </p>
-                <p className="text-pretty text-sm leading-relaxed text-stone-100 sm:text-[15px] sm:leading-7 md:text-base [text-shadow:0_1px_2px_rgba(0,0,0,0.85),0_2px_12px_rgba(0,0,0,0.65)]">
+                <p className="text-pretty text-sm leading-relaxed text-stone-100 sm:text-base sm:leading-7 md:text-base [text-shadow:0_1px_2px_rgba(0,0,0,0.85),0_2px_12px_rgba(0,0,0,0.65)]">
                 Sign up, create your channel, and share your story of what God has done through posts, photos, podcasts, or video. Your testimony could be the encouragement someone needs today.
                 </p>
               </div>
@@ -105,7 +105,7 @@ export function LandingHome({ displayFontClassName, feed = [], isAuthenticated =
             </div>
             <p className="mt-7 inline-flex max-w-xl items-center gap-2 text-xs text-amber-100/85 sm:mt-8 sm:text-sm [text-shadow:0_1px_4px_rgba(0,0,0,0.6)]">
               <ShieldCheck className="size-4" aria-hidden />
-              All content reviewed by AI — safe for the whole family
+              All content moderated by AI. Safe for every age.
             </p>
           </div>
         </section>
@@ -161,7 +161,7 @@ export function LandingHome({ displayFontClassName, feed = [], isAuthenticated =
               <span className="size-1 rounded-full bg-muted-foreground/50" />
               <span className="h-px w-8 bg-border" />
             </div>
-            <p className="mt-4 text-xs sm:text-sm text-muted-foreground tracking-[0.16em] uppercase">
+            <p className="btw-overline mt-4 tracking-[0.16em] text-center">
               Revelation 12:11
             </p>
           </div>
@@ -173,7 +173,12 @@ export function LandingHome({ displayFontClassName, feed = [], isAuthenticated =
         <section className="bg-primary text-primary-foreground py-14 sm:py-16 md:py-20">
           <div className="container mx-auto max-w-6xl px-4 sm:px-5 flex flex-col md:flex-row md:items-center md:justify-between gap-8">
             <div className="max-w-xl">
-              <p className="mb-2 text-[10px] font-medium uppercase tracking-[0.18em] text-primary-foreground/70 sm:text-xs">
+              <p
+                className={cn(
+                  "btw-overline mb-2",
+                  "text-primary-foreground/70"
+                )}
+              >
                 Take the next step
               </p>
               <h2 className={cn(displayFontClassName, "text-3xl sm:text-4xl font-normal text-balance")}>

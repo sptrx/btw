@@ -56,7 +56,7 @@ export default async function EditContentPage({ params }: Props) {
           ← Back to content
         </Link>
       </p>
-      <h1 className="text-xl font-bold tracking-tight sm:text-2xl mb-6">Edit content</h1>
+      <h1 className="btw-page-title-sm mb-6">Edit content</h1>
       <EditContentForm
         channelId={channel.id}
         channelSlug={channelSlug}

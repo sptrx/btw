@@ -50,8 +50,8 @@ function LoginForm() {
   return (
     <div className="max-w-md mx-auto mt-12 sm:mt-20">
       <div className="btw-auth-panel">
-        <h1 className="text-2xl font-semibold tracking-tight mb-1">Sign in</h1>
-        <p className="text-muted-foreground text-sm mb-2">
+        <h1 className="btw-page-title mb-1">Sign in</h1>
+        <p className="btw-lead mb-2">
           A safe space for faith, encouragement, and community.
         </p>
         <p className="mb-6 inline-flex items-center gap-2 text-sm text-muted-foreground">

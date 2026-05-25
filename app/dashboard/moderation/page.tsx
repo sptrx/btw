@@ -40,7 +40,7 @@ export default async function ModerationDashboardPage() {
 
       <section aria-labelledby="mod-queue-heading" className="mb-10">
         <div className="mb-4 flex items-center justify-between gap-3">
-          <h2 id="mod-queue-heading" className="text-lg font-semibold">
+          <h2 id="mod-queue-heading" className="btw-section-title">
             Review queue
           </h2>
           <span className="rounded-full border border-border bg-muted/40 px-2.5 py-0.5 text-xs font-medium tabular-nums">
@@ -84,7 +84,7 @@ export default async function ModerationDashboardPage() {
       </section>
 
       <section aria-labelledby="mod-reports-heading">
-        <h2 id="mod-reports-heading" className="mb-4 text-lg font-semibold">
+        <h2 id="mod-reports-heading" className="btw-section-title mb-4">
           Recent reports
         </h2>
 

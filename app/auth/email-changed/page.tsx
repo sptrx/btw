@@ -18,7 +18,7 @@ export default async function EmailChangedPage() {
   return (
     <div className="max-w-md mx-auto mt-12 sm:mt-20">
       <div className="btw-auth-panel space-y-4 text-center">
-        <h1 className="text-2xl font-semibold tracking-tight">Email updated</h1>
+        <h1 className="btw-page-title">Email updated</h1>
         {email ? (
           <p className="text-foreground text-sm leading-relaxed text-pretty">
             Your account email is now{" "}
@@ -30,7 +30,7 @@ export default async function EmailChangedPage() {
             Your account email was updated. Sign in with your new address to continue.
           </p>
         )}
-        <p className="text-muted-foreground text-sm">
+        <p className="btw-lead">
           If both the old and new address need to be confirmed, your change won&apos;t take
           effect until the second verification link is opened too.
         </p>

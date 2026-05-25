@@ -32,7 +32,7 @@ export default async function LibraryPage() {
       <section aria-labelledby="library-walking-with" className="mb-10">
         <div className="mb-4 flex items-center gap-2">
           <Footprints className="size-5 text-primary" aria-hidden />
-          <h2 id="library-walking-with" className="text-lg font-semibold">
+          <h2 id="library-walking-with" className="btw-section-title">
             {LIBRARY_LABELS.walkWith.section}
           </h2>
         </div>
@@ -87,7 +87,7 @@ export default async function LibraryPage() {
       <section aria-labelledby="library-kept">
         <div className="mb-4 flex items-center gap-2">
           <Bookmark className="size-5 text-primary" aria-hidden />
-          <h2 id="library-kept" className="text-lg font-semibold">
+          <h2 id="library-kept" className="btw-section-title">
             {LIBRARY_LABELS.keep.section}
           </h2>
         </div>

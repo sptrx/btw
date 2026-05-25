@@ -31,7 +31,7 @@ export default async function Profile() {
       <p className="btw-section-eyebrow">Account</p>
       <ProfileHeader profile={profile} showEditLink />
 
-      <h2 className="mb-4 mt-8 text-lg font-semibold tracking-tight">Your posts</h2>
+      <h2 className="btw-section-title mb-4 mt-8">Your posts</h2>
       <div className="space-y-3">
         {!posts?.length ? (
           <div className="btw-empty">No posts yet.</div>

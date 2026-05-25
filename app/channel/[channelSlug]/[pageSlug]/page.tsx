@@ -33,7 +33,7 @@ export default async function ChannelSubPage({ params }: Props) {
       <div className="btw-content-panel mb-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div className="min-w-0 space-y-2">
-            <h1 className="btw-page-title text-xl sm:text-2xl">{page.title}</h1>
+            <h1 className="btw-page-title-sm">{page.title}</h1>
             {page.description && (
               <p className="text-sm text-muted-foreground whitespace-pre-wrap">{page.description}</p>
             )}
@@ -78,7 +78,7 @@ export default async function ChannelSubPage({ params }: Props) {
           className="btw-callout-section"
           aria-labelledby="channel-subpage-add-content-heading"
         >
-          <h2 id="channel-subpage-add-content-heading" className="text-lg font-semibold mb-2">
+          <h2 id="channel-subpage-add-content-heading" className="btw-section-title mb-2">
             Add content
           </h2>
           <p className="text-sm text-muted-foreground mb-4">

@@ -26,7 +26,7 @@ export default async function Settings() {
       </div>
 
       <section>
-        <h2 className="mb-4 text-lg font-semibold text-foreground">Profile</h2>
+        <h2 className="btw-section-title mb-4">Profile</h2>
         <ProfileSettingsForm
           displayName={profile?.display_name ?? ""}
           bio={profile?.bio ?? ""}
@@ -38,22 +38,22 @@ export default async function Settings() {
       </section>
 
       <section className="border-t border-border pt-6">
-        <h2 className="mb-4 text-lg font-semibold text-foreground">Change email</h2>
+        <h2 className="btw-section-title mb-4">Change email</h2>
         <EmailChangeForm currentEmail={user.email ?? ""} />
       </section>
 
       <section className="border-t border-border pt-6">
-        <h2 className="mb-4 text-lg font-semibold text-foreground">Change password</h2>
+        <h2 className="btw-section-title mb-4">Change password</h2>
         <PasswordChangeForm userEmail={user.email ?? ""} />
       </section>
 
       <section className="border-t border-border pt-6">
-        <h2 className="mb-4 text-lg font-semibold text-foreground">Session management</h2>
+        <h2 className="btw-section-title mb-4">Session management</h2>
         <SessionManagement />
       </section>
 
       <section className="border-t border-destructive/30 pt-6">
-        <h2 className="mb-4 text-lg font-semibold text-destructive">Danger zone</h2>
+        <h2 className="btw-section-title mb-4 text-destructive">Danger zone</h2>
         <DeleteAccountForm userEmail={user.email ?? ""} />
       </section>
     </div>

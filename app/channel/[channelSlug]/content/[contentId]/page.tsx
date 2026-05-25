@@ -130,7 +130,7 @@ export default async function ChannelContentPage({ params }: Props) {
 
         {content.body && (
           <div className="mt-4 max-w-none">
-            <p className="whitespace-pre-wrap text-[15px] leading-relaxed text-foreground/90 sm:text-base">
+            <p className="whitespace-pre-wrap btw-prose">
               {content.body}
             </p>
           </div>
@@ -176,7 +176,7 @@ export default async function ChannelContentPage({ params }: Props) {
       </div>
 
       <section className="mt-8">
-        <h2 className="mb-3 text-lg font-semibold text-foreground">Comments</h2>
+        <h2 className="btw-section-title mb-3">Comments</h2>
         {user && (
           <CommentForm
             contentId={contentId}

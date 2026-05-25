@@ -224,7 +224,7 @@ function NotificationRow({
               {item.detail}
             </p>
           )}
-          <p className="mt-0.5 text-[11px] text-muted-foreground">
+          <p className="mt-0.5 btw-meta">
             Edit and submit again
             {" · "}
             <RelativeDate date={item.created_at} />
@@ -283,7 +283,7 @@ function NotificationRow({
             &ldquo;{item.comment_preview}&rdquo;
           </p>
         )}
-        <p className="mt-0.5 text-[11px] text-muted-foreground">
+        <p className="mt-0.5 btw-meta">
           <RelativeDate date={item.created_at} />
         </p>
       </div>

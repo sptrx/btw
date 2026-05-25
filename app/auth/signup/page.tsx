@@ -87,7 +87,7 @@ export default function SignUpPage() {
     return (
       <div className="max-w-md mx-auto mt-12 sm:mt-20">
         <div className="btw-auth-panel space-y-4" role="status" aria-live="polite">
-          <h1 className="text-2xl font-semibold tracking-tight text-foreground">
+          <h1 className="btw-page-title">
             {awaitingEmail ? "Check your email" : "Account ready"}
           </h1>
           {awaitingEmail ? (
@@ -144,8 +144,8 @@ export default function SignUpPage() {
           </ul>
         </section>
         <div className="btw-auth-panel">
-        <h1 className="text-2xl font-semibold tracking-tight mb-1">Create account</h1>
-        <p className="text-muted-foreground text-sm mb-2">
+        <h1 className="btw-page-title mb-1">Create account</h1>
+        <p className="btw-lead mb-2">
           Join a community built on faith and encouragement.
         </p>
         <p className="mb-6 inline-flex items-center gap-2 text-sm text-muted-foreground">

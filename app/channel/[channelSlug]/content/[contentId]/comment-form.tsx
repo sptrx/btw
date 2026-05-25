@@ -67,7 +67,7 @@ export default function CommentForm({
         onChange={(e) => setBody(e.target.value)}
         placeholder="Encourage, ask a faith question, or share how scripture speaks to this…"
         rows={3}
-        className="w-full rounded-xl border border-input bg-background px-4 py-3 text-base text-foreground placeholder:text-muted-foreground/60 transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background sm:text-sm"
+        className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/60 transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background sm:text-base"
       />
       {hasAlreadyAcceptedDisclaimer ? (
         <div className="mt-3">

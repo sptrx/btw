@@ -22,7 +22,7 @@ export function MyChannelCardGrid({ channels }: Props) {
           key={ch.id}
           className={cn("btw-surface btw-surface-lift flex flex-col p-4 sm:p-5")}
         >
-          <h3 className="text-lg font-semibold tracking-tight">{ch.title}</h3>
+          <h3 className="btw-card-title">{ch.title}</h3>
           {ch.description && (
             <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">{ch.description}</p>
           )}

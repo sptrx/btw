@@ -52,7 +52,7 @@ export default async function ChannelPage({ params }: Props) {
           className="btw-callout-section mt-14 pt-10 border-t border-border/60"
           aria-labelledby="channel-home-add-content-heading"
         >
-          <h2 id="channel-home-add-content-heading" className="text-lg font-semibold mb-2">
+          <h2 id="channel-home-add-content-heading" className="btw-section-title mb-2">
             Add content
           </h2>
           <p className="text-sm text-muted-foreground mb-4">

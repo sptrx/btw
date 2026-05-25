@@ -10,8 +10,8 @@ export default function SignupConfirmedPage() {
   return (
     <div className="max-w-md mx-auto mt-12 sm:mt-20">
       <div className="btw-auth-panel space-y-4 text-center">
-        <h1 className="text-2xl font-semibold tracking-tight">You&apos;re confirmed</h1>
-        <p className="text-muted-foreground text-sm text-pretty">
+        <h1 className="btw-page-title">You&apos;re confirmed</h1>
+        <p className="btw-lead text-pretty">
           Your email has been verified and your BTW account is active. Sign in with the email and password you
           chose when you registered.
         </p>

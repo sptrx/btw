@@ -703,7 +703,7 @@ function Group({
 }) {
   return (
     <li role="presentation" className="py-1">
-      <div className="px-3 pt-2 pb-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+      <div className="btw-overline px-3 pt-2 pb-1">
         {label}
       </div>
       <ul role="presentation">{children}</ul>

@@ -93,7 +93,7 @@ function FeedCard({
               ·
             </span>
             <RelativeDate date={item.createdAt} className="tabular-nums shrink-0" />
-            <span className="inline-flex items-center gap-1 rounded-full border border-border/70 bg-background/80 px-1.5 py-0.5 text-[11px] uppercase tracking-wide text-muted-foreground">
+            <span className="btw-overline inline-flex items-center gap-1 rounded-full border border-border/70 bg-background/80 px-1.5 py-0.5">
               <TypeIcon type={item.type} />
               {item.type}
             </span>
@@ -112,7 +112,7 @@ function FeedCard({
 
           {item.bodySnippet ? (
             <Link href={item.href} className="mt-1.5 block">
-              <p className="text-[15px] sm:text-base text-muted-foreground leading-relaxed line-clamp-3 whitespace-pre-wrap">
+              <p className="btw-prose text-muted-foreground line-clamp-3 whitespace-pre-wrap">
                 {item.bodySnippet}
               </p>
             </Link>

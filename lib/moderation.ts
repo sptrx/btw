@@ -27,8 +27,15 @@ export type ModerateContentOptions = {
 
 type AiVerdict = {
   safety: "ok" | "flagged";
-  mission_fit: "on_mission" | "off_topic" | "political" | "pure_opinion" | "spam";
+  mission_fit:
+    | "on_mission"
+    | "borderline"
+    | "off_topic"
+    | "political"
+    | "pure_opinion"
+    | "spam";
   confidence: number;
+  needs_review?: boolean;
   suggest_edit?: string | null;
 };
 
@@ -60,16 +67,24 @@ REJECT (mission_fit = "off_topic") for:
 REJECT (mission_fit = "spam") for:
 - Scams, repetitive promotion, or fake engagement bait
 
-ALLOW (mission_fit = "on_mission") for:
-- Personal testimony and salvation/healing/deliverance stories
-- Scripture shared with personal reflection or application
-- Encouragement, prayer requests, worship reflections
-- Ministry updates tied to witness (not generic marketing)
-- Respectful faith questions
+HUMAN REVIEW (mission_fit = "borderline") — use this instead of on_mission when witness is thin:
+- Church or ministry event announcements (times, locations, RSVP, "stop by", "all welcome")
+- Small-group or church social recaps that are mostly ordinary life with only a light faith mention
+- Scripture quoted or referenced with minimal personal reflection (e.g. sticky note, "posting in case someone needs this")
+- Logistics, invitations, or information where faith is present but not the main testimony
+- When genuinely unsure between on_mission and off_topic, choose borderline (not on_mission)
+
+ALLOW (mission_fit = "on_mission") ONLY when:
+- There is a clear personal testimony, salvation/healing/deliverance story, or meaningful reflection
+- Scripture is shared with personal application—not just quoted
+- Encouragement or prayer rooted in the author's faith experience
+- Respectful faith questions with context
 - Hardship shared with trust in God (not primarily blaming political opponents)
 
+Do NOT label event announcements, verse-of-the-day posts, or social recaps as on_mission if they lack a real witness—use borderline.
+
 Respond with ONLY valid JSON (no markdown):
-{"safety":"ok"|"flagged","mission_fit":"on_mission"|"off_topic"|"political"|"pure_opinion"|"spam","confidence":0.0-1.0,"suggest_edit":"optional short tip or null"}`;
+{"safety":"ok"|"flagged","mission_fit":"on_mission"|"borderline"|"off_topic"|"political"|"pure_opinion"|"spam","confidence":0.0-1.0,"needs_review":true|false,"suggest_edit":"optional short tip or null"}`;
 
 function parseAiVerdict(raw: string): AiVerdict | null {
   const trimmed = raw.trim();
@@ -79,6 +94,7 @@ function parseAiVerdict(raw: string): AiVerdict | null {
     const parsed = JSON.parse(jsonMatch[0]) as Partial<AiVerdict>;
     const safety = parsed.safety === "flagged" ? "flagged" : "ok";
     const mission_fit =
+      parsed.mission_fit === "borderline" ||
       parsed.mission_fit === "off_topic" ||
       parsed.mission_fit === "political" ||
       parsed.mission_fit === "pure_opinion" ||
@@ -93,6 +109,7 @@ function parseAiVerdict(raw: string): AiVerdict | null {
       safety,
       mission_fit,
       confidence,
+      needs_review: parsed.needs_review === true,
       suggest_edit:
         typeof parsed.suggest_edit === "string" ? parsed.suggest_edit : null,
     };
@@ -101,7 +118,61 @@ function parseAiVerdict(raw: string): AiVerdict | null {
   }
 }
 
-function verdictToResult(verdict: AiVerdict, options?: ModerateContentOptions): ModerationResult {
+function pendingReviewResult(
+  verdict: AiVerdict,
+  category: ModerationCategory = "borderline"
+): ModerationResult {
+  const suggestEdit = verdict.suggest_edit?.trim() || undefined;
+  return {
+    allowed: true,
+    pendingReview: true,
+    category,
+    suggestEdit,
+  };
+}
+
+/** Backup when the model still labels thin witness as on_mission. */
+function looksLikeThinWitness(text: string): boolean {
+  const normalized = text.replace(/\s+/g, " ").trim();
+  if (!normalized) return false;
+
+  const witnessMarkers =
+    /\b(testimony|salvation|deliverance|met me|changed my|struggled with|repent|witness|gospel|saved me|baptism|conversion|redemption|forgave me|convicted me)\b/i;
+  const hasWitnessDepth = witnessMarkers.test(normalized);
+
+  const eventLogistics =
+    /\b(\d{1,2}\s*[-–]\s*\d{1,2}\s*(?:am|pm)|rsvp|sign[- ]?up|parking lot|potluck|bring a dish|all neighbors welcome|stop by and say hello|no signup needed)\b/i;
+  const ministryAnnouncement =
+    /\b(hosting|free breakfast|community breakfast|brief devotion|meet people who might not)\b/i;
+  if ((eventLogistics.test(normalized) || ministryAnnouncement.test(normalized)) && !hasWitnessDepth) {
+    return true;
+  }
+
+  const quotedVerse =
+    /["'"]([^"'"]{12,})["'"]\s*\(\s*[1-3]?\s*[A-Za-z]+\s+\d+:\d+/i.test(normalized) ||
+    /\b(?:romans|john|psalm|matthew|mark|luke|acts|corinthians|ephesians|philippians|colossians|hebrews|james|peter|revelation)\s+\d+:\d+/i.test(
+      normalized
+    );
+  if (quotedVerse && normalized.length < 520 && !hasWitnessDepth) {
+    return true;
+  }
+
+  const socialRecap =
+    /\b(caught up on life|busy week at work|nothing dramatic|ordinary nights|school runs|laundry)\b/i;
+  const lightFaithHook =
+    /\b(prayer|small group|home group|church community|god has placed)\b/i.test(normalized);
+  if (socialRecap.test(normalized) && lightFaithHook && !hasWitnessDepth) {
+    return true;
+  }
+
+  return false;
+}
+
+function verdictToResult(
+  verdict: AiVerdict,
+  options?: ModerateContentOptions,
+  sourceText?: string
+): ModerationResult {
   const suggestEdit = verdict.suggest_edit?.trim() || undefined;
   const strictDiscussion = options?.contentType === "discussion";
 
@@ -141,8 +212,12 @@ function verdictToResult(verdict: AiVerdict, options?: ModerateContentOptions): 
     };
   }
 
+  if (verdict.mission_fit === "borderline" || verdict.needs_review) {
+    return pendingReviewResult(verdict, "borderline");
+  }
+
   if (verdict.mission_fit === "off_topic") {
-    const blockThreshold = strictDiscussion ? 0.55 : 0.72;
+    const blockThreshold = strictDiscussion ? 0.55 : 0.68;
     if (verdict.confidence >= blockThreshold) {
       return {
         allowed: false,
@@ -151,13 +226,18 @@ function verdictToResult(verdict: AiVerdict, options?: ModerateContentOptions): 
         reason: moderationUserMessage("off_topic", suggestEdit),
       };
     }
-    if (verdict.confidence >= 0.45) {
-      return {
-        allowed: true,
-        pendingReview: true,
-        category: "off_topic",
-        suggestEdit,
-      };
+    if (verdict.confidence >= 0.32) {
+      return pendingReviewResult(verdict, "off_topic");
+    }
+  }
+
+  if (verdict.mission_fit === "on_mission") {
+    const reviewConfidence = strictDiscussion ? 0.72 : 0.68;
+    if (verdict.confidence < reviewConfidence) {
+      return pendingReviewResult(verdict, "borderline");
+    }
+    if (sourceText && looksLikeThinWitness(sourceText)) {
+      return pendingReviewResult(verdict, "borderline");
     }
   }
 
@@ -210,7 +290,7 @@ async function moderateWithOpenRouter(
   const data = await res.json();
   const reply = (data.choices?.[0]?.message?.content || "").trim();
   const verdict = parseAiVerdict(reply);
-  if (verdict) return verdictToResult(verdict, options);
+  if (verdict) return verdictToResult(verdict, options, text);
   return legacyFlaggedReply(reply);
 }
 
@@ -253,7 +333,7 @@ async function moderateWithGoogleAI(
   const data = await res.json();
   const reply = (data.candidates?.[0]?.content?.parts?.[0]?.text || "").trim();
   const verdict = parseAiVerdict(reply);
-  if (verdict) return verdictToResult(verdict, options);
+  if (verdict) return verdictToResult(verdict, options, text);
   return legacyFlaggedReply(reply);
 }
 

@@ -4,6 +4,7 @@ export type ModerationCategory =
   | "political"
   | "pure_opinion"
   | "off_topic"
+  | "borderline"
   | "spam";
 
 /** Short framing used in forms and the community guide. */
@@ -18,6 +19,8 @@ const CATEGORY_MESSAGES: Record<Exclude<ModerationCategory, "ok">, string> = {
     "This reads like general opinion or commentary rather than testimony or encouragement. Share your faith story, scripture reflection, or how God met you in this season.",
   off_topic:
     "This doesn't seem connected to faith, testimony, or encouragement. BTW is a witness platform—help others by sharing what God has done in your life.",
+  borderline:
+    "This touches faith but reads thin on personal witness. A moderator will review it before it appears publicly.",
   spam: "This looks like promotional or repetitive content. Please share genuine testimony instead.",
 };
 

@@ -1,0 +1,21 @@
+/** Shared marketing / footer navigation. */
+export const siteFooterTagline =
+  "An innovative AI powered Gospel outreach ministry by Believe The Works non profit organization";
+
+export const footerNavLinks = [
+  { href: "/about", label: "About" },
+  { href: "/donate", label: "Get involved — Donate" },
+  { href: "/contact", label: "Contact us" },
+] as const;
+
+export const footerLegalLinks = [
+  { href: "/legal/terms", label: "Terms" },
+  { href: "/legal/community-guidelines", label: "Community guidelines" },
+  { href: "/legal/content-disclaimer", label: "Content disclaimer" },
+] as const;
+
+/** Optional external donation URL (e.g. PayPal, church giving page). */
+export function donateUrl(): string | null {
+  const url = process.env.NEXT_PUBLIC_DONATE_URL?.trim();
+  return url && url.startsWith("http") ? url : null;
+}

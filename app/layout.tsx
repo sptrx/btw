@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Inter, Playfair_Display } from "next/font/google";
 import Script from "next/script";
 import Header from "@/components/header";
+import { SiteFooter } from "@/components/site-footer";
 import { ThemeProvider } from "@/components/theme-provider";
 import { AuthListener } from "@/components/auth-listener";
 import { SkipLink } from "@/components/skip-link";
@@ -86,6 +87,7 @@ export default function RootLayout({
           >
             {children}
           </main>
+          <SiteFooter />
         </ThemeProvider>
       </body>
     </html>

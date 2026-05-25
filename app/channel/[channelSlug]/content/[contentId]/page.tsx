@@ -10,12 +10,14 @@ import {
   isChannelAuthor,
 } from "@/actions/channels";
 import DeleteContentButton from "./delete-content-button";
-import { getCurrentUser, hasAcceptedContentDisclaimer } from "@/actions";
+import { getCurrentUser, getProfile, hasAcceptedContentDisclaimer } from "@/actions";
 import { isContentKept } from "@/actions/library";
 import ContentActions from "./content-actions";
 import { ReportContentButton } from "@/components/report-content-button";
 import { PendingReviewNotice } from "@/components/pending-review-notice";
 import { ContentRejectedNotice } from "@/components/content-rejected-notice";
+import { ModerationReviewActions } from "@/components/moderation-review-actions";
+import { isSiteModerator } from "@/lib/site-roles";
 import { Button } from "@/components/ui/button";
 import CommentForm from "./comment-form";
 import CommentList from "./comment-list";
@@ -36,6 +38,9 @@ export default async function ChannelContentPage({ params }: Props) {
   ]);
 
   if (!content || !channel) notFound();
+
+  const profile = user ? await getProfile(user.id) : null;
+  const isModerator = isSiteModerator(profile?.role);
 
   const [comments, feedbackCounts, shareCount, hasLiked, hasHelpful, hasKept, isAuthor, hasAlreadyAcceptedDisclaimer] = await Promise.all([
     getComments(contentId),
@@ -89,6 +94,26 @@ export default async function ChannelContentPage({ params }: Props) {
 
       {moderationStatus === "rejected" && isAuthor ? (
         <ContentRejectedNotice note={moderationNote} className="mb-4" />
+      ) : null}
+
+      {moderationStatus === "pending_review" && isModerator ? (
+        <div className="mb-4 rounded-xl border border-border bg-muted/25 px-4 py-4">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <p className="text-sm font-semibold text-foreground">Staff review</p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                This post is waiting in the moderation queue.
+              </p>
+              <Link
+                href="/dashboard/moderation"
+                className="mt-2 inline-flex text-sm text-primary hover:underline"
+              >
+                Back to moderation dashboard
+              </Link>
+            </div>
+            <ModerationReviewActions contentId={contentId} />
+          </div>
+        </div>
       ) : null}
 
       <div className="btw-content-panel mb-6">

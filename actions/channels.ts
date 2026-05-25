@@ -15,6 +15,7 @@ import {
 import { replaceChannelTags, replacePostTags } from "@/actions/tags";
 import { createNotification } from "@/actions/notifications";
 import { contentTypeLabel, type ContentType } from "@/lib/content-types";
+import { isSiteModerator } from "@/lib/site-roles";
 import type { ProfileNameSnippet } from "@/lib/profile-fields";
 
 export type { ContentType };
@@ -1522,7 +1523,11 @@ export async function getContentById(
     const isOwner =
       viewerId &&
       (viewerId === data.author_id || viewerId === topicRow?.author_id);
-    if (!isOwner) return null;
+    if (!isOwner) {
+      if (!viewerId) return null;
+      const viewerProfile = await getProfile(viewerId);
+      if (!isSiteModerator(viewerProfile?.role)) return null;
+    }
   }
 
   const profile = await getProfile(data.author_id);

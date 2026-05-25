@@ -51,18 +51,9 @@ export function LandingHome({ displayFontClassName, feed = [], isAuthenticated =
           <div className="relative z-10 container mx-auto max-w-6xl px-4 sm:px-5 pt-14 pb-8 sm:pt-16 sm:pb-10 md:pt-20 md:pb-12">
             <div className="max-w-xl space-y-5 sm:max-w-2xl sm:space-y-6">
               <div className="space-y-2.5 sm:space-y-3">
-                <p className="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-xs font-medium uppercase tracking-[0.12em] text-amber-200/95 sm:text-sm [text-shadow:0_1px_3px_rgba(0,0,0,0.6)]">
-                  <span className="flex items-center gap-2.5">
-                    <span aria-hidden className="h-px w-6 shrink-0 bg-amber-300/85 sm:w-8" />
-                    <span>Believe The Works</span>
-                  </span>
-                  <span className="text-amber-200/60" aria-hidden>
-                    ·
-                  </span>
-                  <span className="normal-case tracking-normal text-amber-200/85">John 10:38</span>
-                </p>
+                
                 <p className="max-w-lg text-pretty text-sm leading-relaxed text-amber-100/85 sm:text-base sm:leading-relaxed [text-shadow:0_1px_4px_rgba(0,0,0,0.5)]">
-                  An invitation to weigh the actions and evidence of Jesus Christ when words alone are hard to accept.
+                  An invitation to weigh the actions and evidence of Jesus Christ when words alone are hard to accept. John 10:38
                 </p>
               </div>
               <h1
@@ -82,8 +73,7 @@ export function LandingHome({ displayFontClassName, feed = [], isAuthenticated =
                   As it is written, they overcame by the word of their testimony.
                 </p>
                 <p className="text-pretty text-sm leading-relaxed text-stone-100 sm:text-[15px] sm:leading-7 md:text-base [text-shadow:0_1px_2px_rgba(0,0,0,0.85),0_2px_12px_rgba(0,0,0,0.65)]">
-                  Sign up, start a channel, and share what God has done—through posts, photos,
-                  podcasts, or video. Your witness may strengthen another.
+                Sign up, create your channel, and share your story of what God has done through posts, photos, podcasts, or video. Your testimony could be the encouragement someone needs today.
                 </p>
               </div>
             </div>

@@ -106,12 +106,12 @@ export function HeaderContent({ user, showMyChannels, showModeration, avatarUrl,
         >
           <Image
             //src="/assets/btw-logo-converted-04.svg"
-            src="/assets/btw-logo-withought-gold-shipe-in-b-export-bright-blue.svg" 
+            src="/assets/btw-logo-v6-deploy.svg" 
             alt="Believe The Works"
-            width={1536}
-            height={1024}
+            width={1200}
+            height={800}
             priority
-            className="h-16 w-auto shrink-0 object-contain sm:h-35"
+            className="h-10 w-auto shrink-0 object-contain sm:h-35"
           />
         </Link>
 

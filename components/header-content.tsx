@@ -145,10 +145,10 @@ export function HeaderContent({ user, showMyChannels, showModeration, avatarUrl,
           )}
         >
           <Image
-            src="/assets/btw-logo-v6-deploy.svg"
+            src="/assets/deepseek_svg_btw.svg"
             alt="Believe The Works"
-            width={700}
-            height={200}
+            width={1000}
+            height={500}
             priority
             className="h-auto max-h-9 w-full max-w-[min(100%,13.5rem)] object-contain object-left sm:max-h-10 md:max-w-[14rem] lg:max-w-[17rem]"
           />

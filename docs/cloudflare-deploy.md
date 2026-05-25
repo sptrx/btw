@@ -167,7 +167,7 @@ The app sends `redirectTo: ${window.location.origin}/auth/callback?next=/auth/re
 The **“Your password was changed”** email is configured in Supabase, not in this app repo’s runtime code. The template lives at `supabase/templates/password_changed.html` and is referenced from `supabase/config.toml`.
 
 - **Do not** use markdown like `[/auth/forgot-password]Reset password now` — that will not render as a link. Use HTML: `<a href="{{ .SiteURL }}/auth/forgot-password">Reset password now</a>`.
-- Deploy to the linked project: `supabase config push` (from the `btw` directory).
+- Deploy to the linked project: `npx supabase@2.84.4 config push` (from the `btw` directory).
 - Or paste the HTML from `supabase/templates/password_changed.html` into the dashboard: **Authentication** → **Email Templates** → **Password changed** (security notification).
 
 ## 8. CI/CD (optional)
@@ -180,6 +180,8 @@ Cloudflare’s Workers pipeline often runs **`npm run build`** (`next build` onl
 2. **Single command** for build+deploy: `npm ci && npm run cf:deploy` (includes **`--keep-vars`**; set Build variables so `NEXT_PUBLIC_*` are available during `cf:build`).
 
 `opennextjs-cloudflare build` runs `next build` internally, so you must **not** set `package.json`’s `"build"` script to `opennextjs-cloudflare build` (that would recurse).
+
+**Cloudflare build fails on `supabase` postinstall:** The Supabase **CLI** is not an npm dependency in this repo (it used to download a binary from GitHub during `npm ci`, which often fails on Workers Builds with `socket hang up`). Use `npx supabase@2.84.4 …` locally for migrations and `config push`. Runtime uses `@supabase/supabase-js` only.
 
 - Connect the Git repo in **Workers & Pages** → **Create** → **Connect to Git**, **or**
 - In GitHub Actions, set `CLOUDFLARE_API_TOKEN` and run `npm ci && npm run cf:deploy` (with production env available during `cf:build`).

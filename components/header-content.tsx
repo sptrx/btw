@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import { BtwLogo } from "@/components/btw-logo";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { User } from "@supabase/supabase-js";
@@ -30,7 +30,6 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { GlobalSearch } from "@/components/global-search/global-search";
 import { NotificationBell } from "@/components/notification-bell";
 import { bibleAiPublicAskUrl } from "@/lib/bible-ai-config";
-import { btwDisplayFont } from "@/lib/btw-ui";
 import { cn } from "@/lib/utils";
 
 import { UserAvatar } from "@/components/user-avatar";
@@ -74,8 +73,6 @@ const navLinks = [
 ];
 
 const MOBILE_NAV_ID = "mobile-primary-nav";
-
-const displayFont = btwDisplayFont;
 
 const dropdownItemClass =
   "flex w-full cursor-pointer items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm text-foreground no-underline outline-none transition-colors focus:bg-accent focus:text-accent-foreground data-[highlighted]:bg-accent data-[highlighted]:text-accent-foreground";
@@ -137,22 +134,11 @@ export function HeaderContent({ user, showMyChannels, showModeration, avatarUrl,
     >
       <div className="container mx-auto flex max-w-6xl items-center gap-3 px-3 py-2.5 sm:px-5 sm:py-3">
         {/* Logo — full width on mobile minus menu; no grid wrap */}
-        <Link
+        <BtwLogo
           href="/"
-          className={cn(
-            "flex min-w-0 flex-1 items-center rounded-lg px-1 -ml-1 text-foreground transition-colors hover:bg-accent/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background md:flex-none",
-            displayFont
-          )}
-        >
-          <Image
-            src="/assets/deepseek_svg_btw.svg"
-            alt="Believe The Works"
-            width={1000}
-            height={500}
-            priority
-            className="h-auto max-h-9 w-full max-w-[min(100%,13.5rem)] object-contain object-left sm:max-h-10 md:max-w-[14rem] lg:max-w-[17rem]"
-          />
-        </Link>
+          priority
+          linkClassName="flex min-w-0 flex-1 items-center rounded-lg px-1 -ml-1 transition-colors hover:bg-accent/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background md:flex-none"
+        />
 
         {/* Desktop nav — centered between logo and actions */}
         <nav

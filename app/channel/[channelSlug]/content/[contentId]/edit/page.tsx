@@ -15,7 +15,8 @@ type Props = { params: Promise<{ channelSlug: string; contentId: string }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { contentId } = await params;
-  const content = await getContentById(contentId);
+  const user = await getCurrentUser();
+  const content = await getContentById(contentId, { viewerUserId: user?.id });
   if (!content) return { title: "Edit content" };
   return { title: `Edit · ${content.title}` };
 }
@@ -23,14 +24,15 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function EditContentPage({ params }: Props) {
   const { channelSlug, contentId } = await params;
 
-  const [channel, content, user] = await Promise.all([
+  const user = await getCurrentUser();
+  if (!user) redirect(`/auth/login?next=/channel/${channelSlug}/content/${contentId}/edit`);
+
+  const [channel, content] = await Promise.all([
     getChannelBySlug(channelSlug),
-    getContentById(contentId),
-    getCurrentUser(),
+    getContentById(contentId, { viewerUserId: user.id }),
   ]);
 
   if (!channel || !content) notFound();
-  if (!user) redirect(`/auth/login?next=/channel/${channelSlug}/content/${contentId}/edit`);
 
   const author = await isChannelAuthor(channel.id);
   if (!author) redirect(`/channel/${channelSlug}/content/${contentId}`);

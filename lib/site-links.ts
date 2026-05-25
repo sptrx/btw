@@ -1,6 +1,6 @@
 /** Shared marketing / footer navigation. */
 export const siteFooterTagline =
-  "An innovative AI powered Gospel outreach ministry by Believe The Works non profit organization";
+  "An AI‑powered Gospel initiative by Believe The Works nonprofit organization, advancing the Gospel for the digital age.";
 
 export const footerNavLinks = [
   { href: "/about", label: "About" },

@@ -10,30 +10,7 @@ function apiKey(): string {
   return (process.env.BIBLE_AI_API_KEY ?? "").trim();
 }
 
-export type ScriptureGuideInput = {
-  message: string;
-  threadContext: string;
-  pageContext?: string;
-  translationId?: string;
-};
-
-/**
- * Server-to-server call to bible-ai `/api/v1/guide`.
- * Set BIBLE_AI_BASE_URL (e.g. http://localhost:3040) for local/dev; production defaults to the hosted
- * bible-ai origin in bible-ai-config. Optionally set BIBLE_AI_API_KEY to match bible-ai's shared secret.
- */
-export async function fetchScriptureGuideReply(
-  input: ScriptureGuideInput
-): Promise<{ response: string } | { error: string }> {
-  const base = baseUrl();
-  if (!base) {
-    return {
-      error:
-        "Scripture guide URL is not configured. Set BIBLE_AI_BASE_URL for local development.",
-    };
-  }
-
-  const url = `${base}/api/v1/guide`;
+function authHeaders(): Record<string, string> {
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
   };
@@ -41,48 +18,126 @@ export async function fetchScriptureGuideReply(
   if (key) {
     headers.Authorization = `Bearer ${key}`;
   }
+  return headers;
+}
 
-  const controller = new AbortController()
-  const timeout = setTimeout(() => controller.abort(), 15_000)
+export type BibleAiCitation = {
+  book: string;
+  abbrev: string;
+  chapter: number;
+  verse: number;
+};
+
+export type ScriptureGuideInput = {
+  message: string;
+  threadContext: string;
+  pageContext?: string;
+  translationId?: string;
+};
+
+export type BibleExplanationInput = {
+  message: string;
+  translationId?: string;
+  messages?: Array<{ role: "user" | "assistant"; content: string }>;
+};
+
+type BibleAiSuccess = {
+  response: string;
+  citations?: BibleAiCitation[];
+};
+
+type BibleAiError = { error: string };
+
+async function postBibleAi<TBody extends Record<string, unknown>>(
+  path: string,
+  body: TBody,
+  timeoutMs = 15_000,
+): Promise<BibleAiSuccess | BibleAiError> {
+  const base = baseUrl();
+  if (!base) {
+    return {
+      error:
+        "xgesis.ai URL is not configured. Set BIBLE_AI_BASE_URL for local development.",
+    };
+  }
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
 
   let res: Response;
   try {
-    res = await fetch(url, {
+    res = await fetch(`${base}${path}`, {
       method: "POST",
-      headers,
-      body: JSON.stringify({
-        message: input.message,
-        threadContext: input.threadContext,
-        pageContext: input.pageContext,
-        translationId: input.translationId ?? "kjv",
-      }),
+      headers: authHeaders(),
+      body: JSON.stringify(body),
       cache: "no-store",
       signal: controller.signal,
     });
   } catch (e) {
     const msg = e instanceof Error ? e.message : "Network error";
     const isTimeout = e instanceof Error && e.name === "AbortError";
-    return { error: isTimeout ? "Scripture guide timed out (>15 s). Your comment was posted." : `Scripture guide unreachable: ${msg}` };
+    return {
+      error: isTimeout
+        ? `xgesis.ai request timed out (>${Math.round(timeoutMs / 1000)} s).`
+        : `xgesis.ai unreachable: ${msg}`,
+    };
   } finally {
-    clearTimeout(timeout)
+    clearTimeout(timeout);
   }
 
   const data = (await res.json()) as {
     error?: string;
     response?: string;
     hint?: string;
+    citations?: BibleAiCitation[];
   };
 
   if (!res.ok) {
-    const detail = data.hint ? `${data.error ?? "Error"}\n${data.hint}` : data.error ?? "Guide request failed";
+    const detail = data.hint
+      ? `${data.error ?? "Error"}\n${data.hint}`
+      : data.error ?? "Request failed";
     return { error: detail };
   }
 
   if (!data.response?.trim()) {
-    return { error: "Empty response from Scripture guide." };
+    return { error: "Empty response from xgesis.ai." };
   }
 
-  return { response: data.response.trim() };
+  return {
+    response: data.response.trim(),
+    citations: data.citations,
+  };
+}
+
+/**
+ * Thread commentary for comment threads (BTW Scripture guide checkbox).
+ * Uses POST /api/v1/commentary on the hosted xgesis.ai / bible-ai service.
+ */
+export async function fetchScriptureGuideReply(
+  input: ScriptureGuideInput,
+): Promise<{ response: string } | { error: string }> {
+  const result = await postBibleAi("/api/v1/commentary", {
+    message: input.message,
+    threadContext: input.threadContext,
+    pageContext: input.pageContext,
+    translationId: input.translationId ?? "kjv",
+  });
+
+  if ("error" in result) return result;
+  return { response: result.response };
+}
+
+/**
+ * Passage, theme, or verse explanations with optional short conversation history.
+ */
+export async function fetchBibleExplanation(
+  input: BibleExplanationInput,
+): Promise<BibleAiSuccess | BibleAiError> {
+  return postBibleAi("/api/v1/explain", {
+    message: input.message,
+    translationId: input.translationId ?? "kjv",
+    messages: input.messages ?? [],
+  });
 }
 
 export function isScriptureGuideConfigured(): boolean {

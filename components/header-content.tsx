@@ -137,7 +137,8 @@ export function HeaderContent({ user, showMyChannels, showModeration, avatarUrl,
         <BtwLogo
           href="/"
           priority
-          linkClassName="flex min-w-0 flex-1 items-center rounded-lg px-1 -ml-1 transition-colors hover:bg-accent/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background md:flex-none"
+          size="header"
+          linkClassName="flex shrink-0 items-center rounded-lg px-1 -ml-1 transition-colors hover:bg-accent/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
         />
 
         {/* Desktop nav — centered between logo and actions */}

@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { Bell, Heart, MessageCircle, Loader2 } from "lucide-react";
+import { Bell, Heart, MessageCircle, Loader2, ShieldAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { RelativeDate } from "@/components/relative-date";
 import { cn } from "@/lib/utils";
@@ -195,8 +195,63 @@ function NotificationRow({
   item: NotificationItem;
   onNavigate: () => void;
 }) {
-  const actorName = item.actor.display_name?.trim() || "Someone";
   const isUnread = item.read_at === null;
+
+  if (item.type === "moderation_rejected") {
+    const body = (
+      <div className="flex items-start gap-3 px-3 py-2.5">
+        <div className="relative mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-destructive/10">
+          <ShieldAlert className="h-3.5 w-3.5 text-destructive" aria-hidden />
+          {isUnread && (
+            <span
+              aria-hidden
+              className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-destructive ring-2 ring-popover"
+            />
+          )}
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="text-sm">
+            <span className="font-medium">Your post was not approved</span>
+            {item.content_title && (
+              <>
+                {": "}
+                <span className="font-medium">{item.content_title}</span>
+              </>
+            )}
+          </p>
+          {item.detail && (
+            <p className="mt-0.5 line-clamp-3 text-xs text-muted-foreground">
+              {item.detail}
+            </p>
+          )}
+          <p className="mt-0.5 text-[11px] text-muted-foreground">
+            Edit and submit again
+            {" · "}
+            <RelativeDate date={item.created_at} />
+          </p>
+        </div>
+      </div>
+    );
+
+    return (
+      <li role="menuitem" className={cn(isUnread && "bg-muted/40")}>
+        {item.href ? (
+          <Link
+            href={item.href}
+            prefetch={false}
+            onClick={onNavigate}
+            className="block hover:bg-muted focus-visible:outline-none focus-visible:bg-muted"
+          >
+            {body}
+          </Link>
+        ) : (
+          <div className="opacity-70">{body}</div>
+        )}
+      </li>
+    );
+  }
+
+  const actorName = item.actor.display_name?.trim() || "Someone";
   const Icon = item.type === "like" ? Heart : MessageCircle;
   const iconTint = item.type === "like" ? "text-rose-500" : "text-primary";
   const action = item.type === "like" ? "liked your post" : "commented on your post";

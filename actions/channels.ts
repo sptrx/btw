@@ -3,7 +3,7 @@
 import { createClient } from "@/utils/supabase/server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { moderateContent, isMissingModerationStatusColumn, approvedModerationOrFilter } from "@/lib/moderation";
+import { moderateContent, isMissingModerationStatusColumn, isMissingModerationNoteColumn, approvedModerationOrFilter } from "@/lib/moderation";
 import { PENDING_REVIEW_MESSAGE } from "@/lib/moderation-messages";
 import { fetchScriptureGuideReply, isScriptureGuideConfigured } from "@/lib/bible-ai";
 import {
@@ -1142,12 +1142,21 @@ export async function updateContent(contentId: string, formData: FormData) {
     media_urls: mediaUrls,
     is_featured: isFeatured,
     moderation_status: moderationStatus,
+    moderation_note: null,
   };
 
   let { error: upErr } = await supabase
     .from("topic_content")
     .update(updatePayload)
     .eq("id", contentId);
+
+  if (upErr && isMissingModerationNoteColumn(upErr)) {
+    delete updatePayload.moderation_note;
+    ({ error: upErr } = await supabase
+      .from("topic_content")
+      .update(updatePayload)
+      .eq("id", contentId));
+  }
 
   if (upErr && isMissingModerationStatusColumn(upErr)) {
     delete updatePayload.moderation_status;
@@ -1466,7 +1475,7 @@ export async function getContentById(
 ) {
   const supabase = await createClient();
   const baseCols =
-    "id, topic_id, page_id, type, title, body, media_urls, created_at, author_id, moderation_status";
+    "id, topic_id, page_id, type, title, body, media_urls, created_at, author_id, moderation_status, moderation_note";
   let { data, error } = await supabase
     .from("topic_content")
     .select(`${baseCols}, is_featured`)
@@ -1481,6 +1490,14 @@ export async function getContentById(
         .select(baseCols)
         .eq("id", contentId)
         .single());
+    } else if (isMissingModerationNoteColumn(error)) {
+      ({ data, error } = await supabase
+        .from("topic_content")
+        .select(
+          "id, topic_id, page_id, type, title, body, media_urls, created_at, author_id, moderation_status, is_featured"
+        )
+        .eq("id", contentId)
+        .single());
     } else if (isMissingModerationStatusColumn(error)) {
       ({ data, error } = await supabase
         .from("topic_content")
@@ -1493,6 +1510,8 @@ export async function getContentById(
 
   const moderationStatus =
     (data as { moderation_status?: string | null }).moderation_status ?? "approved";
+  const moderationNote =
+    (data as { moderation_note?: string | null }).moderation_note ?? null;
   if (moderationStatus !== "approved") {
     const { data: topicRow } = await supabase
       .from("topics")
@@ -1510,6 +1529,7 @@ export async function getContentById(
   return {
     ...data,
     moderation_status: moderationStatus,
+    moderation_note: moderationNote,
     is_featured: (data as { is_featured?: boolean | null }).is_featured ?? false,
     profiles: profile ? { display_name: profile.display_name } : null,
   };

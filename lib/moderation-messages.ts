@@ -38,5 +38,8 @@ export function moderationUserMessage(
 export const PENDING_REVIEW_MESSAGE =
   "Thanks for sharing. Your post is in our review queue and will appear once it aligns with our community purpose.";
 
+export const REJECTED_CONTENT_MESSAGE =
+  "This post was not approved for our community purpose. You can edit it and submit again.";
+
 export const MODERATION_UNAVAILABLE_MESSAGE =
   "We couldn't verify this content right now. Please try again in a moment.";

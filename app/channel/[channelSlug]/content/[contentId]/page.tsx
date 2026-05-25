@@ -14,7 +14,8 @@ import { getCurrentUser, hasAcceptedContentDisclaimer } from "@/actions";
 import { isContentKept } from "@/actions/library";
 import ContentActions from "./content-actions";
 import { ReportContentButton } from "@/components/report-content-button";
-import { PENDING_REVIEW_MESSAGE } from "@/lib/moderation-messages";
+import { PendingReviewNotice } from "@/components/pending-review-notice";
+import { ContentRejectedNotice } from "@/components/content-rejected-notice";
 import { Button } from "@/components/ui/button";
 import CommentForm from "./comment-form";
 import CommentList from "./comment-list";
@@ -70,6 +71,8 @@ export default async function ChannelContentPage({ params }: Props) {
 
   const moderationStatus =
     (content as { moderation_status?: string | null }).moderation_status ?? "approved";
+  const moderationNote =
+    (content as { moderation_note?: string | null }).moderation_note ?? null;
 
   return (
     <div>
@@ -81,12 +84,11 @@ export default async function ChannelContentPage({ params }: Props) {
       </Link>
 
       {moderationStatus === "pending_review" && isAuthor ? (
-        <p
-          className="mb-4 rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-foreground"
-          role="status"
-        >
-          {PENDING_REVIEW_MESSAGE}
-        </p>
+        <PendingReviewNotice className="mb-4" />
+      ) : null}
+
+      {moderationStatus === "rejected" && isAuthor ? (
+        <ContentRejectedNotice note={moderationNote} className="mb-4" />
       ) : null}
 
       <div className="btw-content-panel mb-6">

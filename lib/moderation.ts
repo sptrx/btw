@@ -410,6 +410,15 @@ export function isMissingModerationStatusColumn(err: {
   return msg.includes("moderation_status");
 }
 
+export function isMissingModerationNoteColumn(err: {
+  message?: string;
+  code?: string;
+} | null): boolean {
+  if (!err) return false;
+  const msg = (err.message ?? "").toLowerCase();
+  return msg.includes("moderation_note");
+}
+
 /** PostgREST filter: approved content only (includes legacy rows before migration). */
 export function approvedModerationOrFilter(column = "moderation_status"): string {
   return `${column}.eq.approved,${column}.is.null`;

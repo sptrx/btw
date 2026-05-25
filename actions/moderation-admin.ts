@@ -7,6 +7,7 @@ import { contentTypeLabel, type ContentType } from "@/lib/content-types";
 import { isSiteModerator } from "@/lib/site-roles";
 import type { ReportReason } from "@/lib/report-reasons";
 import { REPORT_REASONS } from "@/lib/report-reasons";
+import { createModerationRejectedNotification } from "@/actions/notifications";
 
 export type ModerationQueueItem = {
   id: string;
@@ -208,7 +209,7 @@ export async function approveModeratedContent(
 
   const { error } = await supabase
     .from("topic_content")
-    .update({ moderation_status: "approved" })
+    .update({ moderation_status: "approved", moderation_note: null })
     .eq("id", contentId);
 
   if (error) {
@@ -221,15 +222,18 @@ export async function approveModeratedContent(
 }
 
 export async function rejectModeratedContent(
-  contentId: string
+  contentId: string,
+  note?: string | null
 ): Promise<{ success: true } | { error: string }> {
   const gate = await requireModerator();
   if ("error" in gate) return gate;
 
+  const trimmedNote = note?.trim().slice(0, 1000) || null;
+
   const supabase = await createClient();
   const { data: row } = await supabase
     .from("topic_content")
-    .select("id, topics:topic_id(slug)")
+    .select("id, author_id, topics:topic_id(slug)")
     .eq("id", contentId)
     .maybeSingle();
 
@@ -241,12 +245,24 @@ export async function rejectModeratedContent(
 
   const { error } = await supabase
     .from("topic_content")
-    .update({ moderation_status: "rejected" })
+    .update({
+      moderation_status: "rejected",
+      moderation_note: trimmedNote,
+    })
     .eq("id", contentId);
 
   if (error) {
     console.error("[rejectModeratedContent]", error.message);
     return { error: "Could not reject this post." };
+  }
+
+  if (row.author_id) {
+    await createModerationRejectedNotification({
+      recipientId: row.author_id,
+      actorId: gate.userId,
+      topicContentId: contentId,
+      detail: trimmedNote,
+    });
   }
 
   revalidateModerationPaths(topic?.slug, contentId);

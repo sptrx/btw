@@ -11,6 +11,7 @@ import {
   ContentSubmissionDisclaimerAccepted,
 } from "@/components/content-submission-disclaimer";
 import { ContentMissionHint } from "@/components/content-mission-hint";
+import { PendingReviewNotice } from "@/components/pending-review-notice";
 import { TopicTagPicker } from "@/components/tags/topic-tag-picker";
 
 const CONTENT_TYPES = [
@@ -55,7 +56,7 @@ export default function EditContentForm({
   hasAlreadyAcceptedDisclaimer = false,
 }: Props) {
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
+  const [pendingReviewMessage, setPendingReviewMessage] = useState<string | null>(null);
   const initialMedia = (content.media_urls as MediaItem[] | null) ?? [];
   const [mediaUrls, setMediaUrls] = useState<MediaItem[]>(
     Array.isArray(initialMedia) ? initialMedia.filter((m) => m?.url) : []
@@ -98,7 +99,7 @@ export default function EditContentForm({
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
-    setSuccess(null);
+    setPendingReviewMessage(null);
     if (!effectiveAccepted) {
       setError("Please read and accept the content disclaimer before saving.");
       return;
@@ -120,7 +121,7 @@ export default function EditContentForm({
         return;
       }
       if (res && "pendingReview" in res && res.pendingReview) {
-        setSuccess(res.message ?? "Your changes are in review.");
+        setPendingReviewMessage(res.message ?? "");
         return;
       }
       router.push(`/channel/${channelSlug}/content/${content.id}?updated=1`);
@@ -275,11 +276,9 @@ export default function EditContentForm({
         />
       )}
 
-      {success && (
-        <p className="rounded-lg border border-border bg-muted/50 px-3 py-2 text-sm text-foreground" role="status">
-          {success}
-        </p>
-      )}
+      {pendingReviewMessage !== null ? (
+        <PendingReviewNotice message={pendingReviewMessage || undefined} />
+      ) : null}
 
       {error && (
         <p

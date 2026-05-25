@@ -6,7 +6,7 @@ import { getProfile } from "@/actions";
 /** Maximum rows returned to the bell dropdown — anything older is fetched on demand. */
 const NOTIFICATIONS_PAGE_SIZE = 20;
 
-export type NotificationType = "comment" | "like";
+export type NotificationType = "comment" | "like" | "moderation_rejected";
 
 /** Hydrated row shape returned to the bell UI. */
 export type NotificationItem = {
@@ -24,6 +24,8 @@ export type NotificationItem = {
   content_title: string | null;
   /** Comment preview, when the notification is a comment. */
   comment_preview: string | null;
+  /** Moderator feedback when a post is rejected. */
+  detail: string | null;
 };
 
 type RawNotificationRow = {
@@ -34,6 +36,7 @@ type RawNotificationRow = {
   actor_id: string;
   topic_content_id: string | null;
   comment_id: string | null;
+  detail: string | null;
 };
 
 /** Returned when the migration hasn't been applied yet in this env. */
@@ -58,7 +61,7 @@ export async function getMyNotifications(): Promise<NotificationItem[]> {
 
   const { data, error } = await supabase
     .from("notifications")
-    .select("id, type, created_at, read_at, actor_id, topic_content_id, comment_id")
+    .select("id, type, created_at, read_at, actor_id, topic_content_id, comment_id, detail")
     .eq("recipient_id", user.id)
     .order("created_at", { ascending: false })
     .limit(NOTIFICATIONS_PAGE_SIZE);
@@ -149,6 +152,7 @@ export async function getMyNotifications(): Promise<NotificationItem[]> {
       href,
       content_title: content?.title ?? null,
       comment_preview: commentBody ? truncate(commentBody, 140) : null,
+      detail: r.detail?.trim() || null,
     };
   });
 }
@@ -214,7 +218,7 @@ export async function markAllNotificationsRead(): Promise<{ success: true } | { 
 export async function createNotification(params: {
   recipientId: string;
   actorId: string;
-  type: NotificationType;
+  type: Exclude<NotificationType, "moderation_rejected">;
   topicContentId: string;
   commentId?: string | null;
 }): Promise<void> {
@@ -235,5 +239,31 @@ export async function createNotification(params: {
     // 23505 = unique_violation (already-notified like). Treat as a no-op.
     if (code === "23505") return;
     console.error("[notifications] create", error);
+  }
+}
+
+/** Notify a content author that a moderator rejected their post. */
+export async function createModerationRejectedNotification(params: {
+  recipientId: string;
+  actorId: string;
+  topicContentId: string;
+  detail?: string | null;
+}): Promise<void> {
+  if (params.recipientId === params.actorId) return;
+
+  const supabase = await createClient();
+  const detail = params.detail?.trim().slice(0, 1000) || null;
+  const { error } = await supabase.from("notifications").insert({
+    recipient_id: params.recipientId,
+    actor_id: params.actorId,
+    type: "moderation_rejected",
+    topic_content_id: params.topicContentId,
+    comment_id: null,
+    detail,
+  });
+
+  if (error) {
+    if (isMissingNotificationsRelation(error)) return;
+    console.error("[notifications] moderation rejected", error);
   }
 }

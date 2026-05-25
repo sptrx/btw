@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
 import { DropdownMenu } from "radix-ui";
+import { useTheme } from "next-themes";
 import { signOut } from "@/actions";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -74,12 +75,18 @@ const dropdownItemClass =
 
 export function HeaderContent({ user, showMyChannels, showModeration, avatarUrl, profileDisplayName }: Props) {
   const pathname = usePathname();
+  const { setTheme, resolvedTheme } = useTheme();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [themeMounted, setThemeMounted] = useState(false);
   const userLabel = user
     ? profileDisplayName?.trim() || headerDisplayName(user)
     : null;
 
   const closeMobile = useCallback(() => setMobileOpen(false), []);
+
+  useEffect(() => {
+    setThemeMounted(true);
+  }, []);
 
   useEffect(() => {
     if (!mobileOpen) return;
@@ -92,26 +99,25 @@ export function HeaderContent({ user, showMyChannels, showModeration, avatarUrl,
 
   return (
     <header
-      className="sticky top-0 z-50 w-full border-b border-header bg-[oklch(0.72_0.04_108)]/95 pt-[env(safe-area-inset-top)] shadow-[0_1px_0_0_var(--header-border)] backdrop-blur-sm transition-[background,box-shadow,border-color] duration-300 dark:border-border/50 dark:bg-neutral-900/90 dark:shadow-none dark:backdrop-blur-md"
+      className="sticky top-0 z-50 w-full overflow-x-clip border-b border-header bg-[oklch(0.72_0.04_108)]/95 pt-[env(safe-area-inset-top)] shadow-[0_1px_0_0_var(--header-border)] backdrop-blur-sm transition-[background,box-shadow,border-color] duration-300 dark:border-border/50 dark:bg-neutral-900/90 dark:shadow-none dark:backdrop-blur-md"
       role="banner"
     >
-      <div className="container mx-auto flex min-h-14 max-w-6xl items-center justify-between gap-2 px-4 pt-3 pb-1 sm:px-5 sm:pt-4 sm:pb-2">
-        {/* Logo — left-anchored brand mark */}
+      <div className="container mx-auto grid max-w-6xl grid-cols-[minmax(0,1fr)_auto] items-center gap-2 px-3 py-2 sm:px-5 sm:py-3">
+        {/* Logo — wide wordmark; width-capped on small screens so actions stay visible */}
         <Link
           href="/"
           className={cn(
-            "flex min-h-11 shrink-0 items-center gap-1.5 rounded-lg px-1 -ml-1 text-foreground transition-colors hover:bg-accent/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+            "flex min-h-10 min-w-0 items-center rounded-lg px-1 -ml-1 text-foreground transition-colors hover:bg-accent/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
             displayFont
           )}
         >
           <Image
-            //src="/assets/btw-logo-converted-04.svg"
-            src="/assets/btw-logo-v6-deploy.svg" 
+            src="/assets/btw-logo-v6-deploy.svg"
             alt="Believe The Works"
-            width={1200}
-            height={800}
+            width={551}
+            height={72}
             priority
-            className="h-10 w-auto shrink-0 object-contain sm:h-35"
+            className="h-auto max-h-8 w-[min(42vw,9.75rem)] object-contain object-left sm:max-h-9 sm:w-[min(36vw,12rem)] md:max-h-10 md:w-auto md:max-w-[14rem] lg:max-w-[17rem]"
           />
         </Link>
 
@@ -150,10 +156,10 @@ export function HeaderContent({ user, showMyChannels, showModeration, avatarUrl,
         </nav>
 
         {/* Right: search, theme, account */}
-        <div className="flex min-w-0 items-center gap-2">
-          <GlobalSearch />
-          {user && <NotificationBell />}
-          <ThemeToggle />
+        <div className="flex shrink-0 items-center gap-0.5 sm:gap-1.5 md:gap-2">
+          <GlobalSearch className="size-10 sm:size-11" />
+          {user && <NotificationBell className="size-10 sm:size-11" />}
+          <ThemeToggle className="hidden sm:inline-flex size-10 sm:size-11" />
           <div className="hidden min-w-0 md:flex md:items-center md:gap-2">
             {user ? (
               <>
@@ -255,7 +261,7 @@ export function HeaderContent({ user, showMyChannels, showModeration, avatarUrl,
           <Button
             variant="ghost"
             size="icon"
-            className="size-11 shrink-0 touch-manipulation md:hidden"
+            className="size-10 shrink-0 touch-manipulation sm:size-11 md:hidden"
             onClick={() => setMobileOpen((o) => !o)}
             aria-expanded={mobileOpen}
             aria-controls={MOBILE_NAV_ID}
@@ -319,6 +325,17 @@ export function HeaderContent({ user, showMyChannels, showModeration, avatarUrl,
               </Button>
             );
           })}
+          <Button
+            variant="ghost"
+            className="h-11 justify-start rounded-lg sm:hidden"
+            type="button"
+            onClick={() => {
+              if (!themeMounted) return;
+              setTheme(resolvedTheme === "dark" ? "light" : "dark");
+            }}
+          >
+            {themeMounted && resolvedTheme === "dark" ? "Light mode" : "Dark mode"}
+          </Button>
           {user ? (
             <>
               <div className="my-1 border-t border-border" />

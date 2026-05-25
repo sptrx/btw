@@ -61,8 +61,13 @@ export default function EditContentForm({
     Array.isArray(initialMedia) ? initialMedia.filter((m) => m?.url) : []
   );
   const [pageId, setPageId] = useState(content.page_id ?? pages[0]?.id ?? "");
+  const [contentType, setContentType] = useState(content.type);
+  const [title, setTitle] = useState(content.title);
+  const [body, setBody] = useState(content.body ?? "");
+  const [isFeatured, setIsFeatured] = useState(content.is_featured ?? false);
   const [tagIds, setTagIds] = useState<string[]>(initialTagIds);
   const [acceptedDisclaimer, setAcceptedDisclaimer] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const router = useRouter();
 
   const effectiveAccepted = hasAlreadyAcceptedDisclaimer || acceptedDisclaimer;
@@ -74,31 +79,58 @@ export default function EditContentForm({
     setMediaUrls(next);
   };
 
+  const buildFormData = () => {
+    const formData = new FormData();
+    formData.set("type", contentType);
+    formData.set("title", title.trim());
+    formData.set("body", body);
+    formData.set("page_id", pageId || pages[0]?.id || "");
+    if (isFeatured) formData.set("is_featured", "on");
+    formData.set("media_urls", JSON.stringify(mediaUrls.filter((m) => m.url)));
+    formData.set("accepted_disclaimer", effectiveAccepted ? "1" : "0");
+    formData.set("tags_present", "1");
+    for (const id of tagIds) {
+      formData.append("tag_ids", id);
+    }
+    return formData;
+  };
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setError(null);
+    setSuccess(null);
+    if (!effectiveAccepted) {
+      setError("Please read and accept the content disclaimer before saving.");
+      return;
+    }
+    const targetPage = pageId || pages[0]?.id;
+    if (!targetPage) {
+      setError("Select a page first.");
+      return;
+    }
+    if (!title.trim()) {
+      setError("Title is required.");
+      return;
+    }
+    setSubmitting(true);
+    try {
+      const res = await updateContent(content.id, buildFormData());
+      if (res?.error) {
+        setError(res.error);
+        return;
+      }
+      if (res && "pendingReview" in res && res.pendingReview) {
+        setSuccess(res.message ?? "Your changes are in review.");
+        return;
+      }
+      router.push(`/channel/${channelSlug}/content/${content.id}?updated=1`);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   return (
-    <form
-      action={async (formData) => {
-        setError(null);
-        setSuccess(null);
-        if (!effectiveAccepted) {
-          setError("Please read and accept the content disclaimer before saving.");
-          return;
-        }
-        const targetPage = pageId || pages[0]?.id;
-        if (!targetPage) {
-          setError("Select a page first.");
-          return;
-        }
-        formData.set("media_urls", JSON.stringify(mediaUrls.filter((m) => m.url)));
-        formData.set("page_id", targetPage);
-        formData.set("accepted_disclaimer", effectiveAccepted ? "1" : "0");
-        const res = await updateContent(content.id, formData);
-        if (res?.error) setError(res.error);
-        else if (res && "pendingReview" in res && res.pendingReview) {
-          setSuccess(res.message ?? "Your changes are in review.");
-        }
-      }}
-      className="max-w-xl space-y-6"
-    >
+    <form onSubmit={handleSubmit} className="max-w-xl space-y-6">
       <ContentMissionHint />
       <div>
         <label htmlFor="edit-content-page" className="block text-sm font-medium mb-1">
@@ -126,7 +158,8 @@ export default function EditContentForm({
           id="edit-content-type"
           name="type"
           required
-          defaultValue={content.type}
+          value={contentType}
+          onChange={(e) => setContentType(e.target.value)}
           className="w-full min-h-11 rounded-xl border border-input bg-background px-4 py-3 text-sm"
         >
           {CONTENT_TYPES.map((t) => (
@@ -146,7 +179,8 @@ export default function EditContentForm({
           name="title"
           type="text"
           required
-          defaultValue={content.title}
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
           className="w-full min-h-11 rounded-xl border border-input bg-background px-4 py-3 text-sm"
         />
       </div>
@@ -159,7 +193,8 @@ export default function EditContentForm({
           id="edit-body"
           name="body"
           rows={6}
-          defaultValue={content.body ?? ""}
+          value={body}
+          onChange={(e) => setBody(e.target.value)}
           className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm"
         />
       </div>
@@ -216,7 +251,8 @@ export default function EditContentForm({
           <input
             type="checkbox"
             name="is_featured"
-            defaultChecked={content.is_featured ?? false}
+            checked={isFeatured}
+            onChange={(e) => setIsFeatured(e.target.checked)}
             className="mt-0.5 size-4 rounded border-input"
           />
           <span className="flex items-center gap-1.5">
@@ -246,14 +282,21 @@ export default function EditContentForm({
       )}
 
       {error && (
-        <p className="text-destructive text-sm" role="alert">
+        <p
+          className="rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive"
+          role="alert"
+        >
           {error}
         </p>
       )}
 
       <div className="flex flex-wrap gap-3">
-        <Button type="submit" disabled={!effectiveAccepted} className="min-h-11 touch-manipulation">
-          Save changes
+        <Button
+          type="submit"
+          disabled={!effectiveAccepted || submitting}
+          className="min-h-11 touch-manipulation"
+        >
+          {submitting ? "Saving…" : "Save changes"}
         </Button>
         <Button
           type="button"

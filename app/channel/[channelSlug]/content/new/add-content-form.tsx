@@ -45,9 +45,14 @@ export default function AddContentForm({
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [pageId, setPageId] = useState(defaultPageId ?? pages[0]?.id ?? "");
+  const [contentType, setContentType] = useState<(typeof CONTENT_TYPES)[number]["value"]>("article");
+  const [title, setTitle] = useState("");
+  const [body, setBody] = useState("");
+  const [isFeatured, setIsFeatured] = useState(false);
   const [mediaUrls, setMediaUrls] = useState<MediaItem[]>([]);
   const [tagIds, setTagIds] = useState<string[]>([]);
   const [acceptedDisclaimer, setAcceptedDisclaimer] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const router = useRouter();
 
   const effectiveAccepted = hasAlreadyAcceptedDisclaimer || acceptedDisclaimer;
@@ -59,30 +64,57 @@ export default function AddContentForm({
     setMediaUrls(next);
   };
 
+  const buildFormData = () => {
+    const formData = new FormData();
+    formData.set("type", contentType);
+    formData.set("title", title.trim());
+    formData.set("body", body);
+    if (isFeatured) formData.set("is_featured", "on");
+    formData.set("media_urls", JSON.stringify(mediaUrls.filter((m) => m.url)));
+    formData.set("accepted_disclaimer", effectiveAccepted ? "1" : "0");
+    formData.set("tags_present", "1");
+    for (const id of tagIds) {
+      formData.append("tag_ids", id);
+    }
+    return formData;
+  };
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setError(null);
+    setSuccess(null);
+    if (!effectiveAccepted) {
+      setError("Please read and accept the content disclaimer before publishing.");
+      return;
+    }
+    const targetPage = pageId || pages[0]?.id;
+    if (!targetPage) {
+      setError("Select a page first.");
+      return;
+    }
+    if (!title.trim()) {
+      setError("Title is required.");
+      return;
+    }
+    setSubmitting(true);
+    try {
+      const res = await createContent(channelId, targetPage, buildFormData());
+      if (res?.error) {
+        setError(res.error);
+        return;
+      }
+      if (res && "pendingReview" in res && res.pendingReview) {
+        setSuccess(res.message ?? "Your post is in review.");
+        return;
+      }
+      router.push(`/channel/${channelSlug}`);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   return (
-    <form
-      action={async (formData) => {
-        setError(null);
-        setSuccess(null);
-        if (!effectiveAccepted) {
-          setError("Please read and accept the content disclaimer before publishing.");
-          return;
-        }
-        const targetPage = pageId || pages[0]?.id;
-        if (!targetPage) {
-          setError("Select a page first.");
-          return;
-        }
-        formData.set("media_urls", JSON.stringify(mediaUrls.filter((m) => m.url)));
-        formData.set("accepted_disclaimer", effectiveAccepted ? "1" : "0");
-        const res = await createContent(channelId, targetPage, formData);
-        if (res?.error) setError(res.error);
-        else if (res && "pendingReview" in res && res.pendingReview) {
-          setSuccess(res.message ?? "Your post is in review.");
-        } else router.push(`/channel/${channelSlug}`);
-      }}
-      className="max-w-xl space-y-6"
-    >
+    <form onSubmit={handleSubmit} className="max-w-xl space-y-6">
       <ContentMissionHint />
 
       <div>
@@ -111,6 +143,10 @@ export default function AddContentForm({
           id="content-type"
           name="type"
           required
+          value={contentType}
+          onChange={(e) =>
+            setContentType(e.target.value as (typeof CONTENT_TYPES)[number]["value"])
+          }
           className="w-full min-h-11 rounded-xl border border-input bg-background px-4 py-3 text-sm"
         >
           {CONTENT_TYPES.map((t) => (
@@ -130,6 +166,8 @@ export default function AddContentForm({
           name="title"
           type="text"
           required
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
           placeholder="e.g. How Psalm 23 carried me through hospital nights"
           className="w-full min-h-11 rounded-xl border border-input bg-background px-4 py-3 text-sm"
         />
@@ -143,6 +181,8 @@ export default function AddContentForm({
           id="body"
           name="body"
           rows={6}
+          value={body}
+          onChange={(e) => setBody(e.target.value)}
           placeholder="Share what God has done—your testimony, scripture that met you, or encouragement from your walk."
           className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm"
         />
@@ -200,6 +240,8 @@ export default function AddContentForm({
           <input
             type="checkbox"
             name="is_featured"
+            checked={isFeatured}
+            onChange={(e) => setIsFeatured(e.target.checked)}
             className="mt-0.5 size-4 rounded border-input"
           />
           <span className="flex items-center gap-1.5">
@@ -229,14 +271,21 @@ export default function AddContentForm({
       )}
 
       {error && (
-        <p className="text-destructive text-sm" role="alert">
+        <p
+          className="rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive"
+          role="alert"
+        >
           {error}
         </p>
       )}
 
       <div className="flex flex-wrap gap-3">
-        <Button type="submit" disabled={!effectiveAccepted} className="min-h-11 touch-manipulation">
-          Publish
+        <Button
+          type="submit"
+          disabled={!effectiveAccepted || submitting}
+          className="min-h-11 touch-manipulation"
+        >
+          {submitting ? "Publishing…" : "Publish"}
         </Button>
         <Button
           type="button"

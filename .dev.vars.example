@@ -8,7 +8,8 @@ NEXTJS_ENV=development
 # BIBLE_AI_BASE_URL=http://localhost:3040
 # BIBLE_AI_API_KEY=your_shared_secret
 # BTW_BIBLE_AI_DAILY_LIMIT=30
-# Optional: header "Bible Q&A" link (defaults to localhost in dev; production defaults to Pages URL)
+# Optional: header "Bible Q&A" link to public xgesis.ai (off in production by default)
+# NEXT_PUBLIC_BIBLE_AI_NAV=true
 # NEXT_PUBLIC_BIBLE_AI_URL=http://localhost:3040/ask
 
 # Cloudflare R2 — channel media + profile avatars (copy to Worker Variables/Secrets in production)

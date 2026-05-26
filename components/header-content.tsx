@@ -29,7 +29,7 @@ import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { GlobalSearch } from "@/components/global-search/global-search";
 import { NotificationBell } from "@/components/notification-bell";
-import { bibleAiPublicAskUrl } from "@/lib/bible-ai-config";
+import { bibleAiPublicAskUrl, showBibleAiPublicNav } from "@/lib/bible-ai-config";
 import { cn } from "@/lib/utils";
 
 import { UserAvatar } from "@/components/user-avatar";
@@ -64,13 +64,13 @@ function navActive(href: string, pathname: string): boolean {
   return pathname === href;
 }
 
-const bibleAiUrl = bibleAiPublicAskUrl();
-
 const navLinks = [
   { href: "/", label: "Home" as const },
   { href: "/channel/browse", label: "Channels" as const },
-  { href: bibleAiUrl, label: "Bible Q&A" as const, external: true as const },
-];
+  ...(showBibleAiPublicNav()
+    ? [{ href: bibleAiPublicAskUrl(), label: "Bible Q&A" as const, external: true as const }]
+    : []),
+] as const;
 
 const MOBILE_NAV_ID = "mobile-primary-nav";
 

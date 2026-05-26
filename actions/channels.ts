@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 import { moderateContent, isMissingModerationStatusColumn, isMissingModerationNoteColumn, approvedModerationOrFilter } from "@/lib/moderation";
 import { PENDING_REVIEW_MESSAGE } from "@/lib/moderation-messages";
 import { fetchScriptureGuideReply, isScriptureGuideConfigured } from "@/lib/bible-ai";
+import { checkAndIncrementBibleAiQuota } from "@/lib/bible-ai-quota";
 import {
   getProfile,
   hasAcceptedContentDisclaimer,
@@ -1339,42 +1340,48 @@ export async function addComment(
       guideError =
         "Scripture guide is not configured. Ask your admin to set BIBLE_AI_BASE_URL (and BIBLE_AI_API_KEY if required).";
     } else {
-      const threadContext = priorComments
-        .map((c) => {
-          const name = c.profiles?.display_name?.trim() || "Member";
-          return `[${name}]: ${c.body.trim()}`;
-        })
-        .join("\n\n");
-
-      let pageContext: string | undefined;
-      if (content?.title) {
-        const excerpt = content.body?.trim()?.slice(0, 2000) ?? "";
-        pageContext = excerpt
-          ? `Title: ${content.title}\n\nArticle excerpt:\n${excerpt}`
-          : `Title: ${content.title}`;
-      }
-
-      const guide = await fetchScriptureGuideReply({
-        message: body.trim(),
-        threadContext,
-        pageContext,
-        translationId: options.translationId,
-      });
-
-      if ("error" in guide) {
-        guideError = guide.error;
+      const quota = await checkAndIncrementBibleAiQuota(user.id);
+      if (!quota.allowed) {
+        guideError = quota.error;
       } else {
-        const { error: updErr } = await supabase
-          .from("topic_content_comments")
-          .update({ scripture_guide_reply: guide.response })
-          .eq("id", inserted.id);
+        const threadContext = priorComments
+          .map((c) => {
+            const name = c.profiles?.display_name?.trim() || "Member";
+            return `[${name}]: ${c.body.trim()}`;
+          })
+          .join("\n\n");
 
-        if (updErr) {
-          console.error("[addComment] scripture_guide_reply update", updErr);
-          guideError = "Comment saved but the Scripture guide reply could not be stored.";
+        let pageContext: string | undefined;
+        if (content?.title) {
+          const excerpt = content.body?.trim()?.slice(0, 2000) ?? "";
+          pageContext = excerpt
+            ? `Title: ${content.title}\n\nArticle excerpt:\n${excerpt}`
+            : `Title: ${content.title}`;
+        }
+
+        const guide = await fetchScriptureGuideReply({
+          userId: user.id,
+          message: body.trim(),
+          threadContext,
+          pageContext,
+          translationId: options.translationId,
+        });
+
+        if ("error" in guide) {
+          guideError = guide.error;
         } else {
-          revalidatePath(`/channel`);
-          revalidatePath("/channel/browse");
+          const { error: updErr } = await supabase
+            .from("topic_content_comments")
+            .update({ scripture_guide_reply: guide.response })
+            .eq("id", inserted.id);
+
+          if (updErr) {
+            console.error("[addComment] scripture_guide_reply update", updErr);
+            guideError = "Comment saved but the Scripture guide reply could not be stored.";
+          } else {
+            revalidatePath(`/channel`);
+            revalidatePath("/channel/browse");
+          }
         }
       }
     }

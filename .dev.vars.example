@@ -7,6 +7,7 @@ NEXTJS_ENV=development
 # Scripture guide on comments (server → bible-ai). Local example:
 # BIBLE_AI_BASE_URL=http://localhost:3040
 # BIBLE_AI_API_KEY=your_shared_secret
+# BTW_BIBLE_AI_DAILY_LIMIT=30
 # Optional: header "Bible Q&A" link (defaults to localhost in dev; production defaults to Pages URL)
 # NEXT_PUBLIC_BIBLE_AI_URL=http://localhost:3040/ask
 

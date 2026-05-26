@@ -28,7 +28,10 @@ export type BibleAiCitation = {
   verse: number;
 };
 
+export type BibleAiFeature = "commentary" | "explain";
+
 export type ScriptureGuideInput = {
+  userId: string;
   message: string;
   threadContext: string;
   pageContext?: string;
@@ -36,6 +39,7 @@ export type ScriptureGuideInput = {
 };
 
 export type BibleExplanationInput = {
+  userId: string;
   message: string;
   translationId?: string;
   messages?: Array<{ role: "user" | "assistant"; content: string }>;
@@ -111,12 +115,13 @@ async function postBibleAi<TBody extends Record<string, unknown>>(
 
 /**
  * Thread commentary for comment threads (BTW Scripture guide checkbox).
- * Uses POST /api/v1/commentary on the hosted xgesis.ai / bible-ai service.
  */
 export async function fetchScriptureGuideReply(
   input: ScriptureGuideInput,
 ): Promise<{ response: string } | { error: string }> {
   const result = await postBibleAi("/api/v1/commentary", {
+    userId: input.userId,
+    feature: "commentary",
     message: input.message,
     threadContext: input.threadContext,
     pageContext: input.pageContext,
@@ -134,6 +139,8 @@ export async function fetchBibleExplanation(
   input: BibleExplanationInput,
 ): Promise<BibleAiSuccess | BibleAiError> {
   return postBibleAi("/api/v1/explain", {
+    userId: input.userId,
+    feature: "explain",
     message: input.message,
     translationId: input.translationId ?? "kjv",
     messages: input.messages ?? [],

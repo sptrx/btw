@@ -35,9 +35,11 @@ Add any other server-side secrets (`OPENROUTER_API_KEY`, R2 keys, etc.) the same
 Production BTW calls **Scripture Chat** at [https://bible-ai-c3q.pages.dev](https://bible-ai-c3q.pages.dev/) for:
 
 - **Bible Q&A** nav link → `/ask` on that host (defaults are baked in when `NODE_ENV=production`; override with **`NEXT_PUBLIC_BIBLE_AI_URL`** if you use another Pages project).
-- **Scripture guide replies** on comments → server `POST` to `https://bible-ai-c3q.pages.dev/api/v1/guide` (defaults when **`BIBLE_AI_BASE_URL`** is unset in production; override for staging).
+- **Scripture guide replies** on comments → server `POST` to `https://bible-ai-c3q.pages.dev/api/v1/commentary` with JSON body including **`userId`** (signed-in BTW user) and **`feature`: `"commentary"`** (defaults when **`BIBLE_AI_BASE_URL`** is unset in production; override for staging).
 
-On the Worker (**Settings** → **Variables / Secrets**), set **`BIBLE_AI_API_KEY`** to the **same** value as bible-ai's **`BIBLE_AI_API_KEY`** (secret). The `/api/v1/guide` route rejects unsigned requests when that key is set on bible-ai.
+On the Worker (**Settings** → **Variables / Secrets**), set **`BIBLE_AI_API_KEY`** to the **same** value as bible-ai's **`BIBLE_AI_API_KEY`** (secret). Production bible-ai requires the partner key on all `/api/v1/*` POST routes.
+
+**Phase 1 quotas:** BTW enforces **`BTW_BIBLE_AI_DAILY_LIMIT`** (default 30) per user via `bible_ai_daily_usage` (run Supabase migration). bible-ai also enforces **`BIBLE_AI_USER_DAILY_QUOTA`** (default 40) when `userId` is sent. Public `/api/chat` on xgesis.ai is **disabled in production** unless **`BIBLE_AI_ALLOW_PUBLIC_CHAT=true`** on bible-ai.
 
 Optional overrides:
 

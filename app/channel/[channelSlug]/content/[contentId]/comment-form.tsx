@@ -109,7 +109,8 @@ export default function CommentForm({
             </div>
             <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
               Opt in to receive a thoughtful, scripture-grounded reply alongside your comment.
-              Powered by the bible-ai service &mdash; may take a few seconds after your comment posts.
+              You can ask about the passage, a verse, or how it applies&mdash;not only personal
+              testimony. May take a few seconds after your comment posts.
             </p>
           </div>
         </div>

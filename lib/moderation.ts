@@ -23,6 +23,11 @@ export type ModerationResult = {
 export type ModerateContentOptions = {
   /** Post type — discussions are held to a stricter mission bar. */
   contentType?: "video" | "podcast" | "article" | "discussion" | "comment";
+  /**
+   * User requested an AI Scripture guide reply — allow respectful Bible questions,
+   * passage reflection, and article discussion without requiring full testimony tone.
+   */
+  scriptureGuideRequest?: boolean;
 };
 
 type AiVerdict = {
@@ -168,6 +173,26 @@ function looksLikeThinWitness(text: string): boolean {
   return false;
 }
 
+function buildModerationUserBlock(
+  text: string,
+  options?: ModerateContentOptions,
+): string {
+  const parts: string[] = [];
+  if (options?.contentType) {
+    parts.push(`Content type: ${options.contentType}`);
+  }
+  if (options?.scriptureGuideRequest) {
+    parts.push(
+      "Scripture guide requested: yes. The author opted in to receive an AI scripture-grounded reply. " +
+        "ALLOW respectful Bible questions, verse references, passage meaning, and reflection on the article's " +
+        "scripture even when there is no long personal testimony. Rate mission_fit as on_mission unless the " +
+        "comment is clearly unrelated to faith or scripture.",
+    );
+  }
+  parts.push(text);
+  return parts.join("\n\n");
+}
+
 function verdictToResult(
   verdict: AiVerdict,
   options?: ModerateContentOptions,
@@ -175,6 +200,7 @@ function verdictToResult(
 ): ModerationResult {
   const suggestEdit = verdict.suggest_edit?.trim() || undefined;
   const strictDiscussion = options?.contentType === "discussion";
+  const scriptureGuide = options?.scriptureGuideRequest === true;
 
   if (verdict.safety === "flagged") {
     return {
@@ -195,6 +221,9 @@ function verdictToResult(
   }
 
   if (verdict.mission_fit === "pure_opinion") {
+    if (scriptureGuide && verdict.confidence < 0.85) {
+      return { allowed: true, category: "ok" };
+    }
     return {
       allowed: false,
       category: "pure_opinion",
@@ -213,12 +242,17 @@ function verdictToResult(
   }
 
   if (verdict.mission_fit === "borderline" || verdict.needs_review) {
-    return pendingReviewResult(verdict, "borderline");
+    return scriptureGuide
+      ? { allowed: true, category: "ok" }
+      : pendingReviewResult(verdict, "borderline");
   }
 
   if (verdict.mission_fit === "off_topic") {
-    const blockThreshold = strictDiscussion ? 0.55 : 0.68;
+    const blockThreshold = scriptureGuide ? 0.92 : strictDiscussion ? 0.55 : 0.68;
     if (verdict.confidence >= blockThreshold) {
+      if (scriptureGuide) {
+        return pendingReviewResult(verdict, "off_topic");
+      }
       return {
         allowed: false,
         category: "off_topic",
@@ -227,16 +261,20 @@ function verdictToResult(
       };
     }
     if (verdict.confidence >= 0.32) {
-      return pendingReviewResult(verdict, "off_topic");
+      return scriptureGuide
+        ? { allowed: true, category: "ok" }
+        : pendingReviewResult(verdict, "off_topic");
     }
   }
 
   if (verdict.mission_fit === "on_mission") {
     const reviewConfidence = strictDiscussion ? 0.72 : 0.68;
     if (verdict.confidence < reviewConfidence) {
-      return pendingReviewResult(verdict, "borderline");
+      return scriptureGuide
+        ? { allowed: true, category: "ok" }
+        : pendingReviewResult(verdict, "borderline");
     }
-    if (sourceText && looksLikeThinWitness(sourceText)) {
+    if (sourceText && looksLikeThinWitness(sourceText) && !scriptureGuide) {
       return pendingReviewResult(verdict, "borderline");
     }
   }
@@ -261,9 +299,7 @@ async function moderateWithOpenRouter(
   const apiKey = process.env.OPENROUTER_API_KEY;
   if (!apiKey) throw new Error("OPENROUTER_API_KEY is not set");
 
-  const userBlock = options?.contentType
-    ? `Content type: ${options.contentType}\n\n${text}`
-    : text;
+  const userBlock = buildModerationUserBlock(text, options);
 
   const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
     method: "POST",
@@ -301,9 +337,7 @@ async function moderateWithGoogleAI(
   const apiKey = process.env.GOOGLE_AI_API_KEY;
   if (!apiKey) throw new Error("GOOGLE_AI_API_KEY is not set");
 
-  const userBlock = options?.contentType
-    ? `Content type: ${options.contentType}\n\n${text}`
-    : text;
+  const userBlock = buildModerationUserBlock(text, options);
 
   const res = await fetch(
     `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,

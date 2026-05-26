@@ -1293,7 +1293,10 @@ export async function addComment(
     return { error: "Please accept the content disclaimer before commenting." };
   }
 
-  const result = await moderateContent(body, { contentType: "comment" });
+  const result = await moderateContent(body, {
+    contentType: "comment",
+    scriptureGuideRequest: options?.requestScriptureGuide === true,
+  });
   if (!result.allowed) return { error: result.reason ?? "Comment not allowed." };
 
   if (!alreadyAccepted && options?.acceptedDisclaimer) {

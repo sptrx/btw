@@ -43,7 +43,7 @@ On the Worker (**Settings** → **Variables / Secrets**), set **`BIBLE_AI_API_KE
 
 **Private bible-ai (BTW-only):** On the bible-ai Cloudflare project set **`BIBLE_AI_API_KEY`** (same secret as BTW), **`BIBLE_AI_HANDOFF_SECRET`** (same on both apps), **`BIBLE_AI_PUBLIC_SITE=false`**, **`BIBLE_AI_ALLOW_PUBLIC_CHAT=false`**, and **`BIBLE_AI_ALLOWED_ORIGINS`** to your BTW origin(s).
 
-**SSO handoff:** Signed-in users open **Bible Q&A** via BTW **`/api/bible-ai/sso`** → short-lived JWT → bible-ai **`/auth/handoff`** → session cookie (7 days). Set on BTW Worker: **`BIBLE_AI_HANDOFF_SECRET`**, **`BIBLE_AI_PUBLIC_ORIGIN`** (bible-ai URL). Header link uses SSO when the handoff secret is set (default).
+**SSO handoff:** Signed-in users open **Bible Q&A** via BTW **`/api/bible-ai/sso`** → short-lived JWT → bible-ai **`/auth/handoff`** → session cookie (7 days). Set on BTW Worker: **`BIBLE_AI_HANDOFF_SECRET`**, **`BIBLE_AI_PUBLIC_ORIGIN`** (bible-ai URL). The header **Bible Q&A** link is on by default (SSO path); hide with **`NEXT_PUBLIC_BIBLE_AI_SSO=false`** at build time if needed.
 
 Optional overrides:
 

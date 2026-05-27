@@ -29,12 +29,7 @@ import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { GlobalSearch } from "@/components/global-search/global-search";
 import { NotificationBell } from "@/components/notification-bell";
-import {
-  bibleAiPublicAskUrl,
-  bibleAiSsoPath,
-  showBibleAiPublicNav,
-  showBibleAiSsoNav,
-} from "@/lib/bible-ai-config";
+import { bibleAiPublicAskUrl, bibleAiSsoPath } from "@/lib/bible-ai-config";
 import { cn } from "@/lib/utils";
 
 import { UserAvatar } from "@/components/user-avatar";
@@ -43,9 +38,23 @@ type Props = {
   user: User | null;
   showMyChannels?: boolean;
   showModeration?: boolean;
+  showBibleAiSsoNav?: boolean;
+  showBibleAiPublicNav?: boolean;
   avatarUrl?: string | null;
   profileDisplayName?: string | null;
 };
+
+function buildNavLinks(showSso: boolean, showPublic: boolean) {
+  return [
+    { href: "/", label: "Home" as const },
+    { href: "/channel/browse", label: "Channels" as const },
+    ...(showSso
+      ? [{ href: bibleAiSsoPath("/ask"), label: "Bible Q&A" as const, external: false as const }]
+      : showPublic
+        ? [{ href: bibleAiPublicAskUrl(), label: "Bible Q&A" as const, external: true as const }]
+        : []),
+  ] as const;
+}
 
 function headerDisplayName(user: User): string {
   const meta = user.user_metadata;
@@ -68,16 +77,6 @@ function navActive(href: string, pathname: string): boolean {
   if (href === "/channel/browse") return pathname.startsWith("/channel");
   return pathname === href;
 }
-
-const navLinks = [
-  { href: "/", label: "Home" as const },
-  { href: "/channel/browse", label: "Channels" as const },
-  ...(showBibleAiSsoNav()
-    ? [{ href: bibleAiSsoPath("/ask"), label: "Bible Q&A" as const, external: false as const }]
-    : showBibleAiPublicNav()
-      ? [{ href: bibleAiPublicAskUrl(), label: "Bible Q&A" as const, external: true as const }]
-      : []),
-] as const;
 
 const MOBILE_NAV_ID = "mobile-primary-nav";
 
@@ -104,7 +103,16 @@ function MobileMenuSection({
   );
 }
 
-export function HeaderContent({ user, showMyChannels, showModeration, avatarUrl, profileDisplayName }: Props) {
+export function HeaderContent({
+  user,
+  showMyChannels,
+  showModeration,
+  showBibleAiSsoNav = true,
+  showBibleAiPublicNav = false,
+  avatarUrl,
+  profileDisplayName,
+}: Props) {
+  const navLinks = buildNavLinks(showBibleAiSsoNav, showBibleAiPublicNav);
   const pathname = usePathname();
   const { setTheme, resolvedTheme } = useTheme();
   const [mobileOpen, setMobileOpen] = useState(false);

@@ -30,12 +30,16 @@ export function showBibleAiPublicNav(): boolean {
   return process.env.NODE_ENV !== "production";
 }
 
-/** SSO handoff via /api/bible-ai/sso (default on in production when secret is set). */
+/**
+ * SSO handoff via /api/bible-ai/sso (default on).
+ * BIBLE_AI_HANDOFF_SECRET is server-only — do not use it here; the SSO route validates it.
+ * Set NEXT_PUBLIC_BIBLE_AI_SSO=false to hide the nav link.
+ */
 export function showBibleAiSsoNav(): boolean {
   const explicit = process.env.NEXT_PUBLIC_BIBLE_AI_SSO?.trim().toLowerCase();
-  if (explicit === "true") return true;
   if (explicit === "false") return false;
-  return !!(process.env.BIBLE_AI_HANDOFF_SECRET ?? "").trim() || process.env.NODE_ENV !== "production";
+  if (explicit === "true") return true;
+  return true;
 }
 
 /** Relative URL on BTW that mints handoff and redirects to xgesis.ai. */

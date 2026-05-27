@@ -41,7 +41,9 @@ On the Worker (**Settings** → **Variables / Secrets**), set **`BIBLE_AI_API_KE
 
 **Phase 1 quotas:** BTW enforces **`BTW_BIBLE_AI_DAILY_LIMIT`** (default 30) per user via `bible_ai_daily_usage` (run Supabase migration). bible-ai also enforces **`BIBLE_AI_USER_DAILY_QUOTA`** (default 40) when `userId` is sent.
 
-**Private bible-ai (BTW-only):** On the bible-ai Cloudflare project set **`BIBLE_AI_API_KEY`** (same secret as BTW **`BIBLE_AI_API_KEY`**), **`BIBLE_AI_PUBLIC_SITE=false`**, **`BIBLE_AI_ALLOW_PUBLIC_CHAT=false`**, and **`BIBLE_AI_ALLOWED_ORIGINS`** to your BTW origin(s). Do **not** set **`NEXT_PUBLIC_BIBLE_AI_NAV=true`** on BTW in production (header link to public `/ask` stays hidden by default).
+**Private bible-ai (BTW-only):** On the bible-ai Cloudflare project set **`BIBLE_AI_API_KEY`** (same secret as BTW), **`BIBLE_AI_HANDOFF_SECRET`** (same on both apps), **`BIBLE_AI_PUBLIC_SITE=false`**, **`BIBLE_AI_ALLOW_PUBLIC_CHAT=false`**, and **`BIBLE_AI_ALLOWED_ORIGINS`** to your BTW origin(s).
+
+**SSO handoff:** Signed-in users open **Bible Q&A** via BTW **`/api/bible-ai/sso`** → short-lived JWT → bible-ai **`/auth/handoff`** → session cookie (7 days). Set on BTW Worker: **`BIBLE_AI_HANDOFF_SECRET`**, **`BIBLE_AI_PUBLIC_ORIGIN`** (bible-ai URL). Header link uses SSO when the handoff secret is set (default).
 
 Optional overrides:
 

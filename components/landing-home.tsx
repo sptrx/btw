@@ -65,8 +65,8 @@ export function LandingHome({ displayFontClassName, feed = [], isAuthenticated =
                   "[text-shadow:0_2px_14px_rgba(0,0,0,0.55),0_1px_2px_rgba(0,0,0,0.45)]"
                 )}
               >
-                <span className="block">Share your witness.</span>
-                <span className="mt-1 block sm:mt-1.5">Strengthen another.</span>
+                <span className="block">Share your witness</span>
+                <span className="mt-1 block sm:mt-1.5">Strengthen another</span>
               </h1>
 
               <div className="space-y-3 rounded-r-xl border border-white/10 border-l-[3px] border-l-amber-300/80 bg-black/50 px-4 py-4 shadow-[0_8px_32px_rgba(0,0,0,0.35)] backdrop-blur-sm sm:space-y-3.5 sm:px-5 sm:py-5">

@@ -22,10 +22,23 @@ export function bibleAiServerBaseUrl(): string {
   return "";
 }
 
-/** Show header link to hosted bible-ai /ask (default off in production). */
+/** Direct link to public /ask without SSO (legacy; default off in production). */
 export function showBibleAiPublicNav(): boolean {
   const explicit = process.env.NEXT_PUBLIC_BIBLE_AI_NAV?.trim().toLowerCase();
   if (explicit === "true") return true;
   if (explicit === "false") return false;
   return process.env.NODE_ENV !== "production";
+}
+
+/** SSO handoff via /api/bible-ai/sso (default on in production when secret is set). */
+export function showBibleAiSsoNav(): boolean {
+  const explicit = process.env.NEXT_PUBLIC_BIBLE_AI_SSO?.trim().toLowerCase();
+  if (explicit === "true") return true;
+  if (explicit === "false") return false;
+  return !!(process.env.BIBLE_AI_HANDOFF_SECRET ?? "").trim() || process.env.NODE_ENV !== "production";
+}
+
+/** Relative URL on BTW that mints handoff and redirects to xgesis.ai. */
+export function bibleAiSsoPath(next = "/ask"): string {
+  return `/api/bible-ai/sso?next=${encodeURIComponent(next)}`;
 }

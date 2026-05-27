@@ -7,10 +7,12 @@ NEXTJS_ENV=development
 # Scripture guide on comments (server → bible-ai). Local example:
 # BIBLE_AI_BASE_URL=http://localhost:3040
 # BIBLE_AI_API_KEY=your_shared_secret
+# BIBLE_AI_HANDOFF_SECRET=long_random_shared_secret
+# BIBLE_AI_PUBLIC_ORIGIN=http://localhost:3040
 # BTW_BIBLE_AI_DAILY_LIMIT=30
-# Optional: header "Bible Q&A" link to public xgesis.ai (off in production by default)
-# NEXT_PUBLIC_BIBLE_AI_NAV=true
-# NEXT_PUBLIC_BIBLE_AI_URL=http://localhost:3040/ask
+# Bible Q&A nav uses /api/bible-ai/sso when BIBLE_AI_HANDOFF_SECRET is set (default)
+# NEXT_PUBLIC_BIBLE_AI_SSO=false
+# Legacy direct link (no SSO): NEXT_PUBLIC_BIBLE_AI_NAV=true
 
 # Cloudflare R2 — channel media + profile avatars (copy to Worker Variables/Secrets in production)
 # R2_ACCOUNT_ID=

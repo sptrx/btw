@@ -1,48 +1,35 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg id="btw-logo-light" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 626.74 110.99" role="img" aria-label="Believe The Works">
+<svg id="btw-logo-light" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 551.29 72.22" role="img" aria-label="Believe The Works">
   <defs>
     <style>
-      .cls-1, .cls-2, .cls-3 { isolation: isolate; }
-      .cls-1, .cls-3 {
-        fill: #1e4e8c;
+      .cls-1 {
+        fill: #ba9911;
         font-family: SegoeUI-Semibold, 'Segoe UI', system-ui, sans-serif;
-        font-size: 82px;
+        font-size: 56.56px;
         font-weight: 600;
       }
-      .cls-4 { letter-spacing: -.02em; }
-      .cls-5 { fill: url(#btw-logo-light-gradient-2); }
-      .cls-6, .cls-7 { fill: none; }
-      .cls-2 {
-        fill: #708238;
-        font-family: SegoeUI, 'Segoe UI', system-ui, sans-serif;
-        font-size: 48px;
-      }
-      .cls-8 { letter-spacing: -.03em; }
-      .cls-3, .cls-9 { letter-spacing: -.02em; }
-      .cls-7 { stroke: #1e4e8c; stroke-width: 6px; }
-      .cls-10 { fill: url(#btw-logo-light-gradient); }
+      .cls-1, .cls-2 { isolation: isolate; }
     </style>
-    <linearGradient id="btw-logo-light-gradient" x1="241.02" y1="121.1" x2="241.02" y2="120.1" gradientTransform="translate(-970 6797) scale(6 -56)" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#1e4e8c"/>
-      <stop offset="1" stop-color="#163d6e"/>
-    </linearGradient>
-    <linearGradient id="btw-logo-light-gradient-2" x1="288.07" y1="123.07" x2="288.07" y2="122.07" gradientTransform="translate(-12199 768) scale(44 -6)" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#1e4e8c"/>
-      <stop offset="1" stop-color="#163d6e"/>
-    </linearGradient>
   </defs>
-  <text class="cls-1" transform="translate(0 76)"><tspan class="cls-9" x="0" y="0">Belie</tspan><tspan class="cls-8" x="172.12" y="0">v</tspan><tspan class="cls-4" x="211.6" y="0">e</tspan></text>
-  <text class="cls-2" transform="translate(260 61)"><tspan x="0" y="0">The</tspan></text>
   <g>
-    <text class="cls-3" transform="translate(354.5 76)"><tspan x="0" y="0">W</tspan></text>
-    <g>
-      <circle class="cls-7" cx="476.12" cy="43" r="40"/>
-      <g>
-        <path class="cls-10" d="M476.12,15.56h0c1.66,0,3,1.34,3,3v50c0,1.66-1.34,3-3,3h0c-1.66,0-3-1.34-3-3V18.56c0-1.66,1.34-3,3-3Z"/>
-        <path class="cls-5" d="M457.12,29.56h38c1.66,0,3,1.34,3,3h0c0,1.66-1.34,3-3,3h-38c-1.66,0-3-1.34-3-3h0c0-1.66,1.34-3,3-3Z"/>
-        <circle class="cls-6" cx="476.12" cy="33.56" r="4.5"/>
-      </g>
-    </g>
-    <text class="cls-3" transform="translate(520.95 76)"><tspan x="0" y="0">rks</tspan></text>
+    <g class="cls-2"><text class="cls-1" transform="translate(363.42 48.08) scale(1.13 1)"><tspan x="0" y="0">W</tspan></text></g>
+    <g class="cls-2"><text class="cls-1" transform="translate(423.25 48.08) scale(1.13 1)"><tspan x="0" y="0">o</tspan></text></g>
+    <g class="cls-2"><text class="cls-1" transform="translate(460.57 48.08) scale(1.13 1)"><tspan x="0" y="0">r</tspan></text></g>
+    <g class="cls-2"><text class="cls-1" transform="translate(487.39 48.08) scale(1.13 1)"><tspan x="0" y="0">k</tspan></text></g>
+    <g class="cls-2"><text class="cls-1" transform="translate(523.65 48.08) scale(1.13 1)"><tspan x="0" y="0">s</tspan></text></g>
+  </g>
+  <g>
+    <g class="cls-2"><text class="cls-1" transform="translate(0 48.08) scale(1.13 1)"><tspan x="0" y="0">B</tspan></text></g>
+    <g class="cls-2"><text class="cls-1" transform="translate(38.31 48.08) scale(1.13 1)"><tspan x="0" y="0">e</tspan></text></g>
+    <g class="cls-2"><text class="cls-1" transform="translate(73.44 48.08) scale(.86 1)"><tspan x="0" y="0">l</tspan></text></g>
+    <g class="cls-2"><text class="cls-1" transform="translate(90.71 48.08) scale(.84 1)"><tspan x="0" y="0">i</tspan></text></g>
+    <g class="cls-2"><text class="cls-1" transform="translate(106.11 48.08) scale(1.13 1)"><tspan x="0" y="0">e</tspan></text></g>
+    <g class="cls-2"><text class="cls-1" transform="translate(144.36 48.08) scale(1.13 1)"><tspan x="0" y="0">v</tspan></text></g>
+    <g class="cls-2"><text class="cls-1" transform="translate(179.81 48.08) scale(1.13 1)"><tspan x="0" y="0">e</tspan></text></g>
+  </g>
+  <g>
+    <g class="cls-2"><text class="cls-1" transform="translate(230.68 48.08) scale(1.13 1)"><tspan x="0" y="0">T</tspan></text></g>
+    <g class="cls-2"><text class="cls-1" transform="translate(266.24 48.08) scale(1.13 1)"><tspan x="0" y="0">h</tspan></text></g>
+    <g class="cls-2"><text class="cls-1" transform="translate(301.42 48.08) scale(1.13 1)"><tspan x="0" y="0">e</tspan></text></g>
   </g>
 </svg>

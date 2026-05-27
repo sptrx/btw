@@ -2,9 +2,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 
-/** Matches viewBox of `/public/assets/btw-logo-*.svg` (200% export). */
-const LOGO_WIDTH = 627;
-const LOGO_HEIGHT = 111;
+/** Matches viewBox of `/public/assets/btw-logo-*.svg` (v7 wordmark). */
+const LOGO_WIDTH = 551;
+const LOGO_HEIGHT = 72;
 
 const sizeClassNames = {
   default:

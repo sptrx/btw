@@ -119,6 +119,21 @@ export function FaithWorldMap({ className, pollMs = 5 * 60 * 1000 }: Props) {
 
   const features = (geo.features ?? []) as Feature[];
 
+  /** johan/world.geo.json uses `-99` for several non-country polygons — not unique as React keys. */
+  function featureKey(feature: Feature, index: number): string {
+    const code = String(feature.id ?? "").toUpperCase();
+    const name = String(
+      (feature.properties as { name?: string } | null)?.name ?? ""
+    ).trim();
+    if (code && code !== "-99") return `country-${code}`;
+    if (name) return `region-${name.replace(/\s+/g, "-").toLowerCase()}`;
+    return `feature-${index}`;
+  }
+
+  function isValidMapCountryCode(code: string): boolean {
+    return /^[A-Z]{2}$/.test(code) && code !== "-99";
+  }
+
   return (
     <div className={cn("relative", className)}>
       <svg
@@ -130,14 +145,15 @@ export function FaithWorldMap({ className, pollMs = 5 * 60 * 1000 }: Props) {
         <g>
           {features.map((feature, i) => {
             const code = String(feature.id ?? "").toUpperCase();
+            const validCode = isValidMapCountryCode(code) ? code : "";
             const d = pathGen(feature);
             if (!d) return null;
-            const hasPosts = byCode.has(code);
+            const hasPosts = validCode ? byCode.has(validCode) : false;
             return (
               <path
-                key={code || i}
+                key={featureKey(feature, i)}
                 d={d}
-                fill={fillForCode(code)}
+                fill={fillForCode(validCode || undefined)}
                 stroke="hsl(var(--border))"
                 strokeWidth={0.4}
                 className={cn(
@@ -145,18 +161,18 @@ export function FaithWorldMap({ className, pollMs = 5 * 60 * 1000 }: Props) {
                   hasPosts && "cursor-pointer hover:brightness-110"
                 )}
                 onMouseEnter={(e) => {
-                  if (!code) return;
+                  if (!validCode) return;
                   const rect = (e.currentTarget.ownerSVGElement as SVGSVGElement).getBoundingClientRect();
                   setHover({
-                    code,
+                    code: validCode,
                     x: e.clientX - rect.left,
                     y: e.clientY - rect.top,
                   });
                 }}
                 onMouseLeave={() => setHover(null)}
                 onClick={() => {
-                  if (!hasPosts) return;
-                  router.push(`/feed?country=${encodeURIComponent(code)}`);
+                  if (!hasPosts || !validCode) return;
+                  router.push(`/feed?country=${encodeURIComponent(validCode)}`);
                 }}
               />
             );

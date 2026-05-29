@@ -43,11 +43,18 @@ type Props = {
   profileDisplayName?: string | null;
 };
 
-function buildNavLinks(bibleAiNavLink: BibleAiNavLink | null | undefined) {
+/** Signed-in users land on the faith feed; guests see the marketing home at `/`. */
+function homeHref(isLoggedIn: boolean) {
+  return isLoggedIn ? "/feed" : "/";
+}
+
+function buildNavLinks(
+  bibleAiNavLink: BibleAiNavLink | null | undefined,
+  isLoggedIn: boolean
+) {
   return [
-    { href: "/", label: "Home" as const },
+    { href: homeHref(isLoggedIn), label: "Home" as const },
     { href: "/explore", label: "Explore" as const },
-    { href: "/feed", label: "Feed" as const },
     { href: "/map", label: "World map" as const },
     { href: "/channel/browse", label: "Channels" as const },
     { href: "/prayer", label: "Prayer Wall" as const },
@@ -71,10 +78,11 @@ function headerDisplayName(user: User): string {
 }
 
 /** Whether a primary nav link points at the current section. */
-function navActive(href: string, pathname: string): boolean {
-  if (href === "/") return pathname === "/";
+function navActive(href: string, pathname: string, isLoggedIn: boolean): boolean {
+  if (href === homeHref(isLoggedIn)) {
+    return isLoggedIn ? pathname === "/feed" : pathname === "/";
+  }
   if (href === "/explore") return pathname === "/explore" || pathname.startsWith("/ask");
-  if (href === "/feed") return pathname === "/feed";
   if (href === "/map") return pathname === "/map";
   if (href === "/channel/browse") return pathname.startsWith("/channel");
   if (href === "/prayer") return pathname === "/prayer" || pathname.startsWith("/prayer/");
@@ -114,7 +122,9 @@ export function HeaderContent({
   avatarUrl,
   profileDisplayName,
 }: Props) {
-  const navLinks = buildNavLinks(bibleAiNavLink);
+  const isLoggedIn = Boolean(user);
+  const navLinks = buildNavLinks(bibleAiNavLink, isLoggedIn);
+  const primaryHomeHref = homeHref(isLoggedIn);
   const pathname = usePathname();
   const { setTheme, resolvedTheme } = useTheme();
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -152,7 +162,7 @@ export function HeaderContent({
       <div className="container mx-auto flex max-w-6xl items-center gap-3 px-3 py-2.5 sm:px-5 sm:py-3">
         {/* Logo — full width on mobile minus menu; no grid wrap */}
         <BtwLogo
-          href="/"
+          href={primaryHomeHref}
           priority
           size="header"
           linkClassName="flex shrink-0 items-center rounded-lg px-1 -ml-1 transition-colors hover:bg-accent/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
@@ -165,10 +175,10 @@ export function HeaderContent({
         >
           {navLinks.map((link) => {
             const external = "external" in link && link.external;
-            const active = !external && navActive(link.href, pathname);
+            const active = !external && navActive(link.href, pathname, isLoggedIn);
             return (
               <Button
-                key={link.href}
+                key={`${link.label}-${link.href}`}
                 variant="ghost"
                 size="sm"
                 asChild
@@ -344,12 +354,12 @@ export function HeaderContent({
           <MobileMenuSection title="Explore">
             {navLinks.map((link) => {
               const external = "external" in link && link.external;
-              const active = !external && navActive(link.href, pathname);
+              const active = !external && navActive(link.href, pathname, isLoggedIn);
               const Icon =
                 link.label === "Home" ? Home : link.label === "Channels" ? Hash : BookOpen;
               return (
                 <Button
-                  key={link.href}
+                  key={`${link.label}-${link.href}`}
                   variant="ghost"
                   className={cn(
                     mobileMenuItemClass,

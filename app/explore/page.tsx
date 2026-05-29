@@ -127,8 +127,8 @@ export default async function ExplorePage({ searchParams }: Props) {
             Common questions people ask
           </h2>
           <p className="mt-2 max-w-xl text-sm text-muted-foreground sm:text-base">
-            Tap a question to try our Bible Q&A — thoughtful, Scripture-grounded answers without
-            needing an account.
+            Tap a question to try Bible Q&A (powered by xgesis.ai) — thoughtful,
+            Scripture-grounded answers without needing an account.
           </p>
           <ul className="mt-6 grid gap-3 sm:grid-cols-2">
             {OUTREACH_COMMON_QUESTIONS.map((item) => (

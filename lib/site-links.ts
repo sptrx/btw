@@ -2,6 +2,9 @@
 export const siteFooterTagline =
   "An AI‑powered Gospel initiative by Believe The Works nonprofit organization, advancing the Gospel for the digital age.";
 
+export const bibleQaPoweredByLine =
+  "Bible Q&A is powered by xgesis.ai — an AI Scripture engine available for integration on Christian platforms.";
+
 export const footerNavLinks = [
   { href: "/explore", label: "Explore faith" },
   { href: "/about", label: "About" },

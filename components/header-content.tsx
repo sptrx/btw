@@ -95,7 +95,7 @@ const dropdownItemClass =
   "flex w-full cursor-pointer items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm text-foreground no-underline outline-none transition-colors focus:bg-accent focus:text-accent-foreground data-[highlighted]:bg-accent data-[highlighted]:text-accent-foreground";
 
 const mobileMenuItemClass =
-  "h-11 w-full justify-start gap-3 rounded-lg px-3 font-medium";
+  "h-11 w-full justify-start gap-3 whitespace-normal rounded-lg px-3 font-medium";
 
 function MobileMenuSection({
   title,
@@ -146,6 +146,10 @@ export function HeaderContent({
   }, []);
 
   useEffect(() => {
+    closeMobile();
+  }, [pathname, closeMobile]);
+
+  useEffect(() => {
     if (!mobileOpen) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") closeMobile();
@@ -154,28 +158,43 @@ export function HeaderContent({
     return () => window.removeEventListener("keydown", onKey);
   }, [mobileOpen, closeMobile]);
 
+  useEffect(() => {
+    if (!mobileOpen) return;
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [mobileOpen]);
+
   return (
     <header
-      className="sticky top-0 z-50 w-full overflow-x-clip border-b border-header bg-[oklch(0.72_0.04_108)]/95 pt-[env(safe-area-inset-top)] shadow-[0_1px_0_0_var(--header-border)] backdrop-blur-sm transition-[background,box-shadow,border-color] duration-300 dark:border-border/50 dark:bg-neutral-900/90 dark:shadow-none dark:backdrop-blur-md"
+      className="sticky top-0 z-50 w-full overflow-x-clip border-b border-header-border bg-[oklch(0.72_0.04_108)]/95 pt-[env(safe-area-inset-top)] shadow-[0_1px_0_0_var(--header-border)] backdrop-blur-sm transition-[background,box-shadow,border-color] duration-300 dark:border-border/50 dark:bg-neutral-900/90 dark:shadow-none dark:backdrop-blur-md"
       role="banner"
     >
-      <div className="container mx-auto flex max-w-6xl items-center gap-3 px-3 py-2.5 sm:px-5 sm:py-3">
-        {/* Logo — full width on mobile minus menu; no grid wrap */}
-        <BtwLogo
-          href={primaryHomeHref}
-          priority
-          size="header"
-          linkClassName="flex shrink-0 items-center rounded-lg px-1 -ml-1 transition-colors hover:bg-accent/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-        />
+      <div className="container mx-auto max-w-6xl px-3 sm:px-5">
+        {/* Top bar: flex on mobile; 3-column grid on desktop so nav stays visually centered */}
+        <div className="flex min-h-[var(--header-bar-height)] items-center gap-2 py-2.5 sm:gap-3 sm:py-3 md:grid md:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] md:items-center md:gap-4">
+          <div className="min-w-0 justify-self-start md:col-start-1">
+            <BtwLogo
+              href={primaryHomeHref}
+              priority
+              size="header"
+              linkClassName="flex max-w-full items-center rounded-lg px-1 -ml-1 transition-colors hover:bg-accent/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+            />
+          </div>
 
-        {/* Desktop nav — centered between logo and actions */}
         <nav
-          className="hidden flex-1 justify-center md:flex md:items-center md:gap-0.5 md:rounded-full md:border md:border-border/60 md:bg-muted/50 md:p-1 dark:md:border-transparent dark:md:bg-transparent"
+          className="hidden md:col-start-2 md:flex md:items-center md:justify-self-center md:gap-0.5 md:rounded-full md:border md:border-border/60 md:bg-muted/50 md:p-1 dark:md:border-transparent dark:md:bg-transparent"
           aria-label="Primary"
         >
           {navLinks.map((link) => {
             const external = "external" in link && link.external;
             const active = !external && navActive(link.href, pathname, isLoggedIn);
+            const subtitle =
+              "description" in link && typeof link.description === "string"
+                ? link.description
+                : undefined;
             return (
               <Button
                 key={`${link.label}-${link.href}`}
@@ -191,19 +210,25 @@ export function HeaderContent({
                 )}
               >
                 {external ? (
-                  <a href={link.href} target="_blank" rel="noopener noreferrer">
+                  <a
+                    href={link.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    title={subtitle}
+                  >
                     {link.label}
                   </a>
                 ) : (
-                  <Link href={link.href}>{link.label}</Link>
+                  <Link href={link.href} title={subtitle}>
+                    {link.label}
+                  </Link>
                 )}
               </Button>
             );
           })}
         </nav>
 
-        {/* Right: desktop tools + compact mobile menu trigger */}
-        <div className="ml-auto flex shrink-0 items-center gap-1 sm:gap-1.5 md:gap-2">
+        <div className="ml-auto flex shrink-0 items-center justify-end gap-1 sm:gap-1.5 md:col-start-3 md:ml-0 md:gap-2 md:justify-self-end">
           <div className="hidden md:block">
             <GlobalSearch />
           </div>
@@ -212,11 +237,9 @@ export function HeaderContent({
           <div className="hidden min-w-0 md:flex md:items-center md:gap-2">
             {user ? (
               <>
-                {user && (
-                  <Button size="sm" asChild>
-                    <Link href="/channel/new">Create Channel</Link>
-                  </Button>
-                )}
+                <Button size="sm" asChild>
+                  <Link href="/channel/new">Create Channel</Link>
+                </Button>
                 <DropdownMenu.Root>
                   <DropdownMenu.Trigger asChild>
                     <button
@@ -319,24 +342,23 @@ export function HeaderContent({
             {mobileOpen ? <X className="h-5 w-5" aria-hidden /> : <Menu className="h-5 w-5" aria-hidden />}
           </Button>
         </div>
-      </div>
+        </div>
 
-      <GlobalSearch open={searchOpen} onOpenChange={setSearchOpen} showTrigger={false} />
+        <GlobalSearch open={searchOpen} onOpenChange={setSearchOpen} showTrigger={false} />
 
-      {/* Mobile nav — single clean panel; tools live here, not under the logo row */}
-      <div
-        id={MOBILE_NAV_ID}
-        className={cn(
-          "md:hidden",
-          mobileOpen
-            ? "border-t border-header-border bg-muted/20 px-3 pb-3 pt-2 dark:border-border/40 dark:bg-background/95"
-            : "hidden"
-        )}
-      >
-        <nav
-          className="container mx-auto max-w-6xl space-y-4 rounded-2xl border border-border/70 bg-card p-3 shadow-sm pb-[max(0.75rem,env(safe-area-inset-bottom))]"
-          aria-label="Primary mobile"
+        <div
+          id={MOBILE_NAV_ID}
+          className={cn(
+            "md:hidden",
+            mobileOpen
+              ? "border-t border-header-border pb-3 pt-2 dark:border-border/40"
+              : "hidden"
+          )}
         >
+          <nav
+            className="space-y-4 rounded-2xl border border-border/70 bg-card p-3 shadow-sm pb-[max(0.75rem,env(safe-area-inset-bottom))] dark:bg-card/95"
+            aria-label="Primary mobile"
+          >
           {user && userLabel !== null ? (
             <div className="flex items-center gap-3 rounded-xl bg-muted/40 px-3 py-2.5">
               <UserAvatar name={userLabel} avatarUrl={avatarUrl} size="md" />
@@ -355,8 +377,20 @@ export function HeaderContent({
             {navLinks.map((link) => {
               const external = "external" in link && link.external;
               const active = !external && navActive(link.href, pathname, isLoggedIn);
+              const subtitle =
+                "description" in link && typeof link.description === "string"
+                  ? link.description
+                  : undefined;
               const Icon =
                 link.label === "Home" ? Home : link.label === "Channels" ? Hash : BookOpen;
+              const labelBlock = (
+                <span className="flex min-w-0 flex-1 flex-col items-start gap-0.5 text-left">
+                  <span>{link.label}</span>
+                  {subtitle ? (
+                    <span className="text-xs font-normal text-muted-foreground">{subtitle}</span>
+                  ) : null}
+                </span>
+              );
               return (
                 <Button
                   key={`${link.label}-${link.href}`}
@@ -372,13 +406,13 @@ export function HeaderContent({
                   {external ? (
                     <a href={link.href} target="_blank" rel="noopener noreferrer">
                       <Icon className="size-4 shrink-0 text-muted-foreground" aria-hidden />
-                      {link.label}
+                      {labelBlock}
                       <span className="sr-only"> (opens in new tab)</span>
                     </a>
                   ) : (
                     <Link href={link.href}>
                       <Icon className="size-4 shrink-0 text-muted-foreground" aria-hidden />
-                      {link.label}
+                      {labelBlock}
                     </Link>
                   )}
                 </Button>
@@ -474,7 +508,8 @@ export function HeaderContent({
               </Button>
             </MobileMenuSection>
           )}
-        </nav>
+          </nav>
+        </div>
       </div>
     </header>
   );

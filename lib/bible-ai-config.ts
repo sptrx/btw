@@ -48,9 +48,12 @@ export function bibleAiSsoPath(next = "/ask"): string {
   return `/api/bible-ai/sso?next=${encodeURIComponent(next)}`;
 }
 
+export const BIBLE_QA_NAV_DESCRIPTION = "Powered by xgesis.ai" as const;
+
 export type BibleAiNavLink = {
   href: string;
   label: "Bible Q&A";
+  description: typeof BIBLE_QA_NAV_DESCRIPTION;
   external: boolean;
 };
 
@@ -65,6 +68,7 @@ export function resolveBibleAiNavLink(isAuthenticated = false): BibleAiNavLink |
     return {
       href: bibleAiSsoPath("/ask"),
       label: "Bible Q&A",
+      description: BIBLE_QA_NAV_DESCRIPTION,
       external: false,
     };
   }
@@ -72,6 +76,7 @@ export function resolveBibleAiNavLink(isAuthenticated = false): BibleAiNavLink |
     return {
       href: bibleAskPagePath(),
       label: "Bible Q&A",
+      description: BIBLE_QA_NAV_DESCRIPTION,
       external: false,
     };
   }
@@ -79,6 +84,7 @@ export function resolveBibleAiNavLink(isAuthenticated = false): BibleAiNavLink |
     return {
       href: bibleAiPublicAskUrl(),
       label: "Bible Q&A",
+      description: BIBLE_QA_NAV_DESCRIPTION,
       external: true,
     };
   }

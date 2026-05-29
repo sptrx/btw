@@ -57,7 +57,7 @@ export function CommunityFeed({
 
   return (
     <div className="space-y-0">
-      <div className="sticky top-[calc(3.25rem+env(safe-area-inset-top))] z-40 border-b border-border/80 bg-background/95 px-4 py-3 backdrop-blur-sm sm:px-6">
+      <div className="sticky top-[calc(var(--header-bar-height)+env(safe-area-inset-top))] z-40 border-b border-border/80 bg-background/95 px-4 py-3 backdrop-blur-sm sm:px-6">
         <div className="flex gap-2 overflow-x-auto pb-0.5 scrollbar-none">
           {SHARING_FEED_FILTERS.map((f) => (
             <button

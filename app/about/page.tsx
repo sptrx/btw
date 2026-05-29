@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { btwDisplayFont } from "@/lib/btw-ui";
-import { siteFooterTagline } from "@/lib/site-links";
+import { bibleQaPoweredByLine, siteFooterTagline } from "@/lib/site-links";
 import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = {
@@ -41,6 +41,7 @@ export default function AboutPage() {
           welcoming space: read real testimonies, ask Bible questions without pressure, and learn at
           your own pace.
         </p>
+        <p className="btw-prose text-muted-foreground">{bibleQaPoweredByLine}</p>
         <p className="flex flex-wrap gap-4 text-sm font-medium">
           <Link href="/explore" className="text-primary hover:underline">
             Start exploring

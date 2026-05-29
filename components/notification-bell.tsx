@@ -149,7 +149,7 @@ export function NotificationBell({ className }: Props) {
           aria-label="Notifications"
           className={cn(
             // Mobile: anchor to viewport so the panel isn't clipped by header internals.
-            "fixed left-2 right-2 top-[calc(env(safe-area-inset-top)+3.5rem)] z-[60] mx-auto max-w-md",
+            "fixed left-2 right-2 top-[calc(env(safe-area-inset-top)+var(--header-bar-height))] z-[60] mx-auto max-w-md",
             // Desktop: anchor to the trigger.
             "md:absolute md:left-auto md:right-0 md:top-full md:mt-2 md:w-96 md:max-w-none"
           )}

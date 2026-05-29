@@ -50,7 +50,7 @@ export default async function AskPage({ searchParams }: Props) {
               <p>
                 You are signed in. For saved conversations and the full Q&A experience, open{" "}
                 <Link href={bibleAiSsoPath("/ask")} className="font-medium text-primary hover:underline">
-                  Bible Q&A (xgesis)
+                  Bible Q&A on xgesis.ai
                 </Link>
                 .
               </p>

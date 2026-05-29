@@ -1,6 +1,11 @@
 import Link from "next/link";
 import { BtwLogo } from "@/components/btw-logo";
-import { footerLegalLinks, footerNavLinks, siteFooterTagline } from "@/lib/site-links";
+import {
+  bibleQaPoweredByLine,
+  footerLegalLinks,
+  footerNavLinks,
+  siteFooterTagline,
+} from "@/lib/site-links";
 import { cn } from "@/lib/utils";
 
 const footerLinkClass =
@@ -22,6 +27,9 @@ export function SiteFooter({ className }: { className?: string }) {
             <BtwLogo href="/" className="max-w-[12rem]" />
             <p className="mt-4 max-w-md text-sm leading-relaxed text-muted-foreground">
               {siteFooterTagline}
+            </p>
+            <p className="mt-3 max-w-md text-sm leading-relaxed text-muted-foreground">
+              {bibleQaPoweredByLine}
             </p>
           </div>
 

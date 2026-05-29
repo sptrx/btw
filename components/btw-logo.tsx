@@ -10,7 +10,7 @@ const sizeClassNames = {
   default:
     "h-auto max-h-9 w-full max-w-[min(100%,13.5rem)] object-contain object-left sm:max-h-10 md:max-w-[14rem] lg:max-w-[17rem]",
   header:
-    "h-11 w-auto max-w-[min(100%,12.5rem)] object-contain object-left sm:h-12 sm:max-w-[14rem] md:max-w-[16rem] lg:h-[3.25rem] lg:max-w-[18rem]",
+    "h-10 w-auto max-w-[min(100%,10.5rem)] object-contain object-left sm:h-12 sm:max-w-[14rem] lg:h-[3.25rem] lg:max-w-[18rem]",
 } as const;
 
 type Props = {

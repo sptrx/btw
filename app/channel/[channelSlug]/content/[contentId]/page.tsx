@@ -4,13 +4,16 @@ import {
   getContentById,
   getChannelBySlug,
   getComments,
-  getFeedbackCounts,
   getShareCount,
-  getUserHasFeedback,
   isChannelAuthor,
 } from "@/actions/channels";
+import { getPostReactions } from "@/actions/reactions";
+import { emptyReactionCounts } from "@/lib/post-reactions";
 import DeleteContentButton from "./delete-content-button";
 import { getCurrentUser, getProfile, hasAcceptedContentDisclaimer } from "@/actions";
+import { isFollowingUser } from "@/actions/follows";
+import { FollowUserButton } from "@/components/follow-user-button";
+import { profilePath } from "@/lib/profile-url";
 import { isContentKept } from "@/actions/library";
 import ContentActions from "./content-actions";
 import { ReportContentButton } from "@/components/report-content-button";
@@ -23,6 +26,8 @@ import CommentForm from "./comment-form";
 import CommentList from "./comment-list";
 import { ChannelContentMedia } from "@/components/channel-content-media";
 import { RelativeDate } from "@/components/relative-date";
+import { SharingTypeBadge } from "@/components/sharing-type-badge";
+import { isSharingType } from "@/lib/sharing-types";
 
 type Props = {
   params: Promise<{ channelSlug: string; contentId: string }>;
@@ -42,16 +47,30 @@ export default async function ChannelContentPage({ params }: Props) {
   const profile = user ? await getProfile(user.id) : null;
   const isModerator = isSiteModerator(profile?.role);
 
-  const [comments, feedbackCounts, shareCount, hasLiked, hasHelpful, hasKept, isAuthor, hasAlreadyAcceptedDisclaimer] = await Promise.all([
-    getComments(contentId),
-    getFeedbackCounts(contentId),
-    getShareCount(contentId),
-    user ? getUserHasFeedback(contentId, "like") : false,
-    user ? getUserHasFeedback(contentId, "helpful") : false,
-    user ? isContentKept(contentId, user.id) : false,
-    user ? isChannelAuthor(content.topic_id) : false,
-    user ? hasAcceptedContentDisclaimer(user.id) : false,
-  ]);
+  const authorId = content.author_id as string;
+  const authorProfile = content.profiles as {
+    display_name?: string;
+    username?: string | null;
+  } | null;
+
+  const [comments, shareCount, reactionState, hasKept, isAuthor, hasAlreadyAcceptedDisclaimer, viewerFollowsAuthor] =
+    await Promise.all([
+      getComments(contentId),
+      getShareCount(contentId),
+      getPostReactions([{ postId: contentId, postKind: "topic_content" }]),
+      user ? isContentKept(contentId, user.id) : false,
+      user ? isChannelAuthor(content.topic_id) : false,
+      user ? hasAcceptedContentDisclaimer(user.id) : false,
+      user && authorId && user.id !== authorId
+        ? isFollowingUser(user.id, authorId)
+        : Promise.resolve(false),
+    ]);
+
+  const reactions =
+    reactionState.get(`topic_content:${contentId}`) ?? {
+      counts: emptyReactionCounts(),
+      userReaction: null,
+    };
 
   const rawMedia = content.media_urls;
   let mediaUrls: { url: string; type: string }[] = [];
@@ -78,6 +97,16 @@ export default async function ChannelContentPage({ params }: Props) {
     (content as { moderation_status?: string | null }).moderation_status ?? "approved";
   const moderationNote =
     (content as { moderation_note?: string | null }).moderation_note ?? null;
+
+  const sharingRaw = (content as { sharing_type?: string }).sharing_type;
+  const sharingType =
+    sharingRaw && isSharingType(sharingRaw)
+      ? sharingRaw
+      : content.type === "discussion"
+        ? "discussion"
+        : "testimony";
+  const scriptureRef = (content as { scripture_reference?: string | null }).scripture_reference;
+  const isQuestion = sharingType === "question";
 
   return (
     <div>
@@ -117,12 +146,43 @@ export default async function ChannelContentPage({ params }: Props) {
       ) : null}
 
       <div className="btw-content-panel mb-6">
+        <div className="mb-3">
+          <SharingTypeBadge sharingType={sharingType} size="md" />
+        </div>
         <h1 className="btw-page-title">{content.title}</h1>
-        <p className="mt-1.5 text-sm text-muted-foreground">
-          by {(content.profiles as { display_name?: string })?.display_name ?? "Anonymous"}
+        {scriptureRef?.trim() ? (
+          <p className="mt-2 text-sm font-medium text-muted-foreground">{scriptureRef.trim()}</p>
+        ) : null}
+        <p className="mt-1.5 text-sm text-muted-foreground flex flex-wrap items-center gap-x-1.5 gap-y-1">
+          <span>
+            by{" "}
+            {authorProfile?.username ? (
+              <Link
+                href={profilePath({ id: authorId, username: authorProfile.username })}
+                className="text-foreground hover:text-primary hover:underline"
+              >
+                {authorProfile?.display_name ?? "Anonymous"}
+              </Link>
+            ) : (
+              (authorProfile?.display_name ?? "Anonymous")
+            )}
+          </span>
+          {user && authorId && user.id !== authorId && !viewerFollowsAuthor ? (
+            <>
+              <span aria-hidden>·</span>
+              <FollowUserButton
+                userId={authorId}
+                displayName={authorProfile?.display_name ?? "Anonymous"}
+                initialFollowing={viewerFollowsAuthor}
+                isAuthenticated={!!user}
+                loginNext={`/channel/${channelSlug}/content/${contentId}`}
+                variant="link"
+              />
+            </>
+          ) : null}
           {content.created_at ? (
             <>
-              {" · "}
+              <span aria-hidden>·</span>
               <RelativeDate date={content.created_at} />
             </>
           ) : null}
@@ -138,15 +198,24 @@ export default async function ChannelContentPage({ params }: Props) {
 
         <ChannelContentMedia items={mediaUrls} />
 
+        {isQuestion ? (
+          <div className="mt-4">
+            <Button className="min-h-11 touch-manipulation" asChild>
+              <a href="#comments">Answer this</a>
+            </Button>
+            <p className="mt-2 text-xs text-muted-foreground">
+              Your thoughtful response can help someone seeking truth feel welcomed.
+            </p>
+          </div>
+        ) : null}
+
         <ContentActions
           contentId={contentId}
           channelSlug={channelSlug}
           contentTitle={content.title}
-          likes={feedbackCounts.likes}
-          helpful={feedbackCounts.helpful}
           shareCount={shareCount}
-          hasLiked={hasLiked}
-          hasHelpful={hasHelpful}
+          reactionCounts={reactions.counts}
+          userReaction={reactions.userReaction}
           hasKept={hasKept}
           isAuthenticated={!!user}
         />
@@ -161,7 +230,7 @@ export default async function ChannelContentPage({ params }: Props) {
 
         {!user && (
           <p className="mt-4 rounded-lg border border-border bg-muted/50 px-3 py-2 text-sm text-muted-foreground">
-            Sign up to comment, keep posts, give feedback, or repost to your feed.
+            Sign up to comment, keep posts, respond in faith, or share to your feed.
           </p>
         )}
 
@@ -175,7 +244,7 @@ export default async function ChannelContentPage({ params }: Props) {
         )}
       </div>
 
-      <section className="mt-8">
+      <section id="comments" className="mt-8 scroll-mt-24">
         <h2 className="btw-section-title mb-3">Comments</h2>
         {user && (
           <CommentForm

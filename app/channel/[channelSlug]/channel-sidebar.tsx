@@ -14,6 +14,9 @@ import {
 import { cn } from "@/lib/utils";
 import AddPageLink from "./add-page-link";
 import { WalkWithChannelButton } from "@/components/walk-with-channel-button";
+import { FollowUserButton } from "@/components/follow-user-button";
+import { CountryBadge } from "@/components/geo/country-badge";
+import { profilePath } from "@/lib/profile-url";
 
 export type ChannelSidebarPage = {
   id: string;
@@ -27,7 +30,12 @@ type ChannelSidebarChannel = {
   id: string;
   title: string;
   description: string | null;
-  profiles: { display_name?: string | null } | null;
+  author_id: string;
+  profiles: {
+    display_name?: string | null;
+    username?: string | null;
+    country_code?: string | null;
+  } | null;
 };
 
 type Props = {
@@ -39,6 +47,7 @@ type Props = {
   showWalkWith?: boolean;
   walkingWith?: boolean;
   isAuthenticated?: boolean;
+  viewerFollowsAuthor?: boolean;
 };
 
 const ROW_BASE =
@@ -72,6 +81,7 @@ export default function ChannelSidebar({
   showWalkWith = false,
   walkingWith = false,
   isAuthenticated = false,
+  viewerFollowsAuthor = false,
 }: Props) {
   const pathname = usePathname();
   const base = `/channel/${channelSlug}`;
@@ -101,9 +111,37 @@ export default function ChannelSidebar({
             {channel.title}
           </h1>
         </Link>
-        <p className="text-muted-foreground text-sm mt-1">
-          by {author?.display_name ?? "Anonymous"}
+        <p className="text-muted-foreground text-sm mt-1 flex flex-wrap items-center gap-x-1.5 gap-y-1">
+          <span>
+            by{" "}
+            {author?.username ? (
+              <Link
+                href={profilePath({ id: channel.author_id, username: author.username })}
+                className="text-foreground hover:text-primary hover:underline"
+              >
+                {author?.display_name ?? "Anonymous"}
+              </Link>
+            ) : (
+              (author?.display_name ?? "Anonymous")
+            )}
+          </span>
+          {!isAuthor && isAuthenticated && !viewerFollowsAuthor ? (
+            <>
+              <span aria-hidden>·</span>
+              <FollowUserButton
+                userId={channel.author_id}
+                displayName={author?.display_name ?? "Anonymous"}
+                initialFollowing={viewerFollowsAuthor}
+                isAuthenticated={isAuthenticated}
+                loginNext={`/channel/${channelSlug}`}
+                variant="link"
+              />
+            </>
+          ) : null}
         </p>
+        {author?.country_code ? (
+          <CountryBadge countryCode={author.country_code} className="mt-2" />
+        ) : null}
         {channel.description && (
           <p className="mt-3 text-sm text-muted-foreground line-clamp-6">{channel.description}</p>
         )}

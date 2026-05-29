@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { Bell, Heart, MessageCircle, Loader2, ShieldAlert } from "lucide-react";
+import { Bell, Heart, MessageCircle, Loader2, ShieldAlert, UserPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { RelativeDate } from "@/components/relative-date";
 import { cn } from "@/lib/utils";
@@ -252,9 +252,20 @@ function NotificationRow({
   }
 
   const actorName = item.actor.display_name?.trim() || "Someone";
-  const Icon = item.type === "like" ? Heart : MessageCircle;
-  const iconTint = item.type === "like" ? "text-rose-500" : "text-primary";
-  const action = item.type === "like" ? "liked your post" : "commented on your post";
+  const Icon =
+    item.type === "like" ? Heart : item.type === "follow" ? UserPlus : MessageCircle;
+  const iconTint =
+    item.type === "like"
+      ? "text-rose-500"
+      : item.type === "follow"
+        ? "text-sky-500"
+        : "text-primary";
+  const action =
+    item.type === "like"
+      ? "liked your post"
+      : item.type === "follow"
+        ? "started following you"
+        : "commented on your post";
 
   const body = (
     <div className="flex items-start gap-3 px-3 py-2.5">

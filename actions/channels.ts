@@ -3,7 +3,13 @@
 import { createClient } from "@/utils/supabase/server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { moderateContent, isMissingModerationStatusColumn, isMissingModerationNoteColumn, approvedModerationOrFilter } from "@/lib/moderation";
+import {
+  moderateContent,
+  isMissingModerationStatusColumn,
+  isMissingModerationNoteColumn,
+  isMissingSharingTypeColumn,
+  approvedModerationOrFilter,
+} from "@/lib/moderation";
 import { PENDING_REVIEW_MESSAGE } from "@/lib/moderation-messages";
 import { fetchScriptureGuideReply, isScriptureGuideConfigured } from "@/lib/bible-ai";
 import { checkAndIncrementBibleAiQuota } from "@/lib/bible-ai-quota";
@@ -16,6 +22,13 @@ import {
 import { replaceChannelTags, replacePostTags } from "@/actions/tags";
 import { createNotification } from "@/actions/notifications";
 import { contentTypeLabel, type ContentType } from "@/lib/content-types";
+import {
+  defaultMediaTypeForSharing,
+  isSharingType,
+  sharingTypeLabel,
+  type SharingType,
+} from "@/lib/sharing-types";
+import { isMissingGeoColumn, resolveContentGeo } from "@/lib/geo/resolve-content-country";
 import { isSiteModerator } from "@/lib/site-roles";
 import type { ProfileNameSnippet } from "@/lib/profile-fields";
 
@@ -163,6 +176,8 @@ export type FetchChannelsOptions = {
   search?: string | null;
   /** When set, restrict to channels tagged with this `topic_tags.slug`. */
   topicSlug?: string | null;
+  /** Filter by channel owner home country region. */
+  regionId?: import("@/lib/geo").GeoRegionId | null;
 };
 
 /** Shape returned to the browse page (counts already unwrapped from PostgREST arrays). */
@@ -314,6 +329,12 @@ export async function fetchChannels(options?: FetchChannelsOptions): Promise<Cha
       )
     : rows;
 
+  const regionId = options?.regionId ?? null;
+  const { countryCodesInRegion } = await import("@/lib/geo");
+  const regionCodes = regionId
+    ? new Set(countryCodesInRegion(regionId))
+    : null;
+
   const withProfiles: ChannelListItem[] = await Promise.all(
     filtered.map(async (c) => {
       const profile = await getProfile(c.author_id);
@@ -331,10 +352,22 @@ export async function fetchChannels(options?: FetchChannelsOptions): Promise<Cha
         post_count: c.posts?.[0]?.count ?? 0,
         follower_count: c.followers?.[0]?.count ?? 0,
         tags,
-        profiles: profile ? { display_name: profile.display_name } : null,
+        profiles: profile
+          ? {
+              display_name: profile.display_name,
+              country_code: profile.country_code,
+            }
+          : null,
       };
     })
   );
+
+  if (regionCodes) {
+    return withProfiles.filter((c) => {
+      const code = c.profiles?.country_code?.toUpperCase();
+      return code && regionCodes.has(code);
+    });
+  }
   return withProfiles;
 }
 
@@ -487,7 +520,17 @@ export async function getChannelBySlug(slug: string) {
     .single();
   if (error || !data) return null;
   const profile = await getProfile(data.author_id);
-  return { ...data, profiles: profile ? { display_name: profile.display_name, avatar_url: profile.avatar_url } : null };
+  return {
+    ...data,
+    profiles: profile
+      ? {
+          display_name: profile.display_name,
+          avatar_url: profile.avatar_url,
+          username: profile.username,
+          country_code: profile.country_code,
+        }
+      : null,
+  };
 }
 
 export async function getChannelPages(channelId: string): Promise<ChannelPageRow[]> {
@@ -854,6 +897,8 @@ export type PageContentListItem = {
   id: string;
   type: string;
   type_label: string;
+  sharing_type: SharingType;
+  sharing_label: string;
   title: string;
   body: string | null;
   media_urls: unknown;
@@ -866,6 +911,7 @@ export type PageContentListItem = {
 type PageContentRow = {
   id: string;
   type: string;
+  sharing_type?: string | null;
   title: string;
   body: string | null;
   media_urls: unknown;
@@ -892,10 +938,18 @@ async function enrichPageContentRows(
 
   return rows.map((r) => {
     const page = r.page_id ? pageById.get(r.page_id) : null;
+    const sharing =
+      r.sharing_type && isSharingType(r.sharing_type)
+        ? r.sharing_type
+        : r.type === "discussion"
+          ? "discussion"
+          : "testimony";
     return {
       id: r.id,
       type: r.type,
       type_label: contentTypeLabel(r.type),
+      sharing_type: sharing,
+      sharing_label: sharingTypeLabel(sharing),
       title: r.title,
       body: r.body,
       media_urls: r.media_urls,
@@ -910,13 +964,16 @@ async function enrichPageContentRows(
 export async function getPageContent(
   channelId: string,
   pageId: string | null,
-  options?: { includeNonApproved?: boolean }
+  options?: { includeNonApproved?: boolean; sharingType?: SharingType }
 ) {
   const supabase = await createClient();
   let q = supabase
     .from("topic_content")
-    .select("id, type, title, body, media_urls, created_at, page_id, moderation_status")
+    .select(
+      "id, type, sharing_type, title, body, media_urls, created_at, page_id, moderation_status"
+    )
     .eq("topic_id", channelId);
+  if (options?.sharingType) q = q.eq("sharing_type", options.sharingType);
   if (pageId) q = q.eq("page_id", pageId);
   else q = q.is("page_id", null);
   if (!options?.includeNonApproved) {
@@ -925,6 +982,18 @@ export async function getPageContent(
   const ordered = await q.order("created_at", { ascending: false });
   let rows = (ordered.data ?? null) as PageContentRow[] | null;
   let error = ordered.error;
+  if (error && isMissingSharingTypeColumn(error)) {
+    let fallback = supabase
+      .from("topic_content")
+      .select("id, type, title, body, media_urls, created_at, page_id, moderation_status")
+      .eq("topic_id", channelId);
+    if (pageId) fallback = fallback.eq("page_id", pageId);
+    else fallback = fallback.is("page_id", null);
+    if (!options?.includeNonApproved) fallback = fallback.or(approvedModerationOrFilter());
+    const fallbackRes = await fallback.order("created_at", { ascending: false });
+    rows = (fallbackRes.data ?? null) as PageContentRow[] | null;
+    error = fallbackRes.error;
+  }
   if (error && isMissingModerationStatusColumn(error)) {
     let fallback = supabase
       .from("topic_content")
@@ -947,7 +1016,7 @@ export async function getPageContent(
 export async function getPageContentForEditPage(
   channelId: string,
   page: { id: string; slug: string },
-  options?: { includeNonApproved?: boolean }
+  options?: { includeNonApproved?: boolean; sharingType?: SharingType }
 ): Promise<PageContentListItem[]> {
   if (page.slug !== "home") {
     return getPageContent(channelId, page.id, options);
@@ -1000,16 +1069,45 @@ export async function createContent(channelId: string, pageId: string, formData:
     return { error: "Please accept the content disclaimer before publishing." };
   }
 
-  const type = formData.get("type") as ContentType;
+  const sharingRaw = (formData.get("sharing_type") as string)?.trim() ?? "testimony";
+  if (!isSharingType(sharingRaw)) return { error: "Invalid sharing type." };
+  const sharingType = sharingRaw;
+
+  if (sharingType === "prayer_request") {
+    return {
+      redirectToPrayer: true as const,
+      url: `/prayer/new?from=channel&channel=${encodeURIComponent(channel.slug)}`,
+    };
+  }
+
+  const mediaTypeRaw = formData.get("type") as string | null;
+  const type: ContentType =
+    mediaTypeRaw &&
+    ["video", "podcast", "article", "discussion"].includes(mediaTypeRaw)
+      ? (mediaTypeRaw as ContentType)
+      : defaultMediaTypeForSharing(sharingType);
+
   const title = (formData.get("title") as string)?.trim();
   const body = (formData.get("body") as string)?.trim() || null;
+  const scriptureRef =
+    sharingType === "devotional"
+      ? (formData.get("scripture_reference") as string)?.trim() || null
+      : null;
 
-  if (!title || !["video", "podcast", "article", "discussion"].includes(type))
-    return { error: "Invalid content type or title." };
+  const titleRequired = sharingType !== "praise_report";
+  if ((titleRequired && !title) || !title && !body) {
+    return { error: titleRequired ? "Title is required." : "Please add your praise report." };
+  }
 
-  const result = await moderateContent([title, body].filter(Boolean).join(" "), {
-    contentType: type,
-  });
+  const resolvedTitle =
+    title ||
+    (body && body.length > 80 ? `${body.slice(0, 77).trim()}…` : body?.trim()) ||
+    "Praise report";
+
+  const result = await moderateContent(
+    [resolvedTitle, body, scriptureRef].filter(Boolean).join(" "),
+    { contentType: type }
+  );
   if (!result.allowed) return { error: result.reason ?? "Content not allowed." };
 
   const moderationStatus = result.pendingReview ? "pending_review" : "approved";
@@ -1029,16 +1127,23 @@ export async function createContent(channelId: string, pageId: string, formData:
 
   const isFeatured = formData.get("is_featured") === "on";
 
+  const authorProfile = await getProfile(user.id);
+  const geo = resolveContentGeo(formData, authorProfile?.country_code);
+
   const insertPayload: Record<string, unknown> = {
     topic_id: channelId,
     page_id: pageId || null,
     author_id: user.id,
     type,
-    title,
+    sharing_type: sharingType,
+    title: resolvedTitle,
     body,
     media_urls: mediaUrls,
     is_featured: isFeatured,
     moderation_status: moderationStatus,
+    scripture_reference: scriptureRef,
+    country_code: geo.country_code,
+    region: geo.region,
   };
 
   let { data: inserted, error: insertErr } = await supabase
@@ -1047,8 +1152,28 @@ export async function createContent(channelId: string, pageId: string, formData:
     .select("id")
     .single();
 
+  if (insertErr && isMissingSharingTypeColumn(insertErr)) {
+    delete insertPayload.sharing_type;
+    delete insertPayload.scripture_reference;
+    ({ data: inserted, error: insertErr } = await supabase
+      .from("topic_content")
+      .insert(insertPayload)
+      .select("id")
+      .single());
+  }
+
   if (insertErr && isMissingModerationStatusColumn(insertErr)) {
     delete insertPayload.moderation_status;
+    ({ data: inserted, error: insertErr } = await supabase
+      .from("topic_content")
+      .insert(insertPayload)
+      .select("id")
+      .single());
+  }
+
+  if (insertErr && isMissingGeoColumn(insertErr)) {
+    delete insertPayload.country_code;
+    delete insertPayload.region;
     ({ data: inserted, error: insertErr } = await supabase
       .from("topic_content")
       .insert(insertPayload)
@@ -1068,6 +1193,8 @@ export async function createContent(channelId: string, pageId: string, formData:
 
   revalidatePath(`/channel/${channel.slug}`);
   revalidatePath("/");
+  revalidatePath("/map");
+  revalidatePath("/feed");
   if (moderationStatus === "pending_review") {
     return { success: true, pendingReview: true, message: PENDING_REVIEW_MESSAGE };
   }
@@ -1105,18 +1232,28 @@ export async function updateContent(contentId: string, formData: FormData) {
     return { error: "Please accept the content disclaimer before saving." };
   }
 
-  const type = formData.get("type") as ContentType;
+  const sharingRaw = (formData.get("sharing_type") as string)?.trim();
+  const sharingType =
+    sharingRaw && isSharingType(sharingRaw) ? sharingRaw : undefined;
+
+  const mediaTypeRaw = formData.get("type") as string | null;
+  const type = mediaTypeRaw as ContentType;
   const title = (formData.get("title") as string)?.trim();
   const body = (formData.get("body") as string)?.trim() || null;
   const pageId = (formData.get("page_id") as string)?.trim() || null;
+  const scriptureRef =
+    sharingType === "devotional"
+      ? (formData.get("scripture_reference") as string)?.trim() || null
+      : null;
 
   if (!title || !["video", "podcast", "article", "discussion"].includes(type)) {
     return { error: "Invalid content type or title." };
   }
 
-  const result = await moderateContent([title, body].filter(Boolean).join(" "), {
-    contentType: type,
-  });
+  const result = await moderateContent(
+    [title, body, scriptureRef].filter(Boolean).join(" "),
+    { contentType: type }
+  );
   if (!result.allowed) return { error: result.reason ?? "Content not allowed." };
 
   const moderationStatus = result.pendingReview ? "pending_review" : "approved";
@@ -1146,11 +1283,24 @@ export async function updateContent(contentId: string, formData: FormData) {
     moderation_status: moderationStatus,
     moderation_note: null,
   };
+  if (sharingType) {
+    updatePayload.sharing_type = sharingType;
+    updatePayload.scripture_reference = scriptureRef;
+  }
 
   let { error: upErr } = await supabase
     .from("topic_content")
     .update(updatePayload)
     .eq("id", contentId);
+
+  if (upErr && isMissingSharingTypeColumn(upErr)) {
+    delete updatePayload.sharing_type;
+    delete updatePayload.scripture_reference;
+    ({ error: upErr } = await supabase
+      .from("topic_content")
+      .update(updatePayload)
+      .eq("id", contentId));
+  }
 
   if (upErr && isMissingModerationNoteColumn(upErr)) {
     delete updatePayload.moderation_note;
@@ -1486,7 +1636,7 @@ export async function getContentById(
 ) {
   const supabase = await createClient();
   const baseCols =
-    "id, topic_id, page_id, type, title, body, media_urls, created_at, author_id, moderation_status, moderation_note";
+    "id, topic_id, page_id, type, sharing_type, scripture_reference, title, body, media_urls, created_at, author_id, moderation_status, moderation_note";
   let { data, error } = await supabase
     .from("topic_content")
     .select(`${baseCols}, is_featured`)
@@ -1495,10 +1645,12 @@ export async function getContentById(
   // Fallback if the `is_featured` migration hasn't been applied yet in this env.
   if (error) {
     const msg = (error.message ?? "").toLowerCase();
-    if (msg.includes("is_featured")) {
+    if (msg.includes("is_featured") || msg.includes("sharing_type")) {
       ({ data, error } = await supabase
         .from("topic_content")
-        .select(baseCols)
+        .select(
+          "id, topic_id, page_id, type, title, body, media_urls, created_at, author_id, moderation_status, moderation_note, is_featured"
+        )
         .eq("id", contentId)
         .single());
     } else if (isMissingModerationNoteColumn(error)) {
@@ -1546,7 +1698,12 @@ export async function getContentById(
     moderation_status: moderationStatus,
     moderation_note: moderationNote,
     is_featured: (data as { is_featured?: boolean | null }).is_featured ?? false,
-    profiles: profile ? { display_name: profile.display_name } : null,
+    profiles: profile
+      ? {
+          display_name: profile.display_name,
+          username: profile.username,
+        }
+      : null,
   };
 }
 

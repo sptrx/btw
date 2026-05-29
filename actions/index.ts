@@ -93,7 +93,13 @@ export async function getPost(postId: string) {
   const profile = await getProfile(data.user_id);
   return {
     ...data,
-    profiles: profile ? { display_name: profile.display_name, avatar_url: profile.avatar_url } : null,
+    profiles: profile
+      ? {
+          display_name: profile.display_name,
+          avatar_url: profile.avatar_url,
+          username: profile.username,
+        }
+      : null,
   };
 }
 
@@ -170,16 +176,22 @@ export async function signOut() {
 }
 
 import { normalizeOptionalText, normalizeWebsiteUrl } from "@/lib/profile-fields";
+import { isValidCountryCode, normalizeCountryCode } from "@/lib/geo";
+import { isValidUsername, normalizeUsernameInput } from "@/lib/profile-username";
+import { profilePath } from "@/lib/profile-url";
 
 export type ProfileRow = {
   id: string;
+  username: string | null;
   display_name: string | null;
   avatar_url: string | null;
   bio: string | null;
   city: string | null;
+  country_code: string | null;
   ministry_name: string | null;
   website_url: string | null;
   role?: string | null;
+  profile_private?: boolean;
   created_at?: string;
   updated_at?: string;
   content_disclaimer_accepted_at?: string | null;
@@ -190,7 +202,7 @@ export async function getProfile(userId: string): Promise<ProfileRow | null> {
   const { data, error } = await supabase
     .from("profiles")
     .select(
-      "id, display_name, avatar_url, bio, city, ministry_name, website_url, role, created_at, updated_at, content_disclaimer_accepted_at"
+      "id, username, display_name, avatar_url, bio, city, country_code, ministry_name, website_url, role, profile_private, created_at, updated_at, content_disclaimer_accepted_at"
     )
     .eq("id", userId)
     .single();
@@ -334,8 +346,18 @@ export async function updateProfile(
   const displayName = normalizeOptionalText(formData.get("display_name"), 80);
   const bio = normalizeOptionalText(formData.get("bio"), 500);
   const city = normalizeOptionalText(formData.get("city"), 80);
+  const countryRaw = (formData.get("country_code") as string | null)?.trim() ?? "";
   const ministryName = normalizeOptionalText(formData.get("ministry_name"), 120);
   const avatarRaw = normalizeOptionalText(formData.get("avatar_url"), 2048);
+  const usernameRaw = normalizeUsernameInput(String(formData.get("username") ?? ""));
+  const profilePrivate = formData.get("profile_private") === "on";
+
+  if (usernameRaw && !isValidUsername(usernameRaw)) {
+    return {
+      error:
+        "Username must be 3–30 characters: letters, numbers, underscores, or hyphens (not at the start or end).",
+    };
+  }
 
   const websiteRaw = (formData.get("website_url") as string | null)?.trim() ?? "";
   let websiteUrl: string | null = null;
@@ -350,27 +372,52 @@ export async function updateProfile(
     return { error: "Avatar URL must start with http:// or https://." };
   }
 
-  const { error } = await supabase
-    .from("profiles")
-    .update({
-      display_name: displayName,
-      bio,
-      city,
-      ministry_name: ministryName,
-      website_url: websiteUrl,
-      avatar_url: avatarRaw,
-      updated_at: new Date().toISOString(),
-    })
-    .eq("id", user.id);
+  let countryCode: string | null = null;
+  if (countryRaw) {
+    countryCode = normalizeCountryCode(countryRaw);
+    if (!countryCode || !isValidCountryCode(countryCode)) {
+      return { error: "Please choose a valid country from the list." };
+    }
+  }
+
+  const updatePayload: Record<string, unknown> = {
+    display_name: displayName,
+    bio,
+    city,
+    country_code: countryCode,
+    ministry_name: ministryName,
+    website_url: websiteUrl,
+    avatar_url: avatarRaw,
+    profile_private: profilePrivate,
+    updated_at: new Date().toISOString(),
+  };
+  if (usernameRaw) {
+    updatePayload.username = usernameRaw;
+  }
+
+  const { error } = await supabase.from("profiles").update(updatePayload).eq("id", user.id);
 
   if (error) {
     console.error("[updateProfile]", error.message);
+    if (error.code === "23505" || error.message.toLowerCase().includes("unique")) {
+      return { error: "That username is already taken. Try another." };
+    }
     return { error: "Could not save profile. If this persists, run the latest database migrations." };
   }
 
+  const { data: saved } = await supabase
+    .from("profiles")
+    .select("username")
+    .eq("id", user.id)
+    .single();
+
+  const path = profilePath({ id: user.id, username: saved?.username });
   revalidatePath("/profile");
   revalidatePath(`/profile/${user.id}`);
+  revalidatePath(path);
   revalidatePath("/dashboard/settings");
+  revalidatePath("/map");
+  revalidatePath("/feed");
   revalidatePath("/", "layout");
-  redirect("/profile");
+  redirect(path);
 }

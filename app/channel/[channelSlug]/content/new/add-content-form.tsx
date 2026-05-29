@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { Sparkles } from "lucide-react";
 import { createContent } from "@/actions/channels";
 import { Button } from "@/components/ui/button";
@@ -12,13 +13,20 @@ import {
 } from "@/components/content-submission-disclaimer";
 import { ContentMissionHint } from "@/components/content-mission-hint";
 import { PendingReviewNotice } from "@/components/pending-review-notice";
+import { CountryPicker } from "@/components/geo/country-picker";
 import { TopicTagPicker } from "@/components/tags/topic-tag-picker";
+import { SharingTypeSelector } from "@/components/sharing-type-selector";
+import {
+  SHARING_TYPE_CONFIG,
+  defaultMediaTypeForSharing,
+  type SharingType,
+} from "@/lib/sharing-types";
 
-const CONTENT_TYPES = [
+const MEDIA_FORMATS = [
+  { value: "article", label: "Article / text" },
   { value: "video", label: "Video" },
   { value: "podcast", label: "Podcast" },
-  { value: "article", label: "Article" },
-  { value: "discussion", label: "Discussion" },
+  { value: "discussion", label: "Discussion thread" },
 ] as const;
 
 type Page = { id: string; slug: string; title: string };
@@ -30,9 +38,8 @@ type Props = {
   pages: Page[];
   defaultPageId: string | null;
   allTags: Tag[];
-  /** True once the user has agreed to the disclaimer at least once -- hides
-   *  the per-submission checkbox below. */
   hasAlreadyAcceptedDisclaimer?: boolean;
+  defaultCountryCode?: string | null;
 };
 
 export default function AddContentForm({
@@ -42,21 +49,40 @@ export default function AddContentForm({
   defaultPageId,
   allTags,
   hasAlreadyAcceptedDisclaimer = false,
+  defaultCountryCode = null,
 }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [pendingReviewMessage, setPendingReviewMessage] = useState<string | null>(null);
   const [pageId, setPageId] = useState(defaultPageId ?? pages[0]?.id ?? "");
-  const [contentType, setContentType] = useState<(typeof CONTENT_TYPES)[number]["value"]>("article");
+  const [sharingType, setSharingType] = useState<SharingType>("testimony");
+  const [mediaFormat, setMediaFormat] = useState<string>("article");
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
+  const [scriptureReference, setScriptureReference] = useState("");
   const [isFeatured, setIsFeatured] = useState(false);
   const [mediaUrls, setMediaUrls] = useState<MediaItem[]>([]);
   const [tagIds, setTagIds] = useState<string[]>([]);
+  const [countryCode, setCountryCode] = useState<string | null>(defaultCountryCode);
   const [acceptedDisclaimer, setAcceptedDisclaimer] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const router = useRouter();
 
+  const config = SHARING_TYPE_CONFIG[sharingType];
+  const isPrayerFlow = sharingType === "prayer_request";
+  const isPraiseReport = sharingType === "praise_report";
+  const isDevotional = sharingType === "devotional";
+  const showMedia =
+    !isDevotional &&
+    !isPrayerFlow &&
+    sharingType !== "praise_report";
+
   const effectiveAccepted = hasAlreadyAcceptedDisclaimer || acceptedDisclaimer;
+
+  const handleSharingChange = (next: SharingType) => {
+    setSharingType(next);
+    if (next === "discussion") setMediaFormat("discussion");
+    else if (mediaFormat === "discussion") setMediaFormat(defaultMediaTypeForSharing(next));
+  };
 
   const addMedia = () => setMediaUrls([...mediaUrls, { url: "", type: "image" }]);
   const updateMedia = (i: number, field: string, value: string) => {
@@ -67,9 +93,14 @@ export default function AddContentForm({
 
   const buildFormData = () => {
     const formData = new FormData();
-    formData.set("type", contentType);
+    formData.set("sharing_type", sharingType);
+    formData.set(
+      "type",
+      sharingType === "discussion" ? "discussion" : mediaFormat
+    );
     formData.set("title", title.trim());
     formData.set("body", body);
+    if (isDevotional) formData.set("scripture_reference", scriptureReference.trim());
     if (isFeatured) formData.set("is_featured", "on");
     formData.set("media_urls", JSON.stringify(mediaUrls.filter((m) => m.url)));
     formData.set("accepted_disclaimer", effectiveAccepted ? "1" : "0");
@@ -93,13 +124,21 @@ export default function AddContentForm({
       setError("Select a page first.");
       return;
     }
-    if (!title.trim()) {
+    if (!isPraiseReport && !title.trim()) {
       setError("Title is required.");
+      return;
+    }
+    if (isPraiseReport && !body.trim() && !title.trim()) {
+      setError("Please share your praise report.");
       return;
     }
     setSubmitting(true);
     try {
       const res = await createContent(channelId, targetPage, buildFormData());
+      if (res && "redirectToPrayer" in res && res.redirectToPrayer) {
+        router.push(res.url);
+        return;
+      }
       if (res?.error) {
         setError(res.error);
         return;
@@ -118,183 +157,233 @@ export default function AddContentForm({
     <form onSubmit={handleSubmit} className="max-w-xl space-y-6">
       <ContentMissionHint />
 
-      <div>
-        <label htmlFor="content-page" className="block text-sm font-medium mb-1">
-          Page
-        </label>
-        <select
-          id="content-page"
-          value={pageId}
-          onChange={(e) => setPageId(e.target.value)}
-          className="w-full min-h-11 rounded-xl border border-input bg-background px-4 py-3 text-sm"
-        >
-          {pages.map((p) => (
-            <option key={p.id} value={p.id}>
-              {p.title}
-            </option>
-          ))}
-        </select>
-      </div>
+      <SharingTypeSelector value={sharingType} onChange={handleSharingChange} />
 
-      <div>
-        <label htmlFor="content-type" className="block text-sm font-medium mb-1">
-          Content type
-        </label>
-        <select
-          id="content-type"
-          name="type"
-          required
-          value={contentType}
-          onChange={(e) =>
-            setContentType(e.target.value as (typeof CONTENT_TYPES)[number]["value"])
-          }
-          className="w-full min-h-11 rounded-xl border border-input bg-background px-4 py-3 text-sm"
-        >
-          {CONTENT_TYPES.map((t) => (
-            <option key={t.value} value={t.value}>
-              {t.label}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      <div>
-        <label htmlFor="title" className="block text-sm font-medium mb-1">
-          Title
-        </label>
-        <input
-          id="title"
-          name="title"
-          type="text"
-          required
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          placeholder="e.g. How Psalm 23 carried me through hospital nights"
-          className="w-full min-h-11 rounded-xl border border-input bg-background px-4 py-3 text-sm"
-        />
-      </div>
-
-      <div>
-        <label htmlFor="body" className="block text-sm font-medium mb-1">
-          Body / description
-        </label>
-        <textarea
-          id="body"
-          name="body"
-          rows={6}
-          value={body}
-          onChange={(e) => setBody(e.target.value)}
-          placeholder="Share what God has done—your testimony, scripture that met you, or encouragement from your walk."
-          className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm"
-        />
-      </div>
-
-      <div className="space-y-3">
-        <div>
-          <span className="block text-sm font-medium mb-2">Images &amp; videos</span>
-          <MediaUploadField channelId={channelId} mediaUrls={mediaUrls} onMediaChange={setMediaUrls} />
-        </div>
-
-        <div className="rounded-xl border border-dashed border-border bg-muted/20 p-4 space-y-3">
-          <div className="flex justify-between items-center gap-2">
-            <label className="text-sm font-medium text-muted-foreground">Or paste URLs</label>
-            <button
-              type="button"
-              onClick={addMedia}
-              className="text-sm font-medium text-primary hover:underline"
-            >
-              + Add URL
-            </button>
-          </div>
-          <p className="text-xs text-muted-foreground">
-            Optional. Use any public HTTPS link, or upload files above when R2 is configured.
+      {isPrayerFlow ? (
+        <div className="rounded-xl border border-sky-500/30 bg-sky-500/10 px-4 py-4 text-sm">
+          <p className="font-medium text-foreground">Prayer requests live on the Prayer Wall</p>
+          <p className="mt-1 text-muted-foreground">
+            Share your request with the community for prayer and follow-up. You can still link back
+            to this channel from your profile.
           </p>
-          {mediaUrls.map((m, i) => (
-            <div key={i} className="flex flex-col sm:flex-row gap-2">
-              <input
-                type="url"
-                placeholder="https://..."
-                value={m.url}
-                onChange={(e) => updateMedia(i, "url", e.target.value)}
-                className="flex-1 min-w-0 min-h-11 rounded-xl border border-input bg-background px-4 py-3 text-sm"
-              />
+          <Button asChild type="button" className="mt-4 min-h-11">
+            <Link href={`/prayer/new?from=channel&channel=${encodeURIComponent(channelSlug)}`}>
+              Continue to Prayer Wall
+            </Link>
+          </Button>
+        </div>
+      ) : (
+        <>
+          <div>
+            <label htmlFor="content-page" className="block text-sm font-medium mb-1">
+              Page
+            </label>
+            <select
+              id="content-page"
+              value={pageId}
+              onChange={(e) => setPageId(e.target.value)}
+              className="w-full min-h-11 rounded-xl border border-input bg-background px-4 py-3 text-sm"
+            >
+              {pages.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.title}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {showMedia && sharingType !== "discussion" ? (
+            <div>
+              <label htmlFor="media-format" className="block text-sm font-medium mb-1">
+                Format
+              </label>
               <select
-                value={m.type}
-                onChange={(e) => updateMedia(i, "type", e.target.value)}
-                className="min-h-11 rounded-xl border border-input bg-background px-3 py-3 text-sm shrink-0"
+                id="media-format"
+                value={mediaFormat}
+                onChange={(e) => setMediaFormat(e.target.value)}
+                className="w-full min-h-11 rounded-xl border border-input bg-background px-4 py-3 text-sm"
               >
-                <option value="image">Image</option>
-                <option value="video">Video</option>
+                {MEDIA_FORMATS.filter((f) => f.value !== "discussion").map((t) => (
+                  <option key={t.value} value={t.value}>
+                    {t.label}
+                  </option>
+                ))}
               </select>
             </div>
-          ))}
-        </div>
-      </div>
+          ) : null}
 
-      <div>
-        <span className="block text-sm font-medium mb-2">Topics</span>
-        <TopicTagPicker allTags={allTags} value={tagIds} onChange={setTagIds} max={3} />
-      </div>
+          {isDevotional ? (
+            <div>
+              <label htmlFor="scripture-reference" className="block text-sm font-medium mb-1">
+                Scripture reference
+              </label>
+              <input
+                id="scripture-reference"
+                name="scripture_reference"
+                type="text"
+                value={scriptureReference}
+                onChange={(e) => setScriptureReference(e.target.value)}
+                placeholder="e.g. Psalm 23:1, John 3:16"
+                className="w-full min-h-11 rounded-xl border border-input bg-background px-4 py-3 text-sm"
+              />
+            </div>
+          ) : null}
 
-      <div className="rounded-xl border border-border/70 bg-muted/15 p-4">
-        <label className="flex items-start gap-3 text-sm font-medium text-foreground cursor-pointer">
-          <input
-            type="checkbox"
-            name="is_featured"
-            checked={isFeatured}
-            onChange={(e) => setIsFeatured(e.target.checked)}
-            className="mt-0.5 size-4 rounded border-input"
+          <div>
+            <label htmlFor="title" className="block text-sm font-medium mb-1">
+              {isPraiseReport ? "Title (optional)" : "Title"}
+            </label>
+            <input
+              id="title"
+              name="title"
+              type="text"
+              required={!isPraiseReport}
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder={
+                isPraiseReport
+                  ? "Optional headline for your praise"
+                  : "e.g. How Psalm 23 carried me through hospital nights"
+              }
+              className="w-full min-h-11 rounded-xl border border-input bg-background px-4 py-3 text-sm"
+            />
+          </div>
+
+          <div>
+            <label htmlFor="body" className="block text-sm font-medium mb-1">
+              {isDevotional ? "Reflection & application" : "Body / description"}
+            </label>
+            <textarea
+              id="body"
+              name="body"
+              rows={isPraiseReport || sharingType === "question" ? 4 : 6}
+              value={body}
+              onChange={(e) => setBody(e.target.value)}
+              placeholder={config.placeholder}
+              className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm"
+            />
+          </div>
+
+          {showMedia ? (
+            <div className="space-y-3">
+              <div>
+                <span className="block text-sm font-medium mb-2">Images &amp; videos</span>
+                <MediaUploadField
+                  channelId={channelId}
+                  mediaUrls={mediaUrls}
+                  onMediaChange={setMediaUrls}
+                />
+              </div>
+
+              <div className="rounded-xl border border-dashed border-border bg-muted/20 p-4 space-y-3">
+                <div className="flex justify-between items-center gap-2">
+                  <label className="text-sm font-medium text-muted-foreground">Or paste URLs</label>
+                  <button
+                    type="button"
+                    onClick={addMedia}
+                    className="text-sm font-medium text-primary hover:underline"
+                  >
+                    + Add URL
+                  </button>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Optional. Use any public HTTPS link, or upload files above when R2 is configured.
+                </p>
+                {mediaUrls.map((m, i) => (
+                  <div key={i} className="flex flex-col sm:flex-row gap-2">
+                    <input
+                      type="url"
+                      placeholder="https://..."
+                      value={m.url}
+                      onChange={(e) => updateMedia(i, "url", e.target.value)}
+                      className="flex-1 min-w-0 min-h-11 rounded-xl border border-input bg-background px-4 py-3 text-sm"
+                    />
+                    <select
+                      value={m.type}
+                      onChange={(e) => updateMedia(i, "type", e.target.value)}
+                      className="min-h-11 rounded-xl border border-input bg-background px-3 py-3 text-sm shrink-0"
+                    >
+                      <option value="image">Image</option>
+                      <option value="video">Video</option>
+                    </select>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : null}
+
+          <CountryPicker
+            value={countryCode}
+            onChange={setCountryCode}
+            hint="Share where you're from (optional) — country only, never city or precise location. Leave blank to use your profile home country if set."
           />
-          <span className="flex items-center gap-1.5">
-            <Sparkles className="size-4 text-muted-foreground" aria-hidden />
-            Feature on homepage
-          </span>
-        </label>
-        <p className="mt-1.5 pl-7 text-xs text-muted-foreground">
-          Optional editorial flag for this post.
-        </p>
-      </div>
 
-      {hasAlreadyAcceptedDisclaimer ? (
-        <ContentSubmissionDisclaimerAccepted />
-      ) : (
-        <ContentSubmissionDisclaimer
-          id="add-content-disclaimer"
-          checked={acceptedDisclaimer}
-          onCheckedChange={setAcceptedDisclaimer}
-        />
+          <div>
+            <span className="block text-sm font-medium mb-2">Topics</span>
+            <TopicTagPicker allTags={allTags} value={tagIds} onChange={setTagIds} max={3} />
+          </div>
+
+          <div className="rounded-xl border border-border/70 bg-muted/15 p-4">
+            <label className="flex items-start gap-3 text-sm font-medium text-foreground cursor-pointer">
+              <input
+                type="checkbox"
+                name="is_featured"
+                checked={isFeatured}
+                onChange={(e) => setIsFeatured(e.target.checked)}
+                className="mt-0.5 size-4 rounded border-input"
+              />
+              <span className="flex items-center gap-1.5">
+                <Sparkles className="size-4 text-muted-foreground" aria-hidden />
+                Feature on homepage
+              </span>
+            </label>
+            <p className="mt-1.5 pl-7 text-xs text-muted-foreground">
+              Optional editorial flag for this post.
+            </p>
+          </div>
+
+          {hasAlreadyAcceptedDisclaimer ? (
+            <ContentSubmissionDisclaimerAccepted />
+          ) : (
+            <ContentSubmissionDisclaimer
+              id="add-content-disclaimer"
+              checked={acceptedDisclaimer}
+              onCheckedChange={setAcceptedDisclaimer}
+            />
+          )}
+
+          {pendingReviewMessage !== null ? (
+            <PendingReviewNotice message={pendingReviewMessage || undefined} />
+          ) : null}
+
+          {error && (
+            <p
+              className="rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive"
+              role="alert"
+            >
+              {error}
+            </p>
+          )}
+
+          <div className="flex flex-wrap gap-3">
+            <Button
+              type="submit"
+              disabled={!effectiveAccepted || submitting}
+              className="min-h-11 touch-manipulation"
+            >
+              {submitting ? "Publishing…" : "Publish"}
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => router.push(`/channel/${channelSlug}`)}
+              className="min-h-11 touch-manipulation"
+            >
+              Cancel
+            </Button>
+          </div>
+        </>
       )}
-
-      {pendingReviewMessage !== null ? (
-        <PendingReviewNotice message={pendingReviewMessage || undefined} />
-      ) : null}
-
-      {error && (
-        <p
-          className="rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive"
-          role="alert"
-        >
-          {error}
-        </p>
-      )}
-
-      <div className="flex flex-wrap gap-3">
-        <Button
-          type="submit"
-          disabled={!effectiveAccepted || submitting}
-          className="min-h-11 touch-manipulation"
-        >
-          {submitting ? "Publishing…" : "Publish"}
-        </Button>
-        <Button
-          type="button"
-          variant="outline"
-          onClick={() => router.push(`/channel/${channelSlug}`)}
-          className="min-h-11 touch-manipulation"
-        >
-          Cancel
-        </Button>
-      </div>
     </form>
   );
 }

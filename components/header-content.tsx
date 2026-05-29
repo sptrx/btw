@@ -46,7 +46,11 @@ type Props = {
 function buildNavLinks(bibleAiNavLink: BibleAiNavLink | null | undefined) {
   return [
     { href: "/", label: "Home" as const },
+    { href: "/explore", label: "Explore" as const },
+    { href: "/feed", label: "Feed" as const },
+    { href: "/map", label: "World map" as const },
     { href: "/channel/browse", label: "Channels" as const },
+    { href: "/prayer", label: "Prayer Wall" as const },
     ...(bibleAiNavLink ? [bibleAiNavLink] : []),
   ] as const;
 }
@@ -69,7 +73,11 @@ function headerDisplayName(user: User): string {
 /** Whether a primary nav link points at the current section. */
 function navActive(href: string, pathname: string): boolean {
   if (href === "/") return pathname === "/";
+  if (href === "/explore") return pathname === "/explore" || pathname.startsWith("/ask");
+  if (href === "/feed") return pathname === "/feed";
+  if (href === "/map") return pathname === "/map";
   if (href === "/channel/browse") return pathname.startsWith("/channel");
+  if (href === "/prayer") return pathname === "/prayer" || pathname.startsWith("/prayer/");
   return pathname === href;
 }
 

@@ -13,6 +13,12 @@ import {
 import { ContentMissionHint } from "@/components/content-mission-hint";
 import { PendingReviewNotice } from "@/components/pending-review-notice";
 import { TopicTagPicker } from "@/components/tags/topic-tag-picker";
+import { SharingTypeSelector } from "@/components/sharing-type-selector";
+import {
+  SHARING_TYPE_CONFIG,
+  isSharingType,
+  type SharingType,
+} from "@/lib/sharing-types";
 
 const CONTENT_TYPES = [
   { value: "video", label: "Video" },
@@ -27,6 +33,8 @@ type Tag = { id: string; slug: string; label: string };
 type Content = {
   id: string;
   type: string;
+  sharing_type: string;
+  scripture_reference: string | null;
   title: string;
   body: string | null;
   page_id: string | null;
@@ -62,9 +70,20 @@ export default function EditContentForm({
     Array.isArray(initialMedia) ? initialMedia.filter((m) => m?.url) : []
   );
   const [pageId, setPageId] = useState(content.page_id ?? pages[0]?.id ?? "");
+  const initialSharing = isSharingType(content.sharing_type)
+    ? content.sharing_type
+    : content.type === "discussion"
+      ? "discussion"
+      : "testimony";
+  const [sharingType, setSharingType] = useState<SharingType>(initialSharing);
   const [contentType, setContentType] = useState(content.type);
+  const [scriptureReference, setScriptureReference] = useState(
+    content.scripture_reference ?? ""
+  );
   const [title, setTitle] = useState(content.title);
   const [body, setBody] = useState(content.body ?? "");
+  const config = SHARING_TYPE_CONFIG[sharingType];
+  const isDevotional = sharingType === "devotional";
   const [isFeatured, setIsFeatured] = useState(content.is_featured ?? false);
   const [tagIds, setTagIds] = useState<string[]>(initialTagIds);
   const [acceptedDisclaimer, setAcceptedDisclaimer] = useState(false);
@@ -82,9 +101,11 @@ export default function EditContentForm({
 
   const buildFormData = () => {
     const formData = new FormData();
+    formData.set("sharing_type", sharingType);
     formData.set("type", contentType);
     formData.set("title", title.trim());
     formData.set("body", body);
+    if (isDevotional) formData.set("scripture_reference", scriptureReference.trim());
     formData.set("page_id", pageId || pages[0]?.id || "");
     if (isFeatured) formData.set("is_featured", "on");
     formData.set("media_urls", JSON.stringify(mediaUrls.filter((m) => m.url)));
@@ -133,6 +154,9 @@ export default function EditContentForm({
   return (
     <form onSubmit={handleSubmit} className="max-w-xl space-y-6">
       <ContentMissionHint />
+
+      <SharingTypeSelector value={sharingType} onChange={setSharingType} />
+
       <div>
         <label htmlFor="edit-content-page" className="block text-sm font-medium mb-1">
           Page
@@ -186,9 +210,26 @@ export default function EditContentForm({
         />
       </div>
 
+      {isDevotional ? (
+        <div>
+          <label htmlFor="edit-scripture" className="block text-sm font-medium mb-1">
+            Scripture reference
+          </label>
+          <input
+            id="edit-scripture"
+            name="scripture_reference"
+            type="text"
+            value={scriptureReference}
+            onChange={(e) => setScriptureReference(e.target.value)}
+            placeholder="e.g. Psalm 23:1"
+            className="w-full min-h-11 rounded-xl border border-input bg-background px-4 py-3 text-sm"
+          />
+        </div>
+      ) : null}
+
       <div>
         <label htmlFor="edit-body" className="block text-sm font-medium mb-1">
-          Body / description
+          {isDevotional ? "Reflection & application" : "Body / description"}
         </label>
         <textarea
           id="edit-body"
@@ -196,6 +237,7 @@ export default function EditContentForm({
           rows={6}
           value={body}
           onChange={(e) => setBody(e.target.value)}
+          placeholder={config.placeholder}
           className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm"
         />
       </div>

@@ -9,12 +9,20 @@ import {
 import AddContentLink from "./add-content-link";
 import { ShareButton } from "@/components/share-button";
 import { ChannelPageContentList } from "@/components/channel-page-content-list";
+import { ChannelContentFilterSection } from "@/components/channel-content-filter-section";
 import { getCurrentUser } from "@/actions";
+import { isSharingType, type SharingType } from "@/lib/sharing-types";
 
-type Props = { params: Promise<{ channelSlug: string }> };
+type Props = {
+  params: Promise<{ channelSlug: string }>;
+  searchParams: Promise<{ type?: string }>;
+};
 
-export default async function ChannelPage({ params }: Props) {
+export default async function ChannelPage({ params, searchParams }: Props) {
   const { channelSlug } = await params;
+  const sp = await searchParams;
+  const typeFilter =
+    sp.type && isSharingType(sp.type) ? (sp.type as SharingType) : undefined;
 
   const channel = await getChannelBySlug(channelSlug);
   if (!channel) notFound();
@@ -22,9 +30,13 @@ export default async function ChannelPage({ params }: Props) {
   const pages = await getChannelPages(channel.id);
   const homePage = pages.find((p) => p.slug === "home");
   const isAuthor = await isChannelAuthor(channel.id);
+  const contentOptions = {
+    includeNonApproved: isAuthor,
+    sharingType: typeFilter,
+  };
   const content = homePage
-    ? await getPageContentForEditPage(channel.id, homePage, { includeNonApproved: isAuthor })
-    : await getPageContent(channel.id, null, { includeNonApproved: isAuthor });
+    ? await getPageContentForEditPage(channel.id, homePage, contentOptions)
+    : await getPageContent(channel.id, null, contentOptions);
 
   const user = await getCurrentUser();
   const defaultPageIdForContent = homePage?.id ?? pages[0]?.id ?? null;
@@ -45,6 +57,7 @@ export default async function ChannelPage({ params }: Props) {
         </div>
       )}
 
+      <ChannelContentFilterSection channelSlug={channelSlug} />
       <ChannelPageContentList channelSlug={channelSlug} items={content} showPage />
 
       {isAuthor && (

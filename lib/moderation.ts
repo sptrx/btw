@@ -22,7 +22,7 @@ export type ModerationResult = {
 
 export type ModerateContentOptions = {
   /** Post type — discussions are held to a stricter mission bar. */
-  contentType?: "video" | "podcast" | "article" | "discussion" | "comment";
+  contentType?: "video" | "podcast" | "article" | "discussion" | "comment" | "prayer";
   /**
    * User requested an AI Scripture guide reply — allow respectful Bible questions,
    * passage reflection, and article discussion without requiring full testimony tone.
@@ -451,6 +451,15 @@ export function isMissingModerationNoteColumn(err: {
   if (!err) return false;
   const msg = (err.message ?? "").toLowerCase();
   return msg.includes("moderation_note");
+}
+
+export function isMissingSharingTypeColumn(err: {
+  message?: string;
+  code?: string;
+} | null): boolean {
+  if (!err) return false;
+  const msg = (err.message ?? "").toLowerCase();
+  return msg.includes("sharing_type") || msg.includes("scripture_reference");
 }
 
 /** PostgREST filter: approved content only (includes legacy rows before migration). */

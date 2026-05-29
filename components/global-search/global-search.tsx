@@ -35,6 +35,7 @@ type AuthorHit = {
   kind: "author";
   id: string;
   display_name: string;
+  username: string | null;
 };
 
 type Hit = ChannelHit | PostHit | AuthorHit;
@@ -79,7 +80,7 @@ type ContentRow = {
   body: string | null;
   topics: { slug: string; title: string } | { slug: string; title: string }[] | null;
 };
-type ProfileRow = { id: string; display_name: string | null };
+type ProfileRow = { id: string; display_name: string | null; username?: string | null };
 
 function flatten<T>(rows: (T[] | null | undefined)[]): T[] {
   const out: T[] = [];
@@ -102,6 +103,7 @@ async function runSearch(
     postsByTitle,
     postsByBody,
     authorsByName,
+    authorsByUsername,
   ] = await Promise.all([
     supabase
       .from("topics")
@@ -129,8 +131,14 @@ async function runSearch(
       .abortSignal(signal),
     supabase
       .from("profiles")
-      .select("id, display_name")
+      .select("id, display_name, username")
       .ilike("display_name", pattern)
+      .limit(PER_GROUP)
+      .abortSignal(signal),
+    supabase
+      .from("profiles")
+      .select("id, display_name, username")
+      .ilike("username", pattern)
       .limit(PER_GROUP)
       .abortSignal(signal),
   ]);
@@ -144,7 +152,7 @@ async function runSearch(
   ).slice(0, PER_GROUP);
 
   const authorRows = dedupeById(
-    flatten<ProfileRow>([authorsByName.data])
+    flatten<ProfileRow>([authorsByName.data, authorsByUsername.data])
   ).slice(0, PER_GROUP);
 
   const channels: ChannelHit[] = channelRows.map((r) => ({
@@ -176,6 +184,7 @@ async function runSearch(
       kind: "author",
       id: r.id,
       display_name: r.display_name as string,
+      username: (r as { username?: string | null }).username ?? null,
     }));
 
   return { channels, posts, authors };
@@ -188,7 +197,7 @@ function hitHref(h: Hit): string {
     case "post":
       return `/channel/${h.channelSlug}/content/${h.id}`;
     case "author":
-      return `/profile/${h.id}`;
+      return h.username ? `/u/${h.username}` : `/profile/${h.id}`;
   }
 }
 

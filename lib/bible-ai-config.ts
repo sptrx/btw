@@ -54,11 +54,23 @@ export type BibleAiNavLink = {
   external: boolean;
 };
 
+/** On-site Bible Q&A for seekers (anonymous-friendly). */
+export function bibleAskPagePath(): string {
+  return "/ask";
+}
+
 /** Resolve header nav link on the server so every page gets the same href. */
-export function resolveBibleAiNavLink(): BibleAiNavLink | null {
-  if (showBibleAiSsoNav()) {
+export function resolveBibleAiNavLink(isAuthenticated = false): BibleAiNavLink | null {
+  if (isAuthenticated && showBibleAiSsoNav()) {
     return {
       href: bibleAiSsoPath("/ask"),
+      label: "Bible Q&A",
+      external: false,
+    };
+  }
+  if (isScriptureGuideAvailableOnBtw()) {
+    return {
+      href: bibleAskPagePath(),
       label: "Bible Q&A",
       external: false,
     };
@@ -71,4 +83,11 @@ export function resolveBibleAiNavLink(): BibleAiNavLink | null {
     };
   }
   return null;
+}
+
+/** True when BTW can proxy questions to bible-ai (server env configured). */
+export function isScriptureGuideAvailableOnBtw(): boolean {
+  const env = (process.env.BIBLE_AI_BASE_URL ?? "").trim();
+  if (env) return true;
+  return process.env.NODE_ENV !== "production";
 }

@@ -1,15 +1,6 @@
-import { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { getProfile, getCurrentUser } from "@/actions";
-import { createClient } from "@/utils/supabase/server";
-import Link from "next/link";
-import { ProfileHeader } from "@/components/profile-header";
-import { RelativeDate } from "@/components/relative-date";
-
-export const metadata: Metadata = {
-  title: "Profile",
-  description: "Your BTW profile",
-};
+import { profilePath } from "@/lib/profile-url";
 
 export default async function Profile() {
   const user = await getCurrentUser();
@@ -18,32 +9,5 @@ export default async function Profile() {
   const profile = await getProfile(user.id);
   if (!profile) redirect("/auth/login");
 
-  const supabase = await createClient();
-  const { data: posts } = await supabase
-    .from("posts")
-    .select("id, text, created_at")
-    .eq("user_id", user.id)
-    .order("created_at", { ascending: false })
-    .limit(20);
-
-  return (
-    <div>
-      <p className="btw-section-eyebrow">Account</p>
-      <ProfileHeader profile={profile} showEditLink />
-
-      <h2 className="btw-section-title mb-4 mt-8">Your posts</h2>
-      <div className="space-y-3">
-        {!posts?.length ? (
-          <div className="btw-empty">No posts yet.</div>
-        ) : (
-          posts.map((post) => (
-            <Link key={post.id} href={`/posts/${post.id}`} className="btw-app-row">
-              <RelativeDate date={post.created_at} className="mb-1 block text-xs text-muted-foreground" />
-              <div className="text-sm">{post.text}</div>
-            </Link>
-          ))
-        )}
-      </div>
-    </div>
-  );
+  redirect(profilePath(profile));
 }

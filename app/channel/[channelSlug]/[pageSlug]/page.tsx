@@ -7,13 +7,22 @@ import {
   isChannelAuthor,
 } from "@/actions/channels";
 import { Button } from "@/components/ui/button";
+import { ChannelPageContentList } from "@/components/channel-page-content-list";
+import { ChannelContentFilterSection } from "@/components/channel-content-filter-section";
 import AddContentLink from "../add-content-link";
 import { DeletePageButton } from "../delete-page-button";
+import { isSharingType, type SharingType } from "@/lib/sharing-types";
 
-type Props = { params: Promise<{ channelSlug: string; pageSlug: string }> };
+type Props = {
+  params: Promise<{ channelSlug: string; pageSlug: string }>;
+  searchParams: Promise<{ type?: string }>;
+};
 
-export default async function ChannelSubPage({ params }: Props) {
+export default async function ChannelSubPage({ params, searchParams }: Props) {
   const { channelSlug, pageSlug } = await params;
+  const sp = await searchParams;
+  const typeFilter =
+    sp.type && isSharingType(sp.type) ? (sp.type as SharingType) : undefined;
 
   if (pageSlug === "home") {
     redirect(`/channel/${channelSlug}`);
@@ -26,7 +35,10 @@ export default async function ChannelSubPage({ params }: Props) {
   if (!page) notFound();
 
   const isAuthor = await isChannelAuthor(channel.id);
-  const content = await getPageContent(channel.id, page.id, { includeNonApproved: isAuthor });
+  const content = await getPageContent(channel.id, page.id, {
+    includeNonApproved: isAuthor,
+    sharingType: typeFilter,
+  });
 
   return (
     <div>
@@ -53,25 +65,13 @@ export default async function ChannelSubPage({ params }: Props) {
         </div>
       </div>
 
-      <div className="space-y-3">
-        {content.length === 0 && (
-          <p className="text-muted-foreground py-8 text-center">No content yet.</p>
-        )}
-        {content.map((item) => (
-          <Link
-            key={item.id}
-            href={`/channel/${channelSlug}/content/${item.id}`}
-            className="btw-app-row"
-          >
-            <h3 className="font-medium">{item.title}</h3>
-            {item.body && (
-              <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
-                {item.body}
-              </p>
-            )}
-          </Link>
-        ))}
-      </div>
+      <ChannelContentFilterSection channelSlug={channelSlug} pageSlug={pageSlug} />
+      <ChannelPageContentList
+        channelSlug={channelSlug}
+        items={content}
+        showPage={false}
+        emptyMessage="No content on this page yet."
+      />
 
       {isAuthor && (
         <section

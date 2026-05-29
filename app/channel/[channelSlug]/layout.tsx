@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { getChannelBySlug, getChannelSidebarPages, isChannelAuthor } from "@/actions/channels";
 import { getCurrentUser } from "@/actions";
+import { isFollowingUser } from "@/actions/follows";
 import { isWalkingWithChannel } from "@/actions/library";
 import ChannelSidebar from "./channel-sidebar";
 
@@ -20,8 +21,12 @@ export default async function ChannelSlugLayout({ children, params }: Props) {
     getCurrentUser(),
   ]);
 
-  const walkingWith =
-    user && !isAuthor ? await isWalkingWithChannel(channel.id, user.id) : false;
+  const [walkingWith, viewerFollowsAuthor] = await Promise.all([
+    user && !isAuthor ? isWalkingWithChannel(channel.id, user.id) : Promise.resolve(false),
+    user && !isAuthor
+      ? isFollowingUser(user.id, channel.author_id)
+      : Promise.resolve(false),
+  ]);
 
   const homePage = pages.find((p) => p.slug === "home");
 
@@ -32,7 +37,14 @@ export default async function ChannelSlugLayout({ children, params }: Props) {
           id: channel.id,
           title: channel.title,
           description: channel.description,
-          profiles: channel.profiles,
+          author_id: channel.author_id,
+          profiles: channel.profiles
+            ? {
+                display_name: channel.profiles.display_name,
+                username: (channel.profiles as { username?: string }).username,
+                country_code: (channel.profiles as { country_code?: string }).country_code,
+              }
+            : null,
         }}
         channelSlug={channelSlug}
         pages={pages}
@@ -41,6 +53,7 @@ export default async function ChannelSlugLayout({ children, params }: Props) {
         showWalkWith={!isAuthor}
         walkingWith={walkingWith}
         isAuthenticated={!!user}
+        viewerFollowsAuthor={viewerFollowsAuthor}
       />
       <div className="min-w-0 flex-1">{children}</div>
     </div>

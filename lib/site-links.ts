@@ -3,6 +3,7 @@ export const siteFooterTagline =
   "An AI‑powered Gospel initiative by Believe The Works nonprofit organization, advancing the Gospel for the digital age.";
 
 export const footerNavLinks = [
+  { href: "/explore", label: "Explore faith" },
   { href: "/about", label: "About" },
   { href: "/donate", label: "Get involved — Donate" },
   { href: "/contact", label: "Contact us" },

@@ -6,10 +6,9 @@ import { resolveBibleAiNavLink } from "@/lib/bible-ai-config";
 import { isSiteModerator } from "@/lib/site-roles";
 
 export default async function Header() {
-  const bibleAiNavLink = resolveBibleAiNavLink();
-
   try {
     const user = await getCurrentUser();
+    const bibleAiNavLink = resolveBibleAiNavLink(Boolean(user));
     const profile = user ? await getProfile(user.id) : null;
     const ownsChannels = user ? await userOwnsAnyChannel(user.id) : false;
     const showMyChannels = profile?.role === "channel_author" || ownsChannels;
@@ -32,7 +31,7 @@ export default async function Header() {
         user={null}
         showMyChannels={false}
         showModeration={false}
-        bibleAiNavLink={bibleAiNavLink}
+        bibleAiNavLink={resolveBibleAiNavLink(false)}
       />
     );
   }

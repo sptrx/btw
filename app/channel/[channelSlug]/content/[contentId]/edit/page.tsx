@@ -63,6 +63,10 @@ export default async function EditContentPage({ params }: Props) {
         content={{
           id: content.id,
           type: content.type,
+          sharing_type:
+            (content as { sharing_type?: string }).sharing_type ?? "testimony",
+          scripture_reference:
+            (content as { scripture_reference?: string | null }).scripture_reference ?? null,
           title: content.title,
           body: content.body,
           page_id: content.page_id,

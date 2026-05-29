@@ -2,15 +2,20 @@
 
 import { useActionState, useState } from "react";
 import { updateProfile } from "@/actions";
+import { CountryPicker } from "@/components/geo/country-picker";
 import { ProfileAvatarField } from "@/components/profile-avatar-field";
+import { ProfilePrivacyToggle } from "@/components/profile-privacy-toggle";
 
 type Props = {
   displayName: string;
+  username: string;
   bio: string;
   city: string;
   ministryName: string;
   websiteUrl: string;
   avatarUrl: string;
+  profilePrivate: boolean;
+  countryCode: string | null;
 };
 
 const inputClassName =
@@ -18,23 +23,48 @@ const inputClassName =
 
 export default function ProfileSettingsForm({
   displayName,
+  username,
   bio,
   city,
   ministryName,
   websiteUrl,
   avatarUrl,
+  profilePrivate,
+  countryCode: initialCountryCode,
 }: Props) {
   const [name, setName] = useState(displayName);
   const [bioText, setBioText] = useState(bio);
   const [cityText, setCityText] = useState(city);
   const [ministryText, setMinistryText] = useState(ministryName);
   const [websiteText, setWebsiteText] = useState(websiteUrl);
+  const [homeCountry, setHomeCountry] = useState<string | null>(initialCountryCode);
 
   const [state, formAction, pending] = useActionState(updateProfile, null);
 
   return (
     <form action={formAction} className="flex max-w-lg flex-col gap-5">
       <ProfileAvatarField displayName={name} initialAvatarUrl={avatarUrl} />
+
+      <div>
+        <label htmlFor="username" className="mb-1 block text-sm font-medium text-foreground">
+          Username
+        </label>
+        <input
+          id="username"
+          name="username"
+          type="text"
+          defaultValue={username}
+          autoComplete="username"
+          className={inputClassName}
+          pattern="[a-zA-Z0-9]([a-zA-Z0-9_-]*[a-zA-Z0-9])?"
+          minLength={3}
+          maxLength={30}
+          required
+        />
+        <p className="mt-1 text-xs text-muted-foreground">
+          Your public profile URL: believetheworks.org/u/your-username
+        </p>
+      </div>
 
       <div>
         <label htmlFor="display_name" className="mb-1 block text-sm font-medium text-foreground">
@@ -64,6 +94,14 @@ export default function ProfileSettingsForm({
           className={inputClassName}
         />
       </div>
+
+      <CountryPicker
+        value={homeCountry}
+        onChange={setHomeCountry}
+        label="Home country"
+        hint="Your home country (optional). We may suggest this from your connection on sign-up — you can change it anytime. Country level only."
+        id="profile-home-country"
+      />
 
       <div>
         <label htmlFor="city" className="mb-1 block text-sm font-medium text-foreground">
@@ -109,6 +147,8 @@ export default function ProfileSettingsForm({
           className={inputClassName}
         />
       </div>
+
+      <ProfilePrivacyToggle defaultChecked={profilePrivate} />
 
       {state?.error ? <p className="text-sm text-destructive">{state.error}</p> : null}
 

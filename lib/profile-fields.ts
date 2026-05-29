@@ -1,17 +1,24 @@
 /** Shared profile field helpers (client + server safe). */
 
 /** Minimal author shape attached to channels, posts, comments, etc. */
-export type ProfileNameSnippet = { display_name?: string | null } | null;
+export type ProfileNameSnippet = {
+  display_name?: string | null;
+  country_code?: string | null;
+} | null;
 
 export type ProfilePublicFields = {
   id: string;
+  username?: string | null;
   display_name: string | null;
   avatar_url: string | null;
   bio: string | null;
   city: string | null;
+  country_code?: string | null;
   ministry_name: string | null;
   website_url: string | null;
   role?: string | null;
+  created_at?: string;
+  profile_private?: boolean;
 };
 
 export function normalizeOptionalText(value: FormDataEntryValue | null, maxLen: number): string | null {

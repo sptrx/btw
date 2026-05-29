@@ -2,11 +2,12 @@
 
 import { createClient } from "@/utils/supabase/server";
 import { getProfile } from "@/actions";
+import { profilePath } from "@/lib/profile-url";
 
 /** Maximum rows returned to the bell dropdown — anything older is fetched on demand. */
 const NOTIFICATIONS_PAGE_SIZE = 20;
 
-export type NotificationType = "comment" | "like" | "moderation_rejected";
+export type NotificationType = "comment" | "like" | "moderation_rejected" | "follow";
 
 /** Hydrated row shape returned to the bell UI. */
 export type NotificationItem = {
@@ -133,13 +134,32 @@ export async function getMyNotifications(): Promise<NotificationItem[]> {
     });
   }
 
+  const actorProfilesFull = await Promise.all(
+    actorIds.map((id) =>
+      supabase
+        .from("profiles")
+        .select("id, username")
+        .eq("id", id)
+        .maybeSingle()
+        .then(({ data }) => [id, data] as const)
+    )
+  );
+  const actorUsernameById = new Map(
+    actorProfilesFull.map(([id, row]) => [id, row?.username ?? null])
+  );
+
   return rows.map((r) => {
     const content = r.topic_content_id ? contentById.get(r.topic_content_id) : null;
     const actor = actorById.get(r.actor_id) ?? { display_name: null };
     const commentBody = r.comment_id ? commentById.get(r.comment_id) ?? null : null;
 
     let href: string | null = null;
-    if (content?.slug && r.topic_content_id) {
+    if (r.type === "follow") {
+      href = profilePath({
+        id: r.actor_id,
+        username: actorUsernameById.get(r.actor_id),
+      });
+    } else if (content?.slug && r.topic_content_id) {
       href = `/channel/${content.slug}/content/${r.topic_content_id}`;
     }
 
@@ -265,5 +285,29 @@ export async function createModerationRejectedNotification(params: {
   if (error) {
     if (isMissingNotificationsRelation(error)) return;
     console.error("[notifications] moderation rejected", error);
+  }
+}
+
+/** Notify a user that someone started following them. */
+export async function createFollowNotification(params: {
+  recipientId: string;
+  actorId: string;
+}): Promise<void> {
+  if (params.recipientId === params.actorId) return;
+
+  const supabase = await createClient();
+  const { error } = await supabase.from("notifications").insert({
+    recipient_id: params.recipientId,
+    actor_id: params.actorId,
+    type: "follow",
+    topic_content_id: null,
+    comment_id: null,
+  });
+
+  if (error) {
+    if (isMissingNotificationsRelation(error)) return;
+    const code = String(error.code ?? "");
+    if (code === "23505") return;
+    console.error("[notifications] follow", error);
   }
 }

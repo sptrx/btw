@@ -4,8 +4,14 @@ import { ArrowRight, Play, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { LandingFeedItem } from "@/actions/landing";
+import type { PrayerRequestListItem } from "@/actions/prayer";
 import { LandingPublicFeed } from "@/components/landing-public-feed";
+import { LandingPrayerWidget } from "@/components/prayer/landing-prayer-widget";
 import { LandingCta } from "@/components/landing-cta";
+import { LandingSeekerSection } from "@/components/landing-seeker-section";
+import type { MapSummary, RecentGeoPost } from "@/actions/map";
+import { FaithMapWidget } from "@/components/map/faith-map-widget";
+import { GeoPostTicker } from "@/components/map/geo-post-ticker";
 
 /** Break out of layout `main` container to full viewport width */
 function FullBleed({ className, children }: { className?: string; children: React.ReactNode }) {
@@ -26,9 +32,19 @@ type LandingHomeProps = {
   /** Recent posts for the public feed */
   feed?: LandingFeedItem[];
   isAuthenticated?: boolean;
+  prayerRequests?: PrayerRequestListItem[];
+  mapSummary?: MapSummary;
+  geoPosts?: RecentGeoPost[];
 };
 
-export function LandingHome({ displayFontClassName, feed = [], isAuthenticated = false }: LandingHomeProps) {
+export function LandingHome({
+  displayFontClassName,
+  feed = [],
+  isAuthenticated = false,
+  prayerRequests = [],
+  mapSummary = { countryCount: 0, totalPosts: 0 },
+  geoPosts = [],
+}: LandingHomeProps) {
   return (
     <article>
       {/* Hero */}
@@ -112,6 +128,29 @@ export function LandingHome({ displayFontClassName, feed = [], isAuthenticated =
         </section>
       </FullBleed>
 
+      <LandingSeekerSection displayFontClassName={displayFontClassName} />
+
+      {mapSummary.countryCount > 0 || geoPosts.length > 0 ? (
+        <section className="container mx-auto max-w-6xl px-4 sm:px-5 py-10 sm:py-12">
+          <div className="grid gap-6 lg:grid-cols-[minmax(0,18rem)_1fr] lg:items-start">
+            <FaithMapWidget summary={mapSummary} />
+            {geoPosts.length > 0 ? (
+              <div className="min-w-0 space-y-2">
+                <p className="text-sm font-medium text-foreground">Recent from around the world</p>
+                <GeoPostTicker posts={geoPosts} />
+              </div>
+            ) : null}
+          </div>
+        </section>
+      ) : null}
+
+      {prayerRequests.length > 0 ? (
+        <LandingPrayerWidget
+          requests={prayerRequests}
+          displayFontClassName={displayFontClassName}
+        />
+      ) : null}
+
       {/* Public feed — single-column timeline */}
       <FullBleed className="bg-muted/35 dark:bg-muted/15 border-y border-border/60">
         <section className="py-10 sm:py-12 md:py-14" aria-labelledby="landing-feed-heading">
@@ -120,15 +159,24 @@ export function LandingHome({ displayFontClassName, feed = [], isAuthenticated =
               id="landing-feed-heading"
               className="text-sm sm:text-base text-muted-foreground max-w-2xl"
             >
-              Latest posts from channels across the community.
+              Latest posts from channels across the community. Sign in for the full faith feed with
+              prayer, testimonies, and reactions.
             </p>
-            <Link
-              href="/channel/browse"
-              className="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:underline shrink-0"
-            >
-              Browse channels
-              <ArrowRight className="h-4 w-4" aria-hidden />
-            </Link>
+            <div className="flex flex-wrap items-center gap-4 shrink-0">
+              <Link
+                href="/feed"
+                className="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:underline"
+              >
+                Community feed
+                <ArrowRight className="h-4 w-4" aria-hidden />
+              </Link>
+              <Link
+                href="/channel/browse"
+                className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground"
+              >
+                Browse channels
+              </Link>
+            </div>
           </div>
           <div className="mx-auto w-full max-w-5xl border-x border-border/50 bg-background shadow-[0_0_0_1px_rgba(0,0,0,0.03)] dark:shadow-[0_0_0_1px_rgba(255,255,255,0.06)]">
             <LandingPublicFeed displayFontClassName={displayFontClassName} feed={feed} />

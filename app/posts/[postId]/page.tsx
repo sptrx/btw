@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { getPost, deletePost, navigateToEditPage, getCurrentUser } from "@/actions";
 import Button from "@/components/button";
 import Link from "next/link";
+import { profilePath } from "@/lib/profile-url";
 
 type Props = {
   params: Promise<{ postId: string }>;
@@ -15,8 +16,15 @@ export default async function Post({ params }: Props) {
   if (!post) notFound();
 
   const { text, likes, reposts, user_id, profiles } = post;
-  const displayName =
-    (profiles as { display_name?: string } | null)?.display_name ?? "Anonymous";
+  const profileSnippet = profiles as {
+    display_name?: string;
+    username?: string | null;
+  } | null;
+  const displayName = profileSnippet?.display_name ?? "Anonymous";
+  const authorHref = profilePath({
+    id: user_id,
+    username: profileSnippet?.username,
+  });
 
   const isOwner = user?.id === user_id;
 
@@ -24,7 +32,7 @@ export default async function Post({ params }: Props) {
     <div className="btw-content-panel">
       <div className="mb-2 text-sm text-muted-foreground">
         <Link
-          href={`/profile/${user_id}`}
+          href={authorHref}
           className="font-medium text-foreground transition-colors hover:text-primary hover:underline"
         >
           {displayName}

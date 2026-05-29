@@ -68,13 +68,28 @@ export async function middleware(request: NextRequest) {
     !path.endsWith("/content/new");
   const isContentView = path.startsWith("/topics/content/");
   const isLegalPage = path.startsWith("/legal/");
+  const isPrayerNew = path === "/prayer/new";
+  const isPrayerDetail = /^\/prayer\/[^/]+$/.test(path) && !isPrayerNew;
+  const isPrayerPublic = path === "/prayer" || isPrayerDetail;
+  const isFeed = path === "/feed";
+  const isMapPage = path === "/map";
+  const isOutreachPage =
+    path === "/explore" ||
+    path === "/ask" ||
+    path === "/about" ||
+    path === "/contact" ||
+    path === "/donate" ||
+    isMapPage;
   const isPublic =
     path === "/" ||
+    isFeed ||
+    isOutreachPage ||
     isPublicChannel ||
     isTopicsList ||
     isTopicChannel ||
     isContentView ||
-    isLegalPage;
+    isLegalPage ||
+    isPrayerPublic;
 
   if (isAuthCallback) return response;
 

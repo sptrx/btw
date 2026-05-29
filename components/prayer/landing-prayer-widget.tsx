@@ -3,6 +3,7 @@ import { ArrowRight } from "lucide-react";
 import type { PrayerRequestListItem } from "@/actions/prayer";
 import { truncateBody } from "@/lib/prayer-display";
 import { Button } from "@/components/ui/button";
+import { CountryBadge } from "@/components/geo/country-badge";
 import { RelativeDate } from "@/components/relative-date";
 import { cn } from "@/lib/utils";
 
@@ -53,6 +54,9 @@ export function LandingPrayerWidget({ requests, displayFontClassName }: Props) {
                 <p className="mt-2 text-xs text-muted-foreground line-clamp-2 leading-relaxed">
                   {truncateBody(req.body, 120)}
                 </p>
+                {req.countryCode ? (
+                  <CountryBadge countryCode={req.countryCode} className="mt-2" />
+                ) : null}
                 <p className="mt-3 text-xs text-muted-foreground">
                   <RelativeDate date={req.createdAt} className="tabular-nums" />
                   {req.prayerCount > 0 ? (

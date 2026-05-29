@@ -6,7 +6,10 @@ import {
   getPrayerWallFeed,
   getPraiseReports,
   type PrayerWallFilter,
+  type PrayerWallGeoFilter,
 } from "@/actions/prayer";
+import { RegionFilter } from "@/components/geo/region-filter";
+import { isGeoRegionId, normalizeCountryCode } from "@/lib/geo";
 import { PrayerFilterTabs } from "@/components/prayer/prayer-filter-tabs";
 import { PrayerRequestCard } from "@/components/prayer/prayer-request-card";
 import { PraiseReportsSection } from "@/components/prayer/praise-reports-section";
@@ -15,7 +18,7 @@ import { btwDisplayFont, btwLead, btwPageTitle } from "@/lib/btw-ui";
 import { cn } from "@/lib/utils";
 
 type Props = {
-  searchParams: Promise<{ filter?: string }>;
+  searchParams: Promise<{ filter?: string; region?: string; country?: string }>;
 };
 
 function parseFilter(raw: string | undefined): PrayerWallFilter {
@@ -26,9 +29,14 @@ function parseFilter(raw: string | undefined): PrayerWallFilter {
 export default async function PrayerWallPage({ searchParams }: Props) {
   const params = await searchParams;
   const filter = parseFilter(params.filter);
+  const regionParam = params.region?.trim() ?? "";
+  const geo: PrayerWallGeoFilter = {
+    regionId: isGeoRegionId(regionParam) ? regionParam : null,
+    countryCode: normalizeCountryCode(params.country),
+  };
   const [user, requests, praiseReports] = await Promise.all([
     getCurrentUser(),
-    getPrayerWallFeed(filter),
+    getPrayerWallFeed(filter, 40, geo),
     getPraiseReports(),
   ]);
   const isAuthenticated = !!user;
@@ -56,6 +64,12 @@ export default async function PrayerWallPage({ searchParams }: Props) {
           </Button>
         )}
       </header>
+
+      <div className="mb-6">
+        <Suspense fallback={null}>
+          <RegionFilter basePath="/prayer" preserveParams={["filter", "country"]} />
+        </Suspense>
+      </div>
 
       <div className="rounded-xl border border-border/80 bg-background shadow-sm overflow-hidden">
         <Suspense fallback={null}>

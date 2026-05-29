@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { createPrayerRequest } from "@/actions/prayer";
+import { CountryPicker } from "@/components/geo/country-picker";
 import {
   ContentSubmissionDisclaimer,
   ContentSubmissionDisclaimerAccepted,
@@ -12,15 +13,18 @@ import { Button } from "@/components/ui/button";
 
 type Props = {
   hasAlreadyAcceptedDisclaimer?: boolean;
+  defaultCountryCode?: string | null;
 };
 
 export function PrayerRequestForm({
   hasAlreadyAcceptedDisclaimer = false,
+  defaultCountryCode = null,
 }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [acceptedDisclaimer, setAcceptedDisclaimer] = useState(false);
+  const [countryCode, setCountryCode] = useState<string | null>(defaultCountryCode);
   const effectiveAccepted = hasAlreadyAcceptedDisclaimer || acceptedDisclaimer;
 
   return (
@@ -75,6 +79,13 @@ export function PrayerRequestForm({
           className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background sm:text-base"
         />
       </div>
+      <CountryPicker
+        value={countryCode}
+        onChange={setCountryCode}
+        label="Where are you praying from?"
+        hint="Share where you're from (optional) — country only, never city. If you post anonymously, your country won't be shown to others."
+      />
+
       <label className="flex items-start gap-3 rounded-xl border border-border/80 bg-muted/20 px-4 py-3 cursor-pointer">
         <input
           type="checkbox"
@@ -83,7 +94,7 @@ export function PrayerRequestForm({
         />
         <span className="text-sm text-muted-foreground leading-relaxed">
           Post anonymously — your name will show as &ldquo;A sister/brother in Christ&rdquo; to
-          others.
+          others. Your country won&apos;t be visible when anonymous.
         </span>
       </label>
       {hasAlreadyAcceptedDisclaimer ? (

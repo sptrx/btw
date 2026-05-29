@@ -28,6 +28,12 @@ export function GeoPostTicker({ posts }: Props) {
             <span className="text-muted-foreground/80" aria-hidden>
               ·
             </span>
+            <span className="text-xs text-muted-foreground/90">
+              {p.kind === "prayer" ? "Prayer" : "Post"}
+            </span>
+            <span className="text-muted-foreground/80" aria-hidden>
+              ·
+            </span>
             <span className="max-w-[12rem] truncate">{p.title}</span>
             <span className="text-muted-foreground/80" aria-hidden>
               ·

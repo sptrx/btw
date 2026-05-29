@@ -2,6 +2,7 @@
 
 import { createClient } from "@/utils/supabase/server";
 import { countryFlagEmoji, countryName } from "@/lib/geo";
+import { approvedModerationOrFilter } from "@/lib/moderation";
 
 export type MapSummary = {
   countryCount: number;
@@ -28,35 +29,66 @@ export type RecentGeoPost = {
   title: string;
   href: string;
   createdAt: string;
+  kind: "content" | "prayer";
 };
 
-/** Recent posts with country for homepage ticker. */
+/** Recent channel posts and public prayer requests with country for homepage ticker. */
 export async function getRecentGeoPosts(limit = 8): Promise<RecentGeoPost[]> {
   const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("topic_content")
-    .select("id, title, country_code, created_at, topics(slug)")
-    .not("country_code", "is", null)
-    .or("moderation_status.is.null,moderation_status.eq.approved")
-    .order("created_at", { ascending: false })
-    .limit(limit);
+  const perSource = Math.ceil(limit / 2);
 
-  if (error || !data) return [];
+  const [contentRes, prayerRes] = await Promise.all([
+    supabase
+      .from("topic_content")
+      .select("id, title, country_code, created_at, topics(slug)")
+      .not("country_code", "is", null)
+      .or("moderation_status.is.null,moderation_status.eq.approved")
+      .order("created_at", { ascending: false })
+      .limit(perSource),
+    supabase
+      .from("prayer_request")
+      .select("id, title, country_code, created_at")
+      .not("country_code", "is", null)
+      .eq("is_anonymous", false)
+      .or(approvedModerationOrFilter("moderation_status"))
+      .in("status", ["active", "answered"])
+      .order("created_at", { ascending: false })
+      .limit(perSource),
+  ]);
 
-  return data
-    .map((row) => {
-      const code = String(row.country_code ?? "").toUpperCase();
-      const topics = row.topics as { slug: string } | { slug: string }[] | null;
-      const slug = Array.isArray(topics) ? topics[0]?.slug : topics?.slug;
-      if (!code || !slug) return null;
-      return {
-        countryCode: code,
-        countryName: countryName(code) ?? code,
-        flag: countryFlagEmoji(code),
-        title: String(row.title ?? "Post"),
-        href: `/channel/${slug}/content/${row.id}`,
-        createdAt: row.created_at as string,
-      };
-    })
-    .filter((r): r is RecentGeoPost => Boolean(r));
+  const items: RecentGeoPost[] = [];
+
+  for (const row of contentRes.data ?? []) {
+    const code = String(row.country_code ?? "").toUpperCase();
+    const topics = row.topics as { slug: string } | { slug: string }[] | null;
+    const slug = Array.isArray(topics) ? topics[0]?.slug : topics?.slug;
+    if (!code || !slug) continue;
+    items.push({
+      countryCode: code,
+      countryName: countryName(code) ?? code,
+      flag: countryFlagEmoji(code),
+      title: String(row.title ?? "Post"),
+      href: `/channel/${slug}/content/${row.id}`,
+      createdAt: row.created_at as string,
+      kind: "content",
+    });
+  }
+
+  for (const row of prayerRes.data ?? []) {
+    const code = String(row.country_code ?? "").toUpperCase();
+    if (!code) continue;
+    items.push({
+      countryCode: code,
+      countryName: countryName(code) ?? code,
+      flag: countryFlagEmoji(code),
+      title: String(row.title ?? "Prayer request"),
+      href: `/prayer/${row.id}`,
+      createdAt: row.created_at as string,
+      kind: "prayer",
+    });
+  }
+
+  return items
+    .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+    .slice(0, limit);
 }

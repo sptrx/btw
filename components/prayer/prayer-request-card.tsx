@@ -5,6 +5,7 @@ import { RelativeDate } from "@/components/relative-date";
 import { PrayingButton } from "@/components/prayer/praying-button";
 import { cn } from "@/lib/utils";
 import { FollowUserButton } from "@/components/follow-user-button";
+import { CountryBadge } from "@/components/geo/country-badge";
 import { profilePath } from "@/lib/profile-url";
 
 type Props = {
@@ -64,6 +65,9 @@ export function PrayerRequestCard({
               </span>
             ) : null}
           </div>
+          {item.countryCode ? (
+            <CountryBadge countryCode={item.countryCode} />
+          ) : null}
           <Link href={`/prayer/${item.id}`} className="group block space-y-1.5">
             <h2
               className={cn(

@@ -23,6 +23,7 @@ import {
 } from "@/lib/geo";
 import type { GeoRegionId } from "@/lib/geo";
 import { isMissingGeoColumn } from "@/lib/geo/resolve-content-country";
+import { visiblePrayerCountryCode } from "@/lib/prayer-geo";
 
 export type CommunityFeedFilter = SharingFeedFilter;
 
@@ -306,45 +307,76 @@ async function fetchTopicContentSlice(
   return (data ?? []) as unknown as RawContentRow[];
 }
 
+type PrayerFeedRow = {
+  id: string;
+  user_id: string;
+  title: string;
+  body: string;
+  is_anonymous: boolean;
+  status: string;
+  created_at: string;
+  country_code?: string | null;
+};
+
 async function fetchPrayerSlice(
   filter: CommunityFeedFilter,
   limit: number,
   cursor: CommunityFeedCursor | null,
-  followedAuthorIds: string[] | null
-) {
+  followedAuthorIds: string[] | null,
+  geo: CommunityFeedGeoFilter = {}
+): Promise<PrayerFeedRow[]> {
   if (filter !== "all" && filter !== "prayer" && filter !== "following") return [];
   if (filter === "following" && (!followedAuthorIds || followedAuthorIds.length === 0)) {
     return [];
   }
 
   const supabase = await createClient();
-  let q = supabase
-    .from("prayer_request")
-    .select("id, user_id, title, body, is_anonymous, status, created_at")
-    .in("status", ["active", "answered"])
-    .or(approvedModerationOrFilter("moderation_status"))
-    .order("created_at", { ascending: false })
-    .order("id", { ascending: false })
-    .limit(limit);
+  const countryCode = normalizeCountryCode(geo.countryCode);
+  const regionCodes =
+    geo.regionId && isGeoRegionId(geo.regionId)
+      ? countryCodesInRegion(geo.regionId)
+      : null;
 
-  if (followedAuthorIds?.length) {
-    q = q.in("user_id", followedAuthorIds);
+  const run = (withGeo: boolean) => {
+    let q = supabase
+      .from("prayer_request")
+      .select(
+        withGeo
+          ? "id, user_id, title, body, is_anonymous, status, created_at, country_code"
+          : "id, user_id, title, body, is_anonymous, status, created_at"
+      )
+      .in("status", ["active", "answered"])
+      .or(approvedModerationOrFilter("moderation_status"))
+      .order("created_at", { ascending: false })
+      .order("id", { ascending: false })
+      .limit(limit);
+
+    if (withGeo && countryCode) q = q.eq("country_code", countryCode);
+    else if (withGeo && regionCodes?.length) q = q.in("country_code", regionCodes);
+
+    if (followedAuthorIds?.length) {
+      q = q.in("user_id", followedAuthorIds);
+    }
+
+    if (cursor?.postKind === "prayer_request") {
+      q = q.or(
+        `created_at.lt.${cursor.createdAt},and(created_at.eq.${cursor.createdAt},id.lt.${cursor.id})`
+      );
+    } else if (cursor) {
+      q = q.lt("created_at", cursor.createdAt);
+    }
+    return q;
+  };
+
+  let { data, error } = await run(true);
+  if (error && isMissingGeoColumn(error)) {
+    ({ data, error } = await run(false));
   }
-
-  if (cursor?.postKind === "prayer_request") {
-    q = q.or(
-      `created_at.lt.${cursor.createdAt},and(created_at.eq.${cursor.createdAt},id.lt.${cursor.id})`
-    );
-  } else if (cursor) {
-    q = q.lt("created_at", cursor.createdAt);
-  }
-
-  const { data, error } = await q;
   if (error) {
     console.warn("[feed] prayer_request:", error.message);
     return [];
   }
-  return data ?? [];
+  return (data ?? []) as unknown as PrayerFeedRow[];
 }
 
 async function fetchPraiseSlice(
@@ -460,7 +492,7 @@ export async function getCommunityFeedPage(
       followedAuthorIds,
       geo
     ),
-    fetchPrayerSlice(filter, fetchLimit, cursor, followedAuthorIds),
+    fetchPrayerSlice(filter, fetchLimit, cursor, followedAuthorIds, geo),
     fetchPraiseSlice(filter, fetchLimit, cursor, followedAuthorIds),
   ]);
 
@@ -566,6 +598,12 @@ export async function getCommunityFeedPage(
   for (const r of prayerRows) {
     const profile = profileById.get(r.user_id);
     const anonymous = r.is_anonymous && viewerId !== r.user_id;
+    const visibleCountry = visiblePrayerCountryCode(
+      r.country_code,
+      r.is_anonymous,
+      r.user_id,
+      viewerId
+    );
     items.push({
       id: r.id,
       postKind: "prayer_request",
@@ -584,6 +622,9 @@ export async function getCommunityFeedPage(
       viewerFollowsAuthor: anonymous ? false : followedUserIds.has(r.user_id),
       reactions: emptyReactionCounts(),
       userReaction: null,
+      countryCode: visibleCountry,
+      countryName: visibleCountry ? countryName(visibleCountry) : null,
+      countryFlag: visibleCountry ? countryFlagEmoji(visibleCountry) : undefined,
     });
   }
 

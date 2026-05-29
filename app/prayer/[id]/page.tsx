@@ -6,6 +6,7 @@ import { PrayerCommentForm } from "@/components/prayer/prayer-comment-form";
 import { PrayerCommentList } from "@/components/prayer/prayer-comment-list";
 import { MarkAnsweredForm } from "@/components/prayer/mark-answered-form";
 import { PrayingButton } from "@/components/prayer/praying-button";
+import { CountryBadge } from "@/components/geo/country-badge";
 import { RelativeDate } from "@/components/relative-date";
 import { btwDisplayFont, btwProse } from "@/lib/btw-ui";
 import { cn } from "@/lib/utils";
@@ -51,6 +52,9 @@ export default async function PrayerRequestDetailPage({ params }: Props) {
               </span>
             ) : null}
           </div>
+          {request.countryCode ? (
+            <CountryBadge countryCode={request.countryCode} />
+          ) : null}
           <h1 className={cn(btwDisplayFont, "text-2xl font-normal sm:text-3xl text-foreground")}>
             {request.title}
           </h1>

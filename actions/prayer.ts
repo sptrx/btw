@@ -10,12 +10,23 @@ import {
 } from "@/lib/moderation";
 import { PENDING_REVIEW_MESSAGE } from "@/lib/moderation-messages";
 import {
+  getProfile,
   hasAcceptedContentDisclaimer,
   recordContentDisclaimerAcceptance,
 } from "@/actions";
 import type { ProfileNameSnippet } from "@/lib/profile-fields";
 import { getFollowedUserIds } from "@/actions/follows";
 import { ANONYMOUS_LABEL } from "@/lib/prayer-display";
+import {
+  countryCodesInRegion,
+  countryFlagEmoji,
+  countryName,
+  isGeoRegionId,
+  normalizeCountryCode,
+} from "@/lib/geo";
+import type { GeoRegionId } from "@/lib/geo";
+import { isMissingGeoColumn, resolveContentGeo } from "@/lib/geo/resolve-content-country";
+import { visiblePrayerCountryCode } from "@/lib/prayer-geo";
 
 export type PrayerRequestStatus = "active" | "answered" | "closed";
 export type PrayerWallFilter = "all" | "unanswered" | "answered" | "mine";
@@ -35,6 +46,14 @@ export type PrayerRequestListItem = {
   prayerCount: number;
   userIsPraying: boolean;
   isOwner: boolean;
+  countryCode?: string | null;
+  countryName?: string | null;
+  countryFlag?: string;
+};
+
+export type PrayerWallGeoFilter = {
+  regionId?: GeoRegionId | null;
+  countryCode?: string | null;
 };
 
 export type PrayerRequestDetail = PrayerRequestListItem;
@@ -121,6 +140,7 @@ function mapRequestRow(
     status: PrayerRequestStatus;
     created_at: string;
     updated_at: string;
+    country_code?: string | null;
   },
   profile: ProfileSnippet | null,
   viewerId: string | null,
@@ -129,6 +149,12 @@ function mapRequestRow(
   followedUserIds: Set<string>
 ): PrayerRequestListItem {
   const anonymous = row.is_anonymous && viewerId !== row.user_id;
+  const visibleCountry = visiblePrayerCountryCode(
+    row.country_code,
+    row.is_anonymous,
+    row.user_id,
+    viewerId
+  );
   return {
     id: row.id,
     title: row.title,
@@ -144,12 +170,47 @@ function mapRequestRow(
     prayerCount,
     userIsPraying,
     isOwner: viewerId === row.user_id,
+    countryCode: visibleCountry,
+    countryName: visibleCountry ? countryName(visibleCountry) : null,
+    countryFlag: visibleCountry ? countryFlagEmoji(visibleCountry) : undefined,
   };
+}
+
+const PRAYER_SELECT =
+  "id, user_id, title, body, is_anonymous, status, created_at, updated_at, country_code";
+
+type PrayerRequestRow = {
+  id: string;
+  user_id: string;
+  title: string;
+  body: string;
+  is_anonymous: boolean;
+  status: PrayerRequestStatus;
+  created_at: string;
+  updated_at: string;
+  country_code?: string | null;
+};
+
+function applyPrayerGeoFilter(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  query: any,
+  geo: PrayerWallGeoFilter,
+  withGeo: boolean
+) {
+  if (!withGeo) return query;
+  const country = normalizeCountryCode(geo.countryCode);
+  if (country) return query.eq("country_code", country);
+  if (geo.regionId && isGeoRegionId(geo.regionId)) {
+    const codes = countryCodesInRegion(geo.regionId);
+    if (codes.length > 0) return query.in("country_code", codes);
+  }
+  return query;
 }
 
 export async function getPrayerWallFeed(
   filter: PrayerWallFilter = "all",
-  limit = 40
+  limit = 40,
+  geo: PrayerWallGeoFilter = {}
 ): Promise<PrayerRequestListItem[]> {
   const supabase = await createClient();
   const {
@@ -157,11 +218,17 @@ export async function getPrayerWallFeed(
   } = await supabase.auth.getUser();
   const viewerId = user?.id ?? null;
 
-  let query = supabase
-    .from("prayer_request")
-    .select("id, user_id, title, body, is_anonymous, status, created_at, updated_at")
-    .order("created_at", { ascending: false })
-    .limit(limit);
+  const runQuery = (withGeo: boolean) => {
+    let query = supabase
+      .from("prayer_request")
+      .select(withGeo ? PRAYER_SELECT : "id, user_id, title, body, is_anonymous, status, created_at, updated_at")
+      .order("created_at", { ascending: false })
+      .limit(limit);
+    query = applyPrayerGeoFilter(query, geo, withGeo);
+    return query;
+  };
+
+  let query = runQuery(true);
 
   if (filter === "mine") {
     if (!viewerId) return [];
@@ -180,13 +247,16 @@ export async function getPrayerWallFeed(
     query = query.or(approvedModerationOrFilter("moderation_status"));
   }
 
-  const { data: rows, error } = await query;
+  let { data: rows, error } = await query;
+  if (error && isMissingGeoColumn(error)) {
+    ({ data: rows, error } = await runQuery(false));
+  }
   if (error) {
     console.error("[getPrayerWallFeed]", error);
     return [];
   }
 
-  const list = rows ?? [];
+  const list = (rows ?? []) as unknown as PrayerRequestRow[];
   const profiles = await attachProfiles(list);
   const ids = list.map((r) => r.id);
   const [counts, praying, followedUserIds] = await Promise.all([
@@ -216,32 +286,44 @@ export async function getPrayerRequestById(
   } = await supabase.auth.getUser();
   const viewerId = user?.id ?? null;
 
-  const { data: row, error } = await supabase
+  let { data: row, error } = await supabase
     .from("prayer_request")
-    .select("id, user_id, title, body, is_anonymous, status, created_at, updated_at, moderation_status")
+    .select(`${PRAYER_SELECT}, moderation_status`)
     .eq("id", id)
     .maybeSingle();
 
+  if (error && isMissingGeoColumn(error)) {
+    ({ data: row, error } = await supabase
+      .from("prayer_request")
+      .select("id, user_id, title, body, is_anonymous, status, created_at, updated_at, moderation_status")
+      .eq("id", id)
+      .maybeSingle());
+  }
+
   if (error || !row) return null;
 
-  const isOwner = viewerId === row.user_id;
+  const typedRow = row as unknown as PrayerRequestRow & {
+    moderation_status?: string | null;
+  };
+
+  const isOwner = viewerId === typedRow.user_id;
   if (
-    row.moderation_status !== "approved" &&
-    row.moderation_status != null &&
+    typedRow.moderation_status !== "approved" &&
+    typedRow.moderation_status != null &&
     !isOwner
   ) {
     return null;
   }
 
-  const profiles = await attachProfiles([row]);
+  const profiles = await attachProfiles([typedRow]);
   const [counts, praying, followedUserIds] = await Promise.all([
-    prayerCountsByRequest([row.id]),
-    userPrayingSet([row.id], viewerId),
+    prayerCountsByRequest([typedRow.id]),
+    userPrayingSet([typedRow.id], viewerId),
     getFollowedUserIds(viewerId),
   ]);
 
   return mapRequestRow(
-    row,
+    typedRow,
     profiles.get(row.user_id) ?? null,
     viewerId,
     counts.get(row.id) ?? 0,
@@ -295,13 +377,31 @@ export async function getHomepagePrayerRequests(
   limit = 3
 ): Promise<PrayerRequestListItem[]> {
   const supabase = await createClient();
-  const { data: rows, error } = await supabase
+  let rows: PrayerRequestRow[] | null = null;
+  let error: { message?: string; code?: string } | null = null;
+
+  const primary = await supabase
     .from("prayer_request")
-    .select("id, user_id, title, body, is_anonymous, status, created_at, updated_at")
+    .select(PRAYER_SELECT)
     .eq("status", "active")
     .or(approvedModerationOrFilter("moderation_status"))
     .order("created_at", { ascending: false })
     .limit(limit);
+
+  rows = primary.data as unknown as PrayerRequestRow[] | null;
+  error = primary.error;
+
+  if (error && isMissingGeoColumn(error)) {
+    const fallback = await supabase
+      .from("prayer_request")
+      .select("id, user_id, title, body, is_anonymous, status, created_at, updated_at")
+      .eq("status", "active")
+      .or(approvedModerationOrFilter("moderation_status"))
+      .order("created_at", { ascending: false })
+      .limit(limit);
+    rows = fallback.data as unknown as PrayerRequestRow[] | null;
+    error = fallback.error;
+  }
 
   if (error) {
     console.error("[getHomepagePrayerRequests]", error);
@@ -340,7 +440,7 @@ export async function getPrayerComments(
     return [];
   }
 
-  const list = rows ?? [];
+  const list = (rows ?? []) as unknown as PrayerRequestRow[];
   const profiles = await attachProfiles(list);
   return list.map((row) => ({
     id: row.id,
@@ -386,6 +486,9 @@ export async function createPrayerRequest(formData: FormData) {
     await recordContentDisclaimerAcceptance(user.id);
   }
 
+  const authorProfile = await getProfile(user.id);
+  const geoFields = resolveContentGeo(formData, authorProfile?.country_code);
+
   const insertPayload: Record<string, unknown> = {
     user_id: user.id,
     title,
@@ -393,6 +496,8 @@ export async function createPrayerRequest(formData: FormData) {
     is_anonymous: isAnonymous,
     status: "active",
     moderation_status: moderationStatus,
+    country_code: geoFields.country_code,
+    region: geoFields.region,
   };
 
   let { data: inserted, error: insertErr } = await supabase
@@ -410,6 +515,16 @@ export async function createPrayerRequest(formData: FormData) {
       .single());
   }
 
+  if (insertErr && isMissingGeoColumn(insertErr)) {
+    delete insertPayload.country_code;
+    delete insertPayload.region;
+    ({ data: inserted, error: insertErr } = await supabase
+      .from("prayer_request")
+      .insert(insertPayload)
+      .select("id")
+      .single());
+  }
+
   if (insertErr) {
     console.error("[createPrayerRequest]", insertErr);
     return { error: insertErr.message };
@@ -417,6 +532,8 @@ export async function createPrayerRequest(formData: FormData) {
 
   revalidatePath("/prayer");
   revalidatePath("/");
+  revalidatePath("/map");
+  revalidatePath("/feed");
 
   if (moderationStatus === "pending_review") {
     return { success: true, pendingReview: true, message: PENDING_REVIEW_MESSAGE };

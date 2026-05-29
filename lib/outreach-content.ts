@@ -31,7 +31,7 @@ export const OUTREACH_COMMON_QUESTIONS: OutreachQuestion[] = [
   {
     id: "prayer",
     label: "Does prayer work?",
-    prompt: "What is Christian prayer, and do Christians believe it actually works?",
+    prompt: "What does the Bible teach about prayer, and does God hear and answer prayer?",
   },
   {
     id: "start",

@@ -22,11 +22,12 @@ export function bibleAiServerBaseUrl(): string {
   return "";
 }
 
-/** Direct link to public /ask without SSO (legacy; default off in production). */
+/** Direct link to public /ask without SSO (legacy; default off when SSO nav is on). */
 export function showBibleAiPublicNav(): boolean {
   const explicit = process.env.NEXT_PUBLIC_BIBLE_AI_NAV?.trim().toLowerCase();
   if (explicit === "true") return true;
   if (explicit === "false") return false;
+  if (showBibleAiSsoNav()) return false;
   return process.env.NODE_ENV !== "production";
 }
 
@@ -45,4 +46,29 @@ export function showBibleAiSsoNav(): boolean {
 /** Relative URL on BTW that mints handoff and redirects to xgesis.ai. */
 export function bibleAiSsoPath(next = "/ask"): string {
   return `/api/bible-ai/sso?next=${encodeURIComponent(next)}`;
+}
+
+export type BibleAiNavLink = {
+  href: string;
+  label: "Bible Q&A";
+  external: boolean;
+};
+
+/** Resolve header nav link on the server so every page gets the same href. */
+export function resolveBibleAiNavLink(): BibleAiNavLink | null {
+  if (showBibleAiSsoNav()) {
+    return {
+      href: bibleAiSsoPath("/ask"),
+      label: "Bible Q&A",
+      external: false,
+    };
+  }
+  if (showBibleAiPublicNav()) {
+    return {
+      href: bibleAiPublicAskUrl(),
+      label: "Bible Q&A",
+      external: true,
+    };
+  }
+  return null;
 }

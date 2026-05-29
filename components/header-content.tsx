@@ -29,7 +29,7 @@ import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { GlobalSearch } from "@/components/global-search/global-search";
 import { NotificationBell } from "@/components/notification-bell";
-import { bibleAiPublicAskUrl, bibleAiSsoPath } from "@/lib/bible-ai-config";
+import type { BibleAiNavLink } from "@/lib/bible-ai-config";
 import { cn } from "@/lib/utils";
 
 import { UserAvatar } from "@/components/user-avatar";
@@ -38,21 +38,16 @@ type Props = {
   user: User | null;
   showMyChannels?: boolean;
   showModeration?: boolean;
-  showBibleAiSsoNav?: boolean;
-  showBibleAiPublicNav?: boolean;
+  bibleAiNavLink?: BibleAiNavLink | null;
   avatarUrl?: string | null;
   profileDisplayName?: string | null;
 };
 
-function buildNavLinks(showSso: boolean, showPublic: boolean) {
+function buildNavLinks(bibleAiNavLink: BibleAiNavLink | null | undefined) {
   return [
     { href: "/", label: "Home" as const },
     { href: "/channel/browse", label: "Channels" as const },
-    ...(showSso
-      ? [{ href: bibleAiSsoPath("/ask"), label: "Bible Q&A" as const, external: false as const }]
-      : showPublic
-        ? [{ href: bibleAiPublicAskUrl(), label: "Bible Q&A" as const, external: true as const }]
-        : []),
+    ...(bibleAiNavLink ? [bibleAiNavLink] : []),
   ] as const;
 }
 
@@ -107,12 +102,11 @@ export function HeaderContent({
   user,
   showMyChannels,
   showModeration,
-  showBibleAiSsoNav = true,
-  showBibleAiPublicNav = false,
+  bibleAiNavLink = null,
   avatarUrl,
   profileDisplayName,
 }: Props) {
-  const navLinks = buildNavLinks(showBibleAiSsoNav, showBibleAiPublicNav);
+  const navLinks = buildNavLinks(bibleAiNavLink);
   const pathname = usePathname();
   const { setTheme, resolvedTheme } = useTheme();
   const [mobileOpen, setMobileOpen] = useState(false);

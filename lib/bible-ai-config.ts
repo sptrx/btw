@@ -60,10 +60,15 @@ export function bibleAiSsoPath(
 
 export const BIBLE_QA_NAV_DESCRIPTION = "Powered by xgesis.ai" as const;
 
+/** One-line subcopy under Bible Q&A in the mobile nav drawer. */
+export const BIBLE_QA_NAV_MOBILE_LINE =
+  "Ask any question about Scripture · Powered by xgesis.ai" as const;
+
 export type BibleAiNavLink = {
   href: string;
   label: "Bible Q&A";
   description: typeof BIBLE_QA_NAV_DESCRIPTION;
+  mobileDescription: typeof BIBLE_QA_NAV_MOBILE_LINE;
   external: boolean;
 };
 
@@ -79,6 +84,7 @@ export function resolveBibleAiNavLink(isAuthenticated = false): BibleAiNavLink |
       href: bibleAiSsoPath("/ask"),
       label: "Bible Q&A",
       description: BIBLE_QA_NAV_DESCRIPTION,
+      mobileDescription: BIBLE_QA_NAV_MOBILE_LINE,
       external: false,
     };
   }
@@ -87,6 +93,7 @@ export function resolveBibleAiNavLink(isAuthenticated = false): BibleAiNavLink |
       href: bibleAskPagePath(),
       label: "Bible Q&A",
       description: BIBLE_QA_NAV_DESCRIPTION,
+      mobileDescription: BIBLE_QA_NAV_MOBILE_LINE,
       external: false,
     };
   }
@@ -95,6 +102,7 @@ export function resolveBibleAiNavLink(isAuthenticated = false): BibleAiNavLink |
       href: bibleAiPublicAskUrl(),
       label: "Bible Q&A",
       description: BIBLE_QA_NAV_DESCRIPTION,
+      mobileDescription: BIBLE_QA_NAV_MOBILE_LINE,
       external: true,
     };
   }

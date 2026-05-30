@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { BookOpen, MessageCircle, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { BIBLE_QA_NAV_DESCRIPTION } from "@/lib/bible-ai-config";
 import { cn } from "@/lib/utils";
 
 type Props = {
@@ -34,12 +35,15 @@ export function LandingSeekerSection({ displayFontClassName }: Props) {
             explore — no pressure, no commitment.
           </p>
           <div className="mt-8 flex flex-col items-stretch justify-center gap-3 sm:flex-row sm:items-center">
-            <Button asChild size="lg" className="rounded-full min-h-11">
-              <Link href="/ask">
-                <MessageCircle className="mr-2 size-4" aria-hidden />
-                Ask a Bible question
-              </Link>
-            </Button>
+            <div className="flex flex-col items-stretch gap-1.5 sm:items-center">
+              <Button asChild size="lg" className="rounded-full min-h-11">
+                <Link href="/ask">
+                  <MessageCircle className="mr-2 size-4" aria-hidden />
+                  Ask a Bible question
+                </Link>
+              </Button>
+              <p className="text-center text-xs text-muted-foreground">{BIBLE_QA_NAV_DESCRIPTION}</p>
+            </div>
             <Button asChild size="lg" variant="outline" className="rounded-full min-h-11">
               <Link href="/feed?filter=testimonies">
                 <BookOpen className="mr-2 size-4" aria-hidden />

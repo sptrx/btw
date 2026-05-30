@@ -29,7 +29,10 @@ import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { GlobalSearch } from "@/components/global-search/global-search";
 import { NotificationBell } from "@/components/notification-bell";
-import type { BibleAiNavLink } from "@/lib/bible-ai-config";
+import {
+  BIBLE_QA_NAV_DESCRIPTION,
+  type BibleAiNavLink,
+} from "@/lib/bible-ai-config";
 import { cn } from "@/lib/utils";
 
 import { UserAvatar } from "@/components/user-avatar";
@@ -46,6 +49,21 @@ type Props = {
 /** Signed-in users land on the faith feed; guests see the marketing home at `/`. */
 function homeHref(isLoggedIn: boolean) {
   return isLoggedIn ? "/feed" : "/";
+}
+
+function isBibleQaNavLink(link: { label: string }): link is BibleAiNavLink {
+  return link.label === "Bible Q&A";
+}
+
+function bibleQaNavLabel(link: BibleAiNavLink) {
+  return (
+    <>
+      <span>{link.label}</span>
+      <span className="text-[10px] font-normal leading-none text-muted-foreground/90">
+        {link.description}
+      </span>
+    </>
+  );
 }
 
 function buildNavLinks(
@@ -191,10 +209,8 @@ export function HeaderContent({
           {navLinks.map((link) => {
             const external = "external" in link && link.external;
             const active = !external && navActive(link.href, pathname, isLoggedIn);
-            const subtitle =
-              "description" in link && typeof link.description === "string"
-                ? link.description
-                : undefined;
+            const bibleQa = isBibleQaNavLink(link);
+            const tooltip = bibleQa ? BIBLE_QA_NAV_DESCRIPTION : undefined;
             return (
               <Button
                 key={`${link.label}-${link.href}`}
@@ -204,6 +220,7 @@ export function HeaderContent({
                 aria-current={active ? "page" : undefined}
                 className={cn(
                   "rounded-full font-medium transition-colors",
+                  bibleQa && "h-auto flex-col gap-0 px-3 py-1.5 leading-tight",
                   active
                     ? "bg-primary/10 text-primary hover:bg-primary/10 hover:text-primary"
                     : "text-muted-foreground"
@@ -214,13 +231,13 @@ export function HeaderContent({
                     href={link.href}
                     target="_blank"
                     rel="noopener noreferrer"
-                    title={subtitle}
+                    title={tooltip}
                   >
-                    {link.label}
+                    {bibleQa ? bibleQaNavLabel(link) : link.label}
                   </a>
                 ) : (
-                  <Link href={link.href} title={subtitle}>
-                    {link.label}
+                  <Link href={link.href} title={tooltip}>
+                    {bibleQa ? bibleQaNavLabel(link) : link.label}
                   </Link>
                 )}
               </Button>
@@ -377,10 +394,8 @@ export function HeaderContent({
             {navLinks.map((link) => {
               const external = "external" in link && link.external;
               const active = !external && navActive(link.href, pathname, isLoggedIn);
-              const subtitle =
-                "description" in link && typeof link.description === "string"
-                  ? link.description
-                  : undefined;
+              const bibleQa = isBibleQaNavLink(link);
+              const subtitle = bibleQa ? link.mobileDescription : undefined;
               const Icon =
                 link.label === "Home" ? Home : link.label === "Channels" ? Hash : BookOpen;
               const labelBlock = (

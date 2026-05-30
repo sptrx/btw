@@ -5,27 +5,38 @@ import {
   createBibleAiHandoffToken,
   isBibleAiHandoffConfigured,
 } from "@/lib/bible-ai-handoff";
+import { BTW_XGESIS_PARTNER_ID } from "@/lib/bible-ai-config";
 import { createClient } from "@/utils/supabase/server";
 
 function safeNext(raw: string | null): string {
   const path = (raw ?? "/ask").trim();
   if (!path.startsWith("/") || path.startsWith("//")) return "/ask";
+  if (path.startsWith("/auth/") || path === "/locked") return "/ask";
   return path;
 }
 
+function safePartner(raw: string | null): string {
+  const partner = (raw ?? BTW_XGESIS_PARTNER_ID).trim().toLowerCase();
+  return partner || BTW_XGESIS_PARTNER_ID;
+}
+
+function ssoReturnPath(next: string, partner: string): string {
+  const params = new URLSearchParams({ next, partner });
+  return `/api/bible-ai/sso?${params.toString()}`;
+}
+
 export async function GET(req: NextRequest) {
+  const next = safeNext(req.nextUrl.searchParams.get("next"));
+  const partner = safePartner(req.nextUrl.searchParams.get("partner"));
+
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
   if (!user) {
-    const next = safeNext(req.nextUrl.searchParams.get("next"));
     const login = new URL("/auth/login", req.url);
-    login.searchParams.set(
-      "next",
-      `/api/bible-ai/sso?next=${encodeURIComponent(next)}`,
-    );
+    login.searchParams.set("next", ssoReturnPath(next, partner));
     return NextResponse.redirect(login);
   }
 
@@ -51,8 +62,8 @@ export async function GET(req: NextRequest) {
     userId: user.id,
     email: user.email,
     name: fullName,
+    partner,
   });
 
-  const next = safeNext(req.nextUrl.searchParams.get("next"));
-  return NextResponse.redirect(bibleAiHandoffUrl(token, next));
+  return NextResponse.redirect(bibleAiHandoffUrl(token, next, partner));
 }

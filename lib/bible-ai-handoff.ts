@@ -23,16 +23,19 @@ export type HandoffUser = {
   userId: string;
   email?: string | null;
   name?: string | null;
+  partner?: string | null;
 };
 
 export async function createBibleAiHandoffToken(user: HandoffUser): Promise<string> {
   const jti = crypto.randomUUID();
   const ttlSec = Number(process.env.BIBLE_AI_HANDOFF_TTL_SEC ?? 300);
   const exp = Math.floor(Date.now() / 1000) + ttlSec;
+  const partner = user.partner?.trim().toLowerCase();
 
   return new SignJWT({
     email: user.email ?? undefined,
     name: user.name ?? undefined,
+    partner: partner || undefined,
     typ: "handoff",
   })
     .setProtectedHeader({ alg: "HS256" })
@@ -45,7 +48,11 @@ export async function createBibleAiHandoffToken(user: HandoffUser): Promise<stri
     .sign(new TextEncoder().encode(handoffSecret()));
 }
 
-export function bibleAiHandoffUrl(token: string, next = "/ask"): string {
+export function bibleAiHandoffUrl(
+  token: string,
+  next = "/ask",
+  partner?: string | null,
+): string {
   const base = (
     process.env.BIBLE_AI_PUBLIC_ORIGIN ??
     process.env.BIBLE_AI_BASE_URL ??
@@ -58,5 +65,9 @@ export function bibleAiHandoffUrl(token: string, next = "/ask"): string {
   const url = new URL("/auth/handoff", base);
   url.searchParams.set("token", token);
   url.searchParams.set("next", path);
+  const partnerId = partner?.trim().toLowerCase();
+  if (partnerId) {
+    url.searchParams.set("partner", partnerId);
+  }
   return url.toString();
 }

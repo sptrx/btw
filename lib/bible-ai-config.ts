@@ -43,9 +43,19 @@ export function showBibleAiSsoNav(): boolean {
   return true;
 }
 
+/** Partner id xgesis uses for BTW-sourced sessions. */
+export const BTW_XGESIS_PARTNER_ID = "believetheworks";
+
 /** Relative URL on BTW that mints handoff and redirects to xgesis.ai. */
-export function bibleAiSsoPath(next = "/ask"): string {
-  return `/api/bible-ai/sso?next=${encodeURIComponent(next)}`;
+export function bibleAiSsoPath(
+  next = "/ask",
+  partner = BTW_XGESIS_PARTNER_ID,
+): string {
+  const params = new URLSearchParams({ next });
+  if (partner.trim()) {
+    params.set("partner", partner.trim().toLowerCase());
+  }
+  return `/api/bible-ai/sso?${params.toString()}`;
 }
 
 export const BIBLE_QA_NAV_DESCRIPTION = "Powered by xgesis.ai" as const;

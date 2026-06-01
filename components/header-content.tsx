@@ -66,6 +66,15 @@ function bibleQaNavLabel(link: BibleAiNavLink) {
   );
 }
 
+type NavLink = ReturnType<typeof buildNavLinks>[number];
+
+function primaryNavLinkLabel(link: NavLink) {
+  if (isBibleQaNavLink(link)) {
+    return bibleQaNavLabel(link);
+  }
+  return link.label;
+}
+
 function buildNavLinks(
   bibleAiNavLink: BibleAiNavLink | null | undefined,
   isLoggedIn: boolean
@@ -233,11 +242,11 @@ export function HeaderContent({
                     rel="noopener noreferrer"
                     title={tooltip}
                   >
-                    {bibleQa ? bibleQaNavLabel(link) : link.label}
+                    {primaryNavLinkLabel(link)}
                   </a>
                 ) : (
                   <Link href={link.href} title={tooltip}>
-                    {bibleQa ? bibleQaNavLabel(link) : link.label}
+                    {primaryNavLinkLabel(link)}
                   </Link>
                 )}
               </Button>

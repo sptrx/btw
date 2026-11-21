@@ -59,6 +59,7 @@ export async function getR2UploadStatus(): Promise<R2UploadStatus> {
 function safeUploadErrorMessage(error: unknown): string {
   if (!(error instanceof Error)) return "Upload failed.";
   const msg = error.message;
+  console.error("[r2-upload]", msg);
   if (/AccessDenied|403|Forbidden/i.test(msg)) {
     return "R2 denied the upload. Check API token permissions for Object Read & Write.";
   }
@@ -68,7 +69,8 @@ function safeUploadErrorMessage(error: unknown): string {
   if (/ENOTFOUND|fetch failed|network/i.test(msg)) {
     return "Could not reach R2. On Cloudflare Workers, add the R2 bucket binding in wrangler.jsonc and redeploy.";
   }
-  return msg.length > 180 ? `${msg.slice(0, 177)}…` : msg;
+  // Don't echo unknown internal errors to the browser (they're logged above).
+  return "Upload failed. Please try again.";
 }
 
 /**

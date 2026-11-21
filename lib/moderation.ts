@@ -420,10 +420,10 @@ export async function moderateContent(
     return await moderateWithOpenAI(trimmed);
   } catch (e) {
     console.error("[moderation]", e);
-    const msg = e instanceof Error ? e.message : "Unknown error";
+    // Details stay in the server log; users only see the generic message.
     return {
       allowed: false,
-      reason: `${MODERATION_UNAVAILABLE_MESSAGE} (${msg})`,
+      reason: MODERATION_UNAVAILABLE_MESSAGE,
     };
   }
 }

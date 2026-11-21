@@ -1,6 +1,21 @@
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
+// Upload type allowlist + magic-byte check live in lib/media-types.ts (no server deps,
+// shared with the browser upload form). Re-exported for existing imports.
+export {
+  ALLOWED_IMAGE_TYPES,
+  ALLOWED_VIDEO_TYPES,
+  MEDIA_ACCEPT_ATTR,
+  IMAGE_ACCEPT_ATTR,
+  isAllowedImageType,
+  isAllowedMediaType,
+  bytesMatchMime,
+} from "@/lib/media-types";
+
+/** Presigned upload links stay valid this long (seconds). */
+const PRESIGN_EXPIRES_SEC = 600;
+
 /** Default limits — tune via env if needed */
 const DEFAULT_MAX_IMAGE_MB = 25;
 const DEFAULT_MAX_VIDEO_MB = 400;
@@ -51,14 +66,20 @@ export function getMaxBytesForMime(mime: string): number {
   return 0;
 }
 
-export async function createPresignedUploadUrl(key: string, contentType: string): Promise<string> {
+export async function createPresignedUploadUrl(
+  key: string,
+  contentType: string,
+  contentLength: number
+): Promise<string> {
   const client = getR2S3Client();
   const command = new PutObjectCommand({
     Bucket: process.env.R2_BUCKET_NAME!,
     Key: key,
     ContentType: contentType,
+    // Signed, so the browser can only upload exactly the size we checked.
+    ContentLength: contentLength,
   });
-  return getSignedUrl(client, command, { expiresIn: 3600 });
+  return getSignedUrl(client, command, { expiresIn: PRESIGN_EXPIRES_SEC });
 }
 
 /** Server-side upload (no browser CORS to R2). Prefer for smaller files; see R2_PROXY_MAX_MB. */

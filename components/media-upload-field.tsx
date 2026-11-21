@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Loader2, Upload } from "lucide-react";
+import { MEDIA_ACCEPT_ATTR, isAllowedMediaType } from "@/lib/media-types";
 
 export type MediaItem = { url: string; type: string };
 
@@ -50,7 +51,7 @@ export function MediaUploadField({ channelId, mediaUrls, onMediaChange }: Props)
   const runUpload = useCallback(
     async (file: File) => {
       const contentType = guessMime(file);
-      if (!contentType.startsWith("image/") && !contentType.startsWith("video/")) {
+      if (!isAllowedMediaType(contentType)) {
         throw new Error("Choose an image or video file.");
       }
 
@@ -191,7 +192,7 @@ export function MediaUploadField({ channelId, mediaUrls, onMediaChange }: Props)
         <input
           id="media-upload-input"
           type="file"
-          accept="image/*,video/*"
+          accept={MEDIA_ACCEPT_ATTR}
           className="sr-only"
           disabled={uploading}
           onChange={onFile}

@@ -94,7 +94,7 @@ export function ProfileAvatarField({ displayName, initialAvatarUrl }: Props) {
         <input
           ref={inputRef}
           type="file"
-          accept="image/*"
+          accept="image/jpeg,image/png,image/gif,image/webp"
           className="sr-only"
           onChange={(e) => void onFileChange(e.target.files?.[0] ?? null)}
         />

@@ -2,8 +2,10 @@ import { randomBytes } from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
 import {
+  bytesMatchMime,
   getMaxBytesForMime,
   getProxyMaxBytes,
+  isAllowedMediaType,
   sanitizeFileName,
 } from "@/lib/cloudflare-r2";
 import {
@@ -50,8 +52,11 @@ export async function POST(req: NextRequest) {
   }
 
   const contentType = file.type || "application/octet-stream";
-  if (!contentType.startsWith("image/") && !contentType.startsWith("video/")) {
-    return NextResponse.json({ error: "Only image/* and video/* uploads are allowed." }, { status: 400 });
+  if (!isAllowedMediaType(contentType)) {
+    return NextResponse.json(
+      { error: "Unsupported file type. Use JPEG, PNG, GIF or WebP images, or MP4, WebM or MOV video." },
+      { status: 400 }
+    );
   }
 
   const maxBytes = Math.min(getMaxBytesForMime(contentType), getProxyMaxBytes());
@@ -80,6 +85,9 @@ export async function POST(req: NextRequest) {
 
   try {
     const bytes = new Uint8Array(await file.arrayBuffer());
+    if (!bytesMatchMime(bytes, contentType)) {
+      return NextResponse.json({ error: "The file doesn't match its type." }, { status: 400 });
+    }
     await uploadBytesToR2(key, bytes, contentType);
     const publicUrl = buildPublicUrl(key);
     const mediaType = contentType.startsWith("video/") ? "video" : "image";

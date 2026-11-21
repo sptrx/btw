@@ -6,6 +6,7 @@ import {
   createPresignedUploadUrl,
   getMaxBytesForMime,
   getProxyMaxBytes,
+  isAllowedMediaType,
   isR2Configured,
   sanitizeFileName,
 } from "@/lib/cloudflare-r2";
@@ -60,9 +61,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "contentLength must be a positive number." }, { status: 400 });
   }
 
-  if (!contentType.startsWith("image/") && !contentType.startsWith("video/")) {
+  if (!isAllowedMediaType(contentType)) {
     return NextResponse.json(
-      { error: "Only image/* and video/* uploads are allowed." },
+      { error: "Unsupported file type. Use JPEG, PNG, GIF or WebP images, or MP4, WebM or MOV video." },
       { status: 400 }
     );
   }
@@ -98,7 +99,7 @@ export async function POST(req: NextRequest) {
   const key = `channels/${channelId}/${Date.now()}-${randomBytes(8).toString("hex")}-${safeName}`;
 
   try {
-    const uploadUrl = await createPresignedUploadUrl(key, contentType);
+    const uploadUrl = await createPresignedUploadUrl(key, contentType, Math.floor(contentLength));
     const publicUrl = buildPublicUrl(key);
     const mediaType = contentType.startsWith("video/") ? "video" : "image";
 

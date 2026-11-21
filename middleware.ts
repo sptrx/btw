@@ -80,8 +80,10 @@ export async function middleware(request: NextRequest) {
     path === "/contact" ||
     path === "/donate" ||
     isMapPage;
+  const isSeoFile = path === "/robots.txt" || path === "/sitemap.xml";
   const isPublic =
     path === "/" ||
+    isSeoFile ||
     isFeed ||
     isOutreachPage ||
     isPublicChannel ||

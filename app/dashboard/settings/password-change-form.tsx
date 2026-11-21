@@ -1,11 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { createClient } from "@/utils/supabase/client";
+import { updatePassword } from "@/actions/auth";
 
-type Props = { userEmail: string };
+// userEmail is still passed by the settings page; the server action reads the session instead.
+type Props = { userEmail?: string };
 
-export default function PasswordChangeForm({ userEmail }: Props) {
+export default function PasswordChangeForm(_props: Props) {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -18,9 +19,8 @@ export default function PasswordChangeForm({ userEmail }: Props) {
 
     const form = e.currentTarget;
     const formData = new FormData(form);
-    const currentPassword = (formData.get("current_password") as string)?.trim();
-    const newPassword = (formData.get("new_password") as string)?.trim();
-    const confirmPassword = (formData.get("confirm_password") as string)?.trim();
+    const newPassword = (formData.get("new_password") as string | null) ?? "";
+    const confirmPassword = (formData.get("confirm_password") as string | null) ?? "";
 
     if (!newPassword || newPassword.length < 6) {
       setError("New password must be at least 6 characters.");
@@ -34,27 +34,10 @@ export default function PasswordChangeForm({ userEmail }: Props) {
     }
 
     try {
-      const supabase = createClient();
-
-      // Verify current password if provided (email/password users)
-      if (currentPassword) {
-        const { error: signInError } = await supabase.auth.signInWithPassword({
-          email: userEmail,
-          password: currentPassword,
-        });
-        if (signInError) {
-          setError("Current password is incorrect.");
-          setLoading(false);
-          return;
-        }
-      }
-
-      const { error: updateError } = await supabase.auth.updateUser({
-        password: newPassword,
-      });
-
-      if (updateError) {
-        setError(updateError.message);
+      // The server checks the current password for email/password accounts.
+      const result = await updatePassword(formData);
+      if (result.error) {
+        setError(result.error);
         setLoading(false);
         return;
       }

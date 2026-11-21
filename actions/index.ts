@@ -210,15 +210,26 @@ export async function getProfile(userId: string): Promise<ProfileRow | null> {
   return data as ProfileRow;
 }
 
-/** Upgrade a regular user so they can create and manage channels. */
+/**
+ * Upgrade the signed-in user so they can create and manage channels.
+ * `userId` is kept for existing callers but must match the session user —
+ * this is a server action, so its arguments come from the browser.
+ * (A DB trigger also stops users from setting any role other than
+ * user / channel_author on their own profile.)
+ */
 export async function promoteToChannelAuthor(
   userId: string
 ): Promise<{ success: true } | { error: string }> {
   const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user || user.id !== userId) return { error: "Not signed in." };
+
   const { error: profileError } = await supabase
     .from("profiles")
     .update({ role: "channel_author", updated_at: new Date().toISOString() })
-    .eq("id", userId);
+    .eq("id", user.id);
 
   if (profileError) {
     console.error("[promoteToChannelAuthor]", profileError.message);

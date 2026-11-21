@@ -6,11 +6,11 @@ import {
   isBibleAiHandoffConfigured,
 } from "@/lib/bible-ai-handoff";
 import { BTW_XGESIS_PARTNER_ID } from "@/lib/bible-ai-config";
+import { safeNextPath } from "@/lib/safe-next";
 import { createClient } from "@/utils/supabase/server";
 
 function safeNext(raw: string | null): string {
-  const path = (raw ?? "/ask").trim();
-  if (!path.startsWith("/") || path.startsWith("//")) return "/ask";
+  const path = safeNextPath(raw ?? "/ask", "/ask");
   if (path.startsWith("/auth/") || path === "/locked") return "/ask";
   return path;
 }

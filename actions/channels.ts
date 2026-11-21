@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient } from "@/utils/supabase/server";
+import { createAdminClient } from "@/utils/supabase/admin";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import {
@@ -1055,6 +1056,32 @@ export async function isChannelAuthor(channelId: string): Promise<boolean> {
   return data?.author_id === user.id;
 }
 
+type ModerationOutcome = "approved" | "pending_review";
+
+/**
+ * Users can't write moderation_status themselves (a DB trigger forces new and
+ * edited posts to pending_review). After AI moderation passes, the server marks
+ * the post approved with the service-role client. If that isn't possible the
+ * post simply stays in the review queue.
+ */
+async function applyModerationStatus(
+  contentId: string,
+  status: ModerationOutcome
+): Promise<ModerationOutcome> {
+  if (status !== "approved") return status;
+  const admin = createAdminClient();
+  if (!admin) return "pending_review";
+  const { error } = await admin
+    .from("topic_content")
+    .update({ moderation_status: "approved", moderation_note: null })
+    .eq("id", contentId);
+  if (error) {
+    console.error("[applyModerationStatus]", error.message);
+    return "pending_review";
+  }
+  return "approved";
+}
+
 export async function createContent(channelId: string, pageId: string, formData: FormData) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -1110,7 +1137,7 @@ export async function createContent(channelId: string, pageId: string, formData:
   );
   if (!result.allowed) return { error: result.reason ?? "Content not allowed." };
 
-  const moderationStatus = result.pendingReview ? "pending_review" : "approved";
+  let moderationStatus: ModerationOutcome = result.pendingReview ? "pending_review" : "approved";
 
   if (!alreadyAccepted && acceptedDisclaimer) {
     await recordContentDisclaimerAcceptance(user.id);
@@ -1186,6 +1213,10 @@ export async function createContent(channelId: string, pageId: string, formData:
     return { error: insertErr.message };
   }
 
+  if (inserted?.id) {
+    moderationStatus = await applyModerationStatus(inserted.id, moderationStatus);
+  }
+
   if (inserted?.id && formData.get("tags_present") === "1") {
     const tagIds = readTagIdsFromForm(formData);
     await replacePostTags(inserted.id, tagIds);
@@ -1256,7 +1287,7 @@ export async function updateContent(contentId: string, formData: FormData) {
   );
   if (!result.allowed) return { error: result.reason ?? "Content not allowed." };
 
-  const moderationStatus = result.pendingReview ? "pending_review" : "approved";
+  let moderationStatus: ModerationOutcome = result.pendingReview ? "pending_review" : "approved";
 
   if (!alreadyAccepted && acceptedDisclaimer) {
     await recordContentDisclaimerAcceptance(user.id);
@@ -1319,6 +1350,8 @@ export async function updateContent(contentId: string, formData: FormData) {
   }
 
   if (upErr) return { error: upErr.message };
+
+  moderationStatus = await applyModerationStatus(contentId, moderationStatus);
 
   if (formData.get("tags_present") === "1") {
     const tagIds = readTagIdsFromForm(formData);
@@ -1455,8 +1488,18 @@ export async function addComment(
 
   const priorComments = await getComments(contentId);
   const content = await getContentById(contentId);
+  // getContentById runs under the user's RLS, so hidden (pending/rejected)
+  // posts come back empty — don't allow comments on them.
+  if (!content) return { error: "This post isn't available for comments." };
 
-  const { data: inserted, error: insertErr } = await supabase
+  // Comments are written with the service role only after moderation passes;
+  // users have no direct insert/update permission on this table.
+  const admin = createAdminClient();
+  if (!admin) {
+    return { error: "Comments are temporarily unavailable. Please try again later." };
+  }
+
+  const { data: inserted, error: insertErr } = await admin
     .from("topic_content_comments")
     .insert({
       topic_content_id: contentId,
@@ -1468,7 +1511,7 @@ export async function addComment(
 
   if (insertErr || !inserted) {
     console.error("[addComment] insert", insertErr);
-    return { error: insertErr?.message ?? "Could not post comment." };
+    return { error: "Could not post comment. Please try again." };
   }
 
   // Notify the post author. `content` was fetched above for the scripture
@@ -1523,7 +1566,7 @@ export async function addComment(
         if ("error" in guide) {
           guideError = guide.error;
         } else {
-          const { error: updErr } = await supabase
+          const { error: updErr } = await admin
             .from("topic_content_comments")
             .update({ scripture_guide_reply: guide.response })
             .eq("id", inserted.id);

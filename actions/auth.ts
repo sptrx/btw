@@ -12,9 +12,10 @@ export async function updatePassword(formData: FormData): Promise<{ error?: stri
   } = await supabase.auth.getUser();
   if (!user?.email) return { error: "You must be signed in to change your password." };
 
-  const currentPassword = (formData.get("current_password") as string)?.trim();
-  const newPassword = (formData.get("new_password") as string)?.trim();
-  const confirmPassword = (formData.get("confirm_password") as string)?.trim();
+  // Passwords are used exactly as typed (no trimming — spaces are valid characters).
+  const currentPassword = (formData.get("current_password") as string | null) ?? "";
+  const newPassword = (formData.get("new_password") as string | null) ?? "";
+  const confirmPassword = (formData.get("confirm_password") as string | null) ?? "";
 
   if (!newPassword || newPassword.length < 6) {
     return { error: "New password must be at least 6 characters." };
@@ -23,8 +24,15 @@ export async function updatePassword(formData: FormData): Promise<{ error?: stri
     return { error: "New passwords do not match." };
   }
 
-  // Verify current password if provided (email/password users)
-  if (currentPassword) {
+  // Accounts that have a password must confirm it, so a stolen or left-open
+  // session can't silently take over the account. OAuth / magic-link-only
+  // accounts have no password yet — the session is the proof (same rule as
+  // deleteCurrentUser).
+  const hasPasswordIdentity = (user.identities ?? []).some((i) => i.provider === "email");
+  if (hasPasswordIdentity) {
+    if (!currentPassword) {
+      return { error: "Please enter your current password." };
+    }
     const { error: signInError } = await supabase.auth.signInWithPassword({
       email: user.email,
       password: currentPassword,
@@ -33,7 +41,6 @@ export async function updatePassword(formData: FormData): Promise<{ error?: stri
       return { error: "Current password is incorrect." };
     }
   }
-  // OAuth/magic-link users can change password without current password (session is proof)
 
   const { error } = await supabase.auth.updateUser({ password: newPassword });
 

@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import type { EmailOtpType } from "@supabase/supabase-js";
 import { createClient, createImplicitRecoveryClient } from "@/utils/supabase/client";
+import { safeNextPath } from "@/lib/safe-next";
 
 /** Recovery / implicit redirect: tokens in URL hash (works in any browser — no PKCE verifier). */
 function parseImplicitTokensFromHash(hash: string): {
@@ -58,7 +59,8 @@ export function AuthCallbackClient() {
 
     const params = new URLSearchParams(searchKey);
     // Password reset passes next=/auth/reset-password; signup confirmation passes next=/auth/confirmed.
-    const next = params.get("next") ?? "/auth/login";
+    // Only same-site paths: blocks open redirects and javascript: URLs.
+    const next = safeNextPath(params.get("next"), "/auth/login");
     const nextForPkceHint =
       next.includes("/auth/reset-password") ? "reset" : next.includes("/auth/confirmed") ? "signup" : "other";
     const code = params.get("code");

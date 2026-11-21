@@ -6,6 +6,7 @@ import { useSearchParams } from "next/navigation";
 import { ShieldCheck } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
 import { OAuthButtons } from "@/components/auth/oauth-buttons";
+import { safeNextPath } from "@/lib/safe-next";
 
 function LoginForm() {
   const searchParams = useSearchParams();
@@ -36,8 +37,7 @@ function LoginForm() {
       const supabase = createClient();
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
-      const next = searchParams.get("next");
-      window.location.href = next && next.startsWith("/") ? next : "/channel/browse";
+      window.location.href = safeNextPath(searchParams.get("next"), "/channel/browse");
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Failed to sign in");
     } finally {

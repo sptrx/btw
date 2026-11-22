@@ -1,6 +1,8 @@
 "use client";
 
+import { useRef } from "react";
 import Link from "next/link";
+import { ChevronDown, Globe } from "lucide-react";
 import { usePathname, useSearchParams } from "next/navigation";
 import { GEO_REGIONS } from "@/lib/geo";
 import { cn } from "@/lib/utils";
@@ -37,38 +39,61 @@ export function RegionFilter({
     return qs ? `${path}?${qs}` : path;
   };
 
+  const detailsRef = useRef<HTMLDetailsElement>(null);
+  const closeMenu = () => detailsRef.current?.removeAttribute("open");
+
+  const activeLabel = GEO_REGIONS.find((r) => r.id === active)?.label ?? null;
+
+  const itemClass = (selected: boolean) =>
+    cn(
+      "block rounded-md px-3 py-2 text-sm transition-colors",
+      selected
+        ? "bg-primary/10 font-medium text-primary"
+        : "text-foreground hover:bg-muted/60"
+    );
+
+  // Optional filter: one compact control instead of a row of tabs.
   return (
-    <div className={cn("space-y-2", className)}>
-      <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-        By region
-      </p>
-      <div className="flex flex-wrap gap-2">
-        <Link
-          href={buildHref(null)}
+    <div className={cn("flex flex-wrap items-center gap-2", className)}>
+      <details ref={detailsRef} className="group relative">
+        <summary
           className={cn(
-            "shrink-0 rounded-full border px-3 py-1.5 text-sm font-medium transition-colors",
-            !active
-              ? "border-primary bg-primary text-primary-foreground"
+            "flex min-h-10 cursor-pointer list-none items-center gap-2 rounded-full border px-3.5 py-1.5 text-sm font-medium transition-colors [&::-webkit-details-marker]:hidden",
+            activeLabel
+              ? "border-primary bg-primary/10 text-primary"
               : "border-border/80 bg-muted/30 text-foreground hover:bg-muted/60"
           )}
         >
-          All regions
-        </Link>
-        {GEO_REGIONS.map((r) => (
-          <Link
-            key={r.id}
-            href={buildHref(r.id)}
-            className={cn(
-              "shrink-0 rounded-full border px-3 py-1.5 text-sm font-medium transition-colors",
-              active === r.id
-                ? "border-primary bg-primary text-primary-foreground"
-                : "border-border/80 bg-muted/30 text-foreground hover:bg-muted/60"
-            )}
-          >
-            {r.label}
+          <Globe className="h-4 w-4" aria-hidden />
+          {activeLabel ? `Region: ${activeLabel}` : "Filter by region"}
+          <ChevronDown
+            className="h-4 w-4 transition-transform group-open:rotate-180"
+            aria-hidden
+          />
+        </summary>
+        <div
+          role="menu"
+          onClick={closeMenu}
+          className="absolute left-0 z-20 mt-2 w-52 rounded-xl border border-border bg-popover p-1.5 shadow-lg"
+        >
+          <Link href={buildHref(null)} role="menuitem" className={itemClass(!active)}>
+            All regions
           </Link>
-        ))}
-      </div>
+          {GEO_REGIONS.map((r) => (
+            <Link key={r.id} href={buildHref(r.id)} role="menuitem" className={itemClass(active === r.id)}>
+              {r.label}
+            </Link>
+          ))}
+        </div>
+      </details>
+      {activeLabel && (
+        <Link
+          href={buildHref(null)}
+          className="text-sm text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+        >
+          Clear
+        </Link>
+      )}
     </div>
   );
 }

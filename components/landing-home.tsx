@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import type { LandingFeedItem } from "@/actions/landing";
 import type { PrayerRequestListItem } from "@/actions/prayer";
 import { LandingPublicFeed } from "@/components/landing-public-feed";
+import { LandingFeatured } from "@/components/landing-featured";
 import { LandingPrayerWidget } from "@/components/prayer/landing-prayer-widget";
 import { LandingCta } from "@/components/landing-cta";
 import { LandingSeekerSection } from "@/components/landing-seeker-section";
@@ -31,6 +32,8 @@ type LandingHomeProps = {
   displayFontClassName: string;
   /** Recent posts for the public feed */
   feed?: LandingFeedItem[];
+  /** Hand-picked posts (editorial); section is hidden when empty */
+  featured?: LandingFeedItem[];
   isAuthenticated?: boolean;
   prayerRequests?: PrayerRequestListItem[];
   mapSummary?: MapSummary;
@@ -40,6 +43,7 @@ type LandingHomeProps = {
 export function LandingHome({
   displayFontClassName,
   feed = [],
+  featured = [],
   isAuthenticated = false,
   prayerRequests = [],
   mapSummary = { countryCount: 0, totalPosts: 0 },
@@ -129,6 +133,8 @@ export function LandingHome({
       </FullBleed>
 
       <LandingSeekerSection displayFontClassName={displayFontClassName} />
+
+      <LandingFeatured items={featured} displayFontClassName={displayFontClassName} />
 
       {mapSummary.countryCount > 0 || geoPosts.length > 0 ? (
         <section className="container mx-auto max-w-6xl px-4 sm:px-5 py-10 sm:py-12">

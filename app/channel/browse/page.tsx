@@ -1,5 +1,6 @@
 import { Metadata } from "next";
 import { Suspense } from "react";
+import Link from "next/link";
 import { fetchChannels } from "@/actions/channels";
 import { getAllTopicTags } from "@/actions/tags";
 import { ChannelCardGrid } from "@/components/channel-card-grid";
@@ -80,12 +81,23 @@ export default async function BrowseChannelsPage({ searchParams }: Props) {
       <BrowseTopicFilter tags={allTags} />
 
       {channels.length === 0 ? (
-        <div className="btw-empty">
-          {q.trim()
-            ? "No channels match your search. Try different words."
-            : activeTagLabel
-              ? `No channels tagged "${activeTagLabel}" yet.`
-              : "No channels yet — check back soon."}
+        <div className="btw-empty space-y-3">
+          <p>
+            {q.trim()
+              ? "No channels match your search. Try different words."
+              : activeTagLabel
+                ? `No channels tagged "${activeTagLabel}" yet.`
+                : "No channels here yet."}
+          </p>
+          {!q.trim() ? (
+            <p className="text-sm">
+              Leading a church or ministry?{" "}
+              <Link href="/invite" className="font-medium text-primary hover:underline">
+                Start your channel
+              </Link>{" "}
+              and be one of the first.
+            </p>
+          ) : null}
         </div>
       ) : (
         <ChannelCardGrid channels={channels} />

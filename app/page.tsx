@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { getLandingFeed } from "@/actions/landing";
+import { getLandingFeatured, getLandingFeed } from "@/actions/landing";
 import { getCurrentUser } from "@/actions";
 import { getMapSummary, getRecentGeoPosts } from "@/actions/map";
 import { getHomepagePrayerRequests } from "@/actions/prayer";
@@ -12,8 +12,9 @@ export default async function Home() {
     redirect("/feed");
   }
 
-  const [feed, prayerRequests, mapSummary, geoPosts] = await Promise.all([
+  const [feed, featured, prayerRequests, mapSummary, geoPosts] = await Promise.all([
     getLandingFeed(28),
+    getLandingFeatured(3),
     getHomepagePrayerRequests(3),
     getMapSummary(),
     getRecentGeoPosts(10),
@@ -22,6 +23,7 @@ export default async function Home() {
     <LandingHome
       displayFontClassName={btwDisplayFont}
       feed={feed}
+      featured={featured}
       isAuthenticated={false}
       prayerRequests={prayerRequests}
       mapSummary={mapSummary}

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { updatePassword } from "@/actions/auth";
+import { MIN_PASSWORD_LENGTH, passwordTooShortMessage } from "@/lib/password-policy";
 
 // userEmail is still passed by the settings page; the server action reads the session instead.
 type Props = { userEmail?: string };
@@ -22,8 +23,8 @@ export default function PasswordChangeForm(_props: Props) {
     const newPassword = (formData.get("new_password") as string | null) ?? "";
     const confirmPassword = (formData.get("confirm_password") as string | null) ?? "";
 
-    if (!newPassword || newPassword.length < 6) {
-      setError("New password must be at least 6 characters.");
+    if (newPassword.length < MIN_PASSWORD_LENGTH) {
+      setError(passwordTooShortMessage("New password"));
       setLoading(false);
       return;
     }
@@ -87,9 +88,9 @@ export default function PasswordChangeForm(_props: Props) {
           name="new_password"
           type="password"
           required
-          minLength={6}
+          minLength={MIN_PASSWORD_LENGTH}
           autoComplete="new-password"
-          placeholder="At least 6 characters"
+          placeholder={`At least ${MIN_PASSWORD_LENGTH} characters`}
           className="w-full min-h-11 rounded-xl border border-input bg-background px-4 py-3 text-base text-foreground placeholder:text-muted-foreground/60 transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background sm:text-sm"
         />
       </div>
@@ -105,7 +106,7 @@ export default function PasswordChangeForm(_props: Props) {
           name="confirm_password"
           type="password"
           required
-          minLength={6}
+          minLength={MIN_PASSWORD_LENGTH}
           autoComplete="new-password"
           placeholder="Repeat new password"
           className="w-full min-h-11 rounded-xl border border-input bg-background px-4 py-3 text-base text-foreground placeholder:text-muted-foreground/60 transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background sm:text-sm"

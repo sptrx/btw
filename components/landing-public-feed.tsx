@@ -186,16 +186,27 @@ export function LandingPublicFeed({ displayFontClassName, feed }: Props) {
   if (feed.length === 0) {
     return (
       <div className="px-4 py-16 text-center sm:px-6">
-        <p className={cn(displayFontClassName, "text-xl text-foreground")}>Nothing here yet</p>
-        <p className="mt-2 text-sm text-muted-foreground max-w-md mx-auto">
-          When channels publish video, articles, and discussion, they will show up in this feed.
+        <p className={cn(displayFontClassName, "text-xl text-foreground")}>
+          Be among the first to share
         </p>
-        <Link
-          href="/channel/browse"
-          className="mt-6 inline-flex text-sm font-medium text-primary hover:underline"
-        >
-          Browse channels
-        </Link>
+        <p className="mt-2 text-sm text-muted-foreground max-w-md mx-auto">
+          This is a new community. A short testimony, a verse that got you through a hard season, or
+          a sermon from your church can be the first post someone reads here.
+        </p>
+        <div className="mt-6 flex flex-col items-center justify-center gap-3 sm:flex-row sm:gap-5">
+          <Link
+            href="/auth/signup"
+            className="inline-flex text-sm font-medium text-primary hover:underline"
+          >
+            Create a free account and share
+          </Link>
+          <Link
+            href="/invite"
+            className="inline-flex text-sm font-medium text-muted-foreground hover:text-foreground"
+          >
+            Invite your church or ministry
+          </Link>
+        </div>
       </div>
     );
   }

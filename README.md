@@ -80,5 +80,18 @@ Full steps: **[docs/cloudflare-deploy.md](./docs/cloudflare-deploy.md)**.
 ## Tests
 
 ```bash
-npm run test
+npm test                  # unit tests + database security tests (no network, no real services)
+npm run test:watch        # re-run on change
+npm run test:smoke        # HTTP checks of a running site: SMOKE_BASE_URL=http://localhost:3000 npm run test:smoke
+npm run test:connections  # manual check of your real Supabase / AI keys (needs .env.local)
 ```
+
+The database tests run the security migrations (`20261121000000_security_hardening.sql`,
+`20261121000100_editorial_featured.sql`) against an in-memory Postgres and check who can change
+roles, moderation status, featured posts, comments, and the Bible Q&A quota. If you add a
+migration that changes those rules, extend `tests/db/security-migrations.test.ts`.
+
+## Password rules
+
+The minimum password length is 10 characters (`lib/password-policy.ts`). Keep it in sync with
+Supabase → Authentication → "Minimum password length".

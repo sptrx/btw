@@ -79,6 +79,7 @@ export async function middleware(request: NextRequest) {
     path === "/about" ||
     path === "/contact" ||
     path === "/donate" ||
+    path === "/invite" ||
     isMapPage;
   const isSeoFile = path === "/robots.txt" || path === "/sitemap.xml";
   const isPublic =

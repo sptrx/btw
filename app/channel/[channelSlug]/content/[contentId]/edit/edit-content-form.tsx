@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Sparkles } from "lucide-react";
 import { updateContent } from "@/actions/channels";
 import { Button } from "@/components/ui/button";
 import { MediaUploadField, type MediaItem } from "@/components/media-upload-field";
@@ -84,7 +83,6 @@ export default function EditContentForm({
   const [body, setBody] = useState(content.body ?? "");
   const config = SHARING_TYPE_CONFIG[sharingType];
   const isDevotional = sharingType === "devotional";
-  const [isFeatured, setIsFeatured] = useState(content.is_featured ?? false);
   const [tagIds, setTagIds] = useState<string[]>(initialTagIds);
   const [acceptedDisclaimer, setAcceptedDisclaimer] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -107,7 +105,6 @@ export default function EditContentForm({
     formData.set("body", body);
     if (isDevotional) formData.set("scripture_reference", scriptureReference.trim());
     formData.set("page_id", pageId || pages[0]?.id || "");
-    if (isFeatured) formData.set("is_featured", "on");
     formData.set("media_urls", JSON.stringify(mediaUrls.filter((m) => m.url)));
     formData.set("accepted_disclaimer", effectiveAccepted ? "1" : "0");
     formData.set("tags_present", "1");
@@ -287,25 +284,6 @@ export default function EditContentForm({
       <div>
         <span className="block text-sm font-medium mb-2">Topics</span>
         <TopicTagPicker allTags={allTags} value={tagIds} onChange={setTagIds} max={3} />
-      </div>
-
-      <div className="rounded-xl border border-border/70 bg-muted/15 p-4">
-        <label className="flex items-start gap-3 text-sm font-medium text-foreground cursor-pointer">
-          <input
-            type="checkbox"
-            name="is_featured"
-            checked={isFeatured}
-            onChange={(e) => setIsFeatured(e.target.checked)}
-            className="mt-0.5 size-4 rounded border-input"
-          />
-          <span className="flex items-center gap-1.5">
-            <Sparkles className="size-4 text-muted-foreground" aria-hidden />
-            Feature on homepage
-          </span>
-        </label>
-        <p className="mt-1.5 pl-7 text-xs text-muted-foreground">
-          Optional editorial flag for this post.
-        </p>
       </div>
 
       {hasAlreadyAcceptedDisclaimer ? (

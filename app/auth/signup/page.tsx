@@ -6,6 +6,7 @@ import { Info, MessageCircle, Mic, Rss, ShieldCheck, User } from "lucide-react";
 import { createImplicitRecoveryClient } from "@/utils/supabase/client";
 import { authInputClass, authPrimaryButtonClass } from "@/lib/auth-form-styles";
 import { OAuthButtons } from "@/components/auth/oauth-buttons";
+import { MIN_PASSWORD_LENGTH } from "@/lib/password-policy";
 
 const signupBenefits = [
   {
@@ -188,7 +189,7 @@ export default function SignUpPage() {
           </div>
           <div className="space-y-2">
             <label htmlFor="signup-password" className="text-sm font-medium text-foreground">
-              Password <span className="font-normal text-muted-foreground">(min 6 characters)</span>
+              Password <span className="font-normal text-muted-foreground">(min {MIN_PASSWORD_LENGTH} characters)</span>
             </label>
             <input
               id="signup-password"
@@ -198,7 +199,7 @@ export default function SignUpPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              minLength={6}
+              minLength={MIN_PASSWORD_LENGTH}
               aria-invalid={invalid}
               aria-describedby={invalid ? "signup-error" : undefined}
               className={authInputClass}

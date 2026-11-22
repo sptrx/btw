@@ -15,7 +15,7 @@ export function ChannelPageContentList({
   channelSlug,
   items,
   showPage = true,
-  emptyMessage = "No content yet.",
+  emptyMessage = "Nothing has been shared here yet. New posts will appear as soon as they are published.",
 }: Props) {
   if (items.length === 0) {
     return <div className="btw-empty">{emptyMessage}</div>;

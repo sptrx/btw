@@ -8,6 +8,7 @@ export const bibleQaPoweredByLine =
 export const footerNavLinks = [
   { href: "/explore", label: "Explore faith" },
   { href: "/about", label: "About" },
+  { href: "/invite", label: "Invite your church" },
   { href: "/donate", label: "Get involved — Donate" },
   { href: "/contact", label: "Contact us" },
 ] as const;

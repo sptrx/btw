@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { createClient } from "@/utils/supabase/client";
 import { authInputClass, authPrimaryButtonClass } from "@/lib/auth-form-styles";
+import { MIN_PASSWORD_LENGTH, passwordTooShortMessage } from "@/lib/password-policy";
 
 export default function ResetPasswordPage() {
   const [password, setPassword] = useState("");
@@ -26,8 +27,8 @@ export default function ResetPasswordPage() {
     e.preventDefault();
     setError(null);
 
-    if (password.length < 6) {
-      setError("Password must be at least 6 characters.");
+    if (password.length < MIN_PASSWORD_LENGTH) {
+      setError(passwordTooShortMessage());
       return;
     }
     if (password !== confirmPassword) {
@@ -73,7 +74,7 @@ export default function ResetPasswordPage() {
           <form onSubmit={handleSubmit} className="flex flex-col gap-4" noValidate suppressHydrationWarning>
             <div className="space-y-2">
               <label htmlFor="reset-password-new" className="text-sm font-medium text-foreground">
-                New password <span className="font-normal text-muted-foreground">(min 6 characters)</span>
+                New password <span className="font-normal text-muted-foreground">(min {MIN_PASSWORD_LENGTH} characters)</span>
               </label>
               <input
                 id="reset-password-new"
@@ -82,7 +83,7 @@ export default function ResetPasswordPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                minLength={6}
+                minLength={MIN_PASSWORD_LENGTH}
                 className={authInputClass}
                 autoComplete="new-password"
                 aria-invalid={invalid}
@@ -100,7 +101,7 @@ export default function ResetPasswordPage() {
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required
-                minLength={6}
+                minLength={MIN_PASSWORD_LENGTH}
                 className={authInputClass}
                 autoComplete="new-password"
                 aria-invalid={invalid}

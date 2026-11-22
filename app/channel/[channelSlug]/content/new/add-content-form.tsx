@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Sparkles } from "lucide-react";
 import { createContent } from "@/actions/channels";
 import { Button } from "@/components/ui/button";
 import { MediaUploadField, type MediaItem } from "@/components/media-upload-field";
@@ -16,6 +15,7 @@ import { PendingReviewNotice } from "@/components/pending-review-notice";
 import { CountryPicker } from "@/components/geo/country-picker";
 import { TopicTagPicker } from "@/components/tags/topic-tag-picker";
 import { SharingTypeSelector } from "@/components/sharing-type-selector";
+import { PostPromptPicker } from "@/components/post-prompt-picker";
 import {
   SHARING_TYPE_CONFIG,
   defaultMediaTypeForSharing,
@@ -59,7 +59,6 @@ export default function AddContentForm({
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
   const [scriptureReference, setScriptureReference] = useState("");
-  const [isFeatured, setIsFeatured] = useState(false);
   const [mediaUrls, setMediaUrls] = useState<MediaItem[]>([]);
   const [tagIds, setTagIds] = useState<string[]>([]);
   const [countryCode, setCountryCode] = useState<string | null>(defaultCountryCode);
@@ -101,7 +100,6 @@ export default function AddContentForm({
     formData.set("title", title.trim());
     formData.set("body", body);
     if (isDevotional) formData.set("scripture_reference", scriptureReference.trim());
-    if (isFeatured) formData.set("is_featured", "on");
     formData.set("media_urls", JSON.stringify(mediaUrls.filter((m) => m.url)));
     formData.set("accepted_disclaimer", effectiveAccepted ? "1" : "0");
     formData.set("tags_present", "1");
@@ -174,6 +172,15 @@ export default function AddContentForm({
         </div>
       ) : (
         <>
+          <PostPromptPicker
+            sharingType={sharingType}
+            visible={!title.trim() && !body.trim()}
+            onPick={(prompt) => {
+              setTitle(prompt.title);
+              setBody(prompt.body);
+            }}
+          />
+
           <div>
             <label htmlFor="content-page" className="block text-sm font-medium mb-1">
               Page
@@ -321,25 +328,6 @@ export default function AddContentForm({
           <div>
             <span className="block text-sm font-medium mb-2">Topics</span>
             <TopicTagPicker allTags={allTags} value={tagIds} onChange={setTagIds} max={3} />
-          </div>
-
-          <div className="rounded-xl border border-border/70 bg-muted/15 p-4">
-            <label className="flex items-start gap-3 text-sm font-medium text-foreground cursor-pointer">
-              <input
-                type="checkbox"
-                name="is_featured"
-                checked={isFeatured}
-                onChange={(e) => setIsFeatured(e.target.checked)}
-                className="mt-0.5 size-4 rounded border-input"
-              />
-              <span className="flex items-center gap-1.5">
-                <Sparkles className="size-4 text-muted-foreground" aria-hidden />
-                Feature on homepage
-              </span>
-            </label>
-            <p className="mt-1.5 pl-7 text-xs text-muted-foreground">
-              Optional editorial flag for this post.
-            </p>
           </div>
 
           {hasAlreadyAcceptedDisclaimer ? (

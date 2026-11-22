@@ -40,8 +40,20 @@ jobs:
       - name: Lint
         run: npm run lint
 
+      - name: Tests
+        run: npm test
+
       - name: Build (Next.js)
         run: npm run build
+
+      - name: Smoke tests (built site)
+        run: |
+          npx next start -p 3100 > "$RUNNER_TEMP/next.log" 2>&1 &
+          for i in $(seq 1 40); do
+            curl -sf http://localhost:3100/robots.txt > /dev/null && break
+            sleep 1
+          done
+          SMOKE_BASE_URL=http://localhost:3100 npm run test:smoke
 
   security-audit:
     name: Dependency audit

@@ -1152,8 +1152,6 @@ export async function createContent(channelId: string, pageId: string, formData:
     } catch {}
   }
 
-  const isFeatured = formData.get("is_featured") === "on";
-
   const authorProfile = await getProfile(user.id);
   const geo = resolveContentGeo(formData, authorProfile?.country_code);
 
@@ -1166,7 +1164,6 @@ export async function createContent(channelId: string, pageId: string, formData:
     title: resolvedTitle,
     body,
     media_urls: mediaUrls,
-    is_featured: isFeatured,
     moderation_status: moderationStatus,
     scripture_reference: scriptureRef,
     country_code: geo.country_code,
@@ -1302,15 +1299,12 @@ export async function updateContent(contentId: string, formData: FormData) {
     } catch {}
   }
 
-  const isFeatured = formData.get("is_featured") === "on";
-
   const updatePayload: Record<string, unknown> = {
     type,
     title,
     body,
     page_id: pageId || null,
     media_urls: mediaUrls,
-    is_featured: isFeatured,
     moderation_status: moderationStatus,
     moderation_note: null,
   };

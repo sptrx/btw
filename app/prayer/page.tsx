@@ -84,16 +84,24 @@ export default async function PrayerWallPage({ searchParams }: Props) {
           </p>
         ) : requests.length === 0 ? (
           <p className="px-4 py-12 text-center text-sm text-muted-foreground sm:px-6">
-            No prayer requests here yet.
+            No prayer requests here yet. Be the first to ask the community to pray with you.
             {isAuthenticated ? (
               <>
                 {" "}
                 <Link href="/prayer/new" className="text-primary hover:underline">
-                  Share the first one
+                  Share a prayer request
                 </Link>
                 .
               </>
-            ) : null}
+            ) : (
+              <>
+                {" "}
+                <Link href="/auth/signup" className="text-primary hover:underline">
+                  Create a free account
+                </Link>{" "}
+                to share one.
+              </>
+            )}
           </p>
         ) : (
           <div>

@@ -9,6 +9,7 @@ import {
 } from "@/actions/channels";
 import { getCurrentUser } from "@/actions";
 import EditPageForm from "./edit-page-form";
+import { PageArchiveSection } from "./page-archive-section";
 
 type Props = { params: Promise<{ channelSlug: string; pageId: string }> };
 
@@ -58,6 +59,15 @@ export default async function EditChannelPage({ params }: Props) {
         page={page}
         pageContent={pageContent}
       />
+      {page.slug !== "home" && (
+        <div className="mt-8">
+          <PageArchiveSection
+            channelId={channel.id}
+            pageId={page.id}
+            archived={Boolean(page.archived_at)}
+          />
+        </div>
+      )}
     </div>
   );
 }

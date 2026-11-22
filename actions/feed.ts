@@ -501,7 +501,7 @@ export async function getCommunityFeedPage(
 
   const [{ data: topicRows }, pageResult, { data: profileRows }] = await Promise.all([
     topicIds.length
-      ? supabase.from("topics").select("id, slug, title, cover_image_url").in("id", topicIds)
+      ? supabase.from("topics").select("id, slug, title, cover_image_url").is("archived_at", null).in("id", topicIds)
       : Promise.resolve({ data: [] as { id: string; slug: string; title: string; cover_image_url: string | null }[] }),
     pageIds.length
       ? supabase.from("channel_pages").select("id, slug, title").in("id", pageIds)

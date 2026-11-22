@@ -32,10 +32,17 @@ const PRE_MIGRATION_SCHEMA = `
     id uuid primary key references auth.users(id),
     role text default 'user' check (role in ('user', 'channel_author', 'moderator'))
   );
-  create table public.topics (id uuid primary key, author_id uuid);
+  create table public.topics (id uuid primary key, author_id uuid, title text);
+  create table public.channel_pages (
+    id uuid primary key default gen_random_uuid(),
+    channel_id uuid not null references public.topics on delete cascade,
+    slug text not null,
+    title text not null
+  );
   create table public.topic_content (
     id uuid default gen_random_uuid() primary key,
     topic_id uuid not null,
+    page_id uuid,
     author_id uuid not null,
     type text not null default 'article',
     title text not null,
@@ -60,6 +67,8 @@ const PRE_MIGRATION_SCHEMA = `
     primary key (user_id, usage_date)
   );
 
+  alter table public.topics enable row level security;
+  alter table public.channel_pages enable row level security;
   alter table public.profiles enable row level security;
   alter table public.topic_content enable row level security;
   alter table public.topic_content_comments enable row level security;
@@ -67,6 +76,9 @@ const PRE_MIGRATION_SCHEMA = `
   alter table public.bible_ai_daily_usage enable row level security;
 
   -- policies exactly as the app had them before the hardening migration
+  create policy "Topics are viewable by everyone" on public.topics for select using (true);
+  create policy "Authors can update own topics" on public.topics for update using (auth.uid() = author_id);
+  create policy "Channel pages viewable by everyone" on public.channel_pages for select using (true);
   create policy "Profiles are viewable by everyone" on public.profiles for select using (true);
   create policy "Users can update own profile" on public.profiles for update using (auth.uid() = id);
   create policy "Topic content is viewable by everyone" on public.topic_content for select using (true);
@@ -131,6 +143,7 @@ beforeAll(async () => {
   await db.exec(PRE_MIGRATION_SCHEMA);
   await db.exec(read("20261121000000_security_hardening.sql"));
   await db.exec(read("20261121000100_editorial_featured.sql"));
+  await db.exec(read("20261121000200_archive_channels_pages.sql"));
 });
 
 afterAll(async () => {
@@ -338,5 +351,86 @@ describe("consume_bible_ai_quota", () => {
         ])
       )
     ).rejects.toThrow(/row-level security/);
+  });
+});
+
+describe("archived channels and pages", () => {
+  const LIVE = "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb";
+  const SHELVED = "cccccccc-cccc-cccc-cccc-cccccccccccc";
+  let livePage: string, shelvedPage: string;
+
+  beforeAll(async () => {
+    await db.query(
+      `insert into public.topics (id, author_id, title, archived_at) values
+         ($1, $3, 'arc-live', null), ($2, $3, 'arc-shelved', now())`,
+      [LIVE, SHELVED, USER]
+    );
+    const mk = async (channel: string, slug: string, archived: boolean) =>
+      (await db.query<{ id: string }>(
+        `insert into public.channel_pages (channel_id, slug, title, archived_at)
+         values ($1, $2, $2, ${archived ? "now()" : "null"}) returning id`,
+        [channel, slug]
+      )).rows[0].id;
+    livePage = await mk(LIVE, "arc-open", false);
+    shelvedPage = await mk(LIVE, "arc-hidden", true);
+    await mk(SHELVED, "arc-in-shelved-channel", false);
+    await seedPost({ topic_id: LIVE, page_id: livePage, title: "arc-post-live" });
+    await seedPost({ topic_id: LIVE, page_id: shelvedPage, title: "arc-post-archived-page" });
+    await seedPost({ topic_id: SHELVED, title: "arc-post-archived-channel" });
+  });
+
+  const seen = (role: "anon" | "authenticated", uid: string | null, table: string, col: string) =>
+    as(role, uid, async () => {
+      const { rows } = await db.query<Record<string, string>>(
+        `select ${col} as v from public.${table} where ${col} like 'arc-%' order by ${col}`
+      );
+      return rows.map((r) => r.v);
+    });
+
+  it("hides archived channels from visitors and other users", async () => {
+    expect(await seen("anon", null, "topics", "title")).toEqual(["arc-live"]);
+    expect(await seen("authenticated", OTHER, "topics", "title")).toEqual(["arc-live"]);
+  });
+
+  it("hides archived pages, and every page of an archived channel", async () => {
+    expect(await seen("anon", null, "channel_pages", "title")).toEqual(["arc-open"]);
+  });
+
+  it("hides posts on archived pages and in archived channels", async () => {
+    expect(await seen("anon", null, "topic_content", "title")).toEqual(["arc-post-live"]);
+    expect(await seen("authenticated", OTHER, "topic_content", "title")).toEqual(["arc-post-live"]);
+  });
+
+  it("still shows everything to the channel owner", async () => {
+    expect(await seen("authenticated", USER, "topics", "title")).toEqual(["arc-live", "arc-shelved"]);
+    expect(await seen("authenticated", USER, "channel_pages", "title")).toEqual([
+      "arc-hidden",
+      "arc-in-shelved-channel",
+      "arc-open",
+    ]);
+    expect((await seen("authenticated", USER, "topic_content", "title")).length).toBe(3);
+  });
+
+  it("still shows everything to moderators", async () => {
+    expect(await seen("authenticated", MOD, "topics", "title")).toEqual(["arc-live", "arc-shelved"]);
+    expect((await seen("authenticated", MOD, "topic_content", "title")).length).toBe(3);
+  });
+
+  it("restoring a channel makes it public again; nothing was deleted", async () => {
+    await as("authenticated", USER, () =>
+      db.query("update public.topics set archived_at = null where id = $1", [SHELVED])
+    );
+    expect(await seen("anon", null, "topics", "title")).toEqual(["arc-live", "arc-shelved"]);
+    expect(await seen("anon", null, "topic_content", "title")).toEqual([
+      "arc-post-archived-channel",
+      "arc-post-live",
+    ]);
+  });
+
+  it("does not let someone else archive a channel", async () => {
+    await as("authenticated", OTHER, () =>
+      db.query("update public.topics set archived_at = now() where id = $1", [LIVE])
+    );
+    expect(await seen("anon", null, "topics", "title")).toContain("arc-live");
   });
 });

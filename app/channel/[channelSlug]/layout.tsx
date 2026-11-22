@@ -4,6 +4,7 @@ import { getCurrentUser } from "@/actions";
 import { isFollowingUser } from "@/actions/follows";
 import { isWalkingWithChannel } from "@/actions/library";
 import ChannelSidebar from "./channel-sidebar";
+import { ChannelArchiveSection } from "./settings/channel-archive-section";
 
 type Props = {
   children: React.ReactNode;
@@ -55,7 +56,25 @@ export default async function ChannelSlugLayout({ children, params }: Props) {
         isAuthenticated={!!user}
         viewerFollowsAuthor={viewerFollowsAuthor}
       />
-      <div className="min-w-0 flex-1">{children}</div>
+      <div className="min-w-0 flex-1">
+        {channel.archived_at && (
+          <div
+            role="status"
+            className="mb-4 space-y-2 rounded-xl border border-amber-500/40 bg-amber-500/10 p-4 text-sm"
+          >
+            <p className="font-medium text-foreground">
+              {isAuthor ? "This channel is archived." : "This archived channel is hidden from the public."}
+            </p>
+            {isAuthor && (
+              <>
+                <p className="text-muted-foreground">Only you (and site moderators) can see it.</p>
+                <ChannelArchiveSection channelId={channel.id} archived />
+              </>
+            )}
+          </div>
+        )}
+        {children}
+      </div>
     </div>
   );
 }

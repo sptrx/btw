@@ -23,6 +23,7 @@ export type ChannelSidebarPage = {
   slug: string;
   title: string;
   post_count?: number;
+  archived_at?: string | null;
   derived_type?: "video" | "podcast" | "article" | "discussion" | "mixed";
 };
 
@@ -200,6 +201,11 @@ export default function ChannelSidebar({
                 >
                   <Icon className="size-4 shrink-0" aria-hidden />
                   <span className="truncate">{p.title}</span>
+                  {p.archived_at && (
+                    <span className="rounded bg-muted px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+                      Archived
+                    </span>
+                  )}
                   {typeof p.post_count === "number" && (
                     <span className="text-xs text-muted-foreground tabular-nums">
                       ({p.post_count})

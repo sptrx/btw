@@ -6,6 +6,7 @@ import { getAllTopicTags, getChannelTagIds } from "@/actions/tags";
 import { getCurrentUser } from "@/actions";
 import { ChannelSettingsForm } from "./channel-settings-form";
 import { ChannelDeleteForm } from "./channel-delete-form";
+import { ChannelArchiveSection } from "./channel-archive-section";
 import AddContentLink from "../add-content-link";
 
 type Props = { params: Promise<{ channelSlug: string }> };
@@ -48,7 +49,7 @@ export default async function ChannelSettingsPage({ params }: Props) {
         </p>
         <h1 className="btw-page-title-sm">Channel settings</h1>
         <p className="text-muted-foreground mt-1 text-sm sm:text-base">
-          Update how your channel appears, or remove it permanently.
+          Update how your channel appears, archive it, or remove it permanently.
         </p>
       </div>
 
@@ -75,6 +76,13 @@ export default async function ChannelSettingsPage({ params }: Props) {
           Create a new post with text, images, or video. You can choose which page it belongs to on the next step.
         </p>
         <AddContentLink pageId={defaultPageIdForContent} channelSlug={channelSlug} label="+ Add content to this page" />
+      </section>
+
+      <section className="rounded-xl border border-border bg-card p-6 shadow-sm">
+        <h2 className="btw-section-title mb-1">
+          {channel.archived_at ? "Channel archived" : "Archive channel"}
+        </h2>
+        <ChannelArchiveSection channelId={channel.id} archived={Boolean(channel.archived_at)} />
       </section>
 
       <section className="rounded-xl border border-destructive/30 bg-destructive/5 p-6">

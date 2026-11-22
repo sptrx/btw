@@ -96,6 +96,7 @@ export async function getExploreTestimonies(limit = 3): Promise<LandingFeedItem[
   const { data: topicRows } = await supabase
     .from("topics")
     .select("id, slug, title, cover_image_url")
+    .is("archived_at", null)
     .in("id", topicIds);
 
   let pageRows: { id: string; slug: string; title: string }[] = [];

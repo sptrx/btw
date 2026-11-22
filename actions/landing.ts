@@ -211,6 +211,7 @@ async function fetchFeedLookups(
   const { data: topicRows } = await supabase
     .from("topics")
     .select("id, slug, title, cover_image_url")
+    .is("archived_at", null)
     .in("id", topicIds);
 
   let pageRows: { id: string; slug: string; title: string }[] = [];
@@ -336,6 +337,7 @@ export async function getLandingRecentChannels(limit = 14): Promise<LandingChann
   const { data, error } = await supabase
     .from("topics")
     .select("slug, title, cover_image_url, description")
+    .is("archived_at", null)
     .order("created_at", { ascending: false })
     .limit(Math.min(Math.max(limit, 1), 30));
 

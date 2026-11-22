@@ -40,7 +40,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       auth: { persistSession: false, autoRefreshToken: false },
     });
 
-    const { data: channels } = await supabase.from("topics").select("id, slug, created_at");
+    const { data: channels } = await supabase.from("topics").select("id, slug, created_at").is("archived_at", null);
     const slugById = new Map<string, string>();
     for (const c of channels ?? []) {
       if (!c.slug) continue;

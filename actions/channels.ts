@@ -53,6 +53,8 @@ export type ChannelPageRow = {
   description?: string | null;
   /** Present when selected (e.g. edit page) */
   updated_at?: string | null;
+  /** Set when the owner has archived the page (hidden from the public) */
+  archived_at?: string | null;
 };
 
 function slugify(text: string): string {
@@ -296,6 +298,7 @@ export async function fetchChannels(options?: FetchChannelsOptions): Promise<Cha
     let q = supabase
       .from("topics")
       .select(sel)
+      .is("archived_at", null)
       .eq("topic_members.status", "approved")
       .order("created_at", { ascending: false });
     if (topicChannelIds) q = q.in("id", topicChannelIds);
@@ -398,7 +401,7 @@ export async function fetchMyChannels() {
 
   const { data, error } = await supabase
     .from("topics")
-    .select("id, title, slug, description, created_at, author_id")
+    .select("id, title, slug, description, created_at, author_id, archived_at")
     .eq("author_id", user.id)
     .order("created_at", { ascending: false });
 
@@ -516,7 +519,7 @@ export async function getChannelBySlug(slug: string) {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("topics")
-    .select("id, author_id, title, slug, description, cover_image_url, created_at")
+    .select("id, author_id, title, slug, description, cover_image_url, created_at, archived_at")
     .eq("slug", slug)
     .single();
   if (error || !data) return null;
@@ -544,9 +547,9 @@ export async function getChannelPages(channelId: string): Promise<ChannelPageRow
       .order("sort_order", { ascending: true })
       .order("created_at", { ascending: true });
 
-  let { data, error } = await run("id, slug, title, sort_order, description");
+  let { data, error } = await run("id, slug, title, sort_order, description, archived_at");
   if (error && isMissingChannelPagesDescriptionColumn(error)) {
-    ({ data, error } = await run("id, slug, title, sort_order"));
+    ({ data, error } = await run("id, slug, title, sort_order, archived_at"));
   }
   if (error) {
     console.error("getChannelPages", error.message);
@@ -627,6 +630,7 @@ export async function getChannelSidebarPages(
     title: string;
     sort_order: number | null;
     description?: string | null;
+    archived_at?: string | null;
     posts?: { count: number }[] | { count: number } | null;
   };
 
@@ -639,12 +643,12 @@ export async function getChannelSidebarPages(
       .order("created_at", { ascending: true });
 
   const embedSelect =
-    "id, slug, title, sort_order, description, posts:topic_content(count)";
+    "id, slug, title, sort_order, description, posts:topic_content(count), archived_at";
 
   let { data, error } = await run(embedSelect);
   if (error && isMissingChannelPagesDescriptionColumn(error)) {
     ({ data, error } = await run(
-      "id, slug, title, sort_order, posts:topic_content(count)"
+      "id, slug, title, sort_order, posts:topic_content(count), archived_at"
     ));
   }
 
@@ -682,6 +686,7 @@ export async function getChannelSidebarPages(
     title: p.title,
     sort_order: p.sort_order,
     description: p.description ?? null,
+    archived_at: p.archived_at ?? null,
     post_count: readEmbeddedCount(p.posts),
     derived_type: classifyPageType(typesByPage.get(p.id) ?? []),
   }));
@@ -742,9 +747,9 @@ export async function getChannelPage(
       .eq("slug", pageSlug)
       .single();
 
-  let { data, error } = await run("id, slug, title, sort_order, description");
+  let { data, error } = await run("id, slug, title, sort_order, description, archived_at");
   if (error && isMissingChannelPagesDescriptionColumn(error)) {
-    ({ data, error } = await run("id, slug, title, sort_order"));
+    ({ data, error } = await run("id, slug, title, sort_order, archived_at"));
   }
   if (error) return null;
   return data as ChannelPageRow | null;
@@ -763,9 +768,9 @@ export async function getChannelPageById(
       .eq("id", pageId)
       .maybeSingle();
 
-  let { data, error } = await run("id, slug, title, sort_order, description, updated_at");
+  let { data, error } = await run("id, slug, title, sort_order, description, updated_at, archived_at");
   if (error && isMissingChannelPagesDescriptionColumn(error)) {
-    ({ data, error } = await run("id, slug, title, sort_order, updated_at"));
+    ({ data, error } = await run("id, slug, title, sort_order, updated_at, archived_at"));
   }
   if (error) return null;
   return data as ChannelPageRow | null;
@@ -799,7 +804,7 @@ export async function updateChannelPage(formData: FormData) {
 
   const { data: pageRow } = await supabase
     .from("channel_pages")
-    .select("id, slug, title, sort_order")
+    .select("id, slug, title, sort_order, archived_at")
     .eq("id", pageId)
     .eq("channel_id", channelId)
     .single();
@@ -1765,4 +1770,101 @@ export async function getUserHasFeedback(contentId: string, type: "like" | "help
   const { data } = await supabase.from("topic_content_feedback").select("id")
     .eq("topic_content_id", contentId).eq("user_id", user.id).eq("type", type).single();
   return !!data;
+}
+
+
+// ---------------------------------------------------------------------------
+// Archive / restore. Archived channels and pages are hidden from everyone but
+// the owner and moderators (enforced by RLS); nothing is deleted.
+// ---------------------------------------------------------------------------
+
+async function setChannelArchived(channelId: string, archived: boolean) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/auth/login");
+  if (!channelId) return { error: "Missing channel." };
+
+  const { data: row } = await supabase
+    .from("topics")
+    .select("id, author_id, slug")
+    .eq("id", channelId)
+    .single();
+  if (!row) return { error: "Channel not found." };
+  if (row.author_id !== user.id) return { error: "You can only archive your own channels." };
+
+  const { error } = await supabase
+    .from("topics")
+    .update({ archived_at: archived ? new Date().toISOString() : null })
+    .eq("id", channelId)
+    .eq("author_id", user.id);
+  if (error) {
+    console.error("[channels] setChannelArchived", error.message);
+    return { error: "Could not update the channel. Please try again." };
+  }
+
+  revalidatePath("/");
+  revalidatePath("/channel");
+  revalidatePath("/channel/browse");
+  revalidatePath("/channel/my");
+  revalidatePath(`/channel/${row.slug}`, "layout");
+  return { ok: true as const };
+}
+
+export async function archiveChannel(channelId: string) {
+  return setChannelArchived(channelId, true);
+}
+
+export async function unarchiveChannel(channelId: string) {
+  return setChannelArchived(channelId, false);
+}
+
+async function setChannelPageArchived(channelId: string, pageId: string, archived: boolean) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/auth/login");
+  if (!channelId || !pageId) return { error: "Missing page." };
+
+  const { data: channel } = await supabase
+    .from("topics")
+    .select("slug, author_id")
+    .eq("id", channelId)
+    .single();
+  if (!channel || channel.author_id !== user.id) {
+    return { error: "You can only archive pages on your own channels." };
+  }
+
+  const { data: pageRow } = await supabase
+    .from("channel_pages")
+    .select("id, slug")
+    .eq("id", pageId)
+    .eq("channel_id", channelId)
+    .single();
+  if (!pageRow) return { error: "Page not found." };
+  if (pageRow.slug === "home") return { error: "The home page can't be archived." };
+
+  const { error } = await supabase
+    .from("channel_pages")
+    .update({ archived_at: archived ? new Date().toISOString() : null })
+    .eq("id", pageId)
+    .eq("channel_id", channelId);
+  if (error) {
+    console.error("[channels] setChannelPageArchived", error.message);
+    return { error: "Could not update the page. Please try again." };
+  }
+
+  revalidatePath("/");
+  revalidatePath(`/channel/${channel.slug}`, "layout");
+  return { ok: true as const };
+}
+
+export async function archiveChannelPage(channelId: string, pageId: string) {
+  return setChannelPageArchived(channelId, pageId, true);
+}
+
+export async function unarchiveChannelPage(channelId: string, pageId: string) {
+  return setChannelPageArchived(channelId, pageId, false);
 }

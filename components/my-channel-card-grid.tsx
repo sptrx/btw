@@ -9,6 +9,7 @@ type Channel = {
   title: string;
   slug: string;
   description?: string | null;
+  archived_at?: string | null;
   profiles: { display_name?: string | null } | null;
 };
 
@@ -22,7 +23,14 @@ export function MyChannelCardGrid({ channels }: Props) {
           key={ch.id}
           className={cn("btw-surface btw-surface-lift flex flex-col p-4 sm:p-5")}
         >
-          <h3 className="btw-card-title">{ch.title}</h3>
+          <h3 className="btw-card-title">
+            {ch.title}
+            {ch.archived_at && (
+              <span className="ml-2 align-middle rounded bg-muted px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+                Archived
+              </span>
+            )}
+          </h3>
           {ch.description && (
             <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">{ch.description}</p>
           )}
@@ -34,7 +42,7 @@ export function MyChannelCardGrid({ channels }: Props) {
               <Link href={`/channel/${ch.slug}`}>View</Link>
             </Button>
             <Button asChild variant="outline" size="sm" className="min-h-10 touch-manipulation">
-              <Link href={`/channel/${ch.slug}/settings`}>Edit & delete</Link>
+              <Link href={`/channel/${ch.slug}/settings`}>Edit, archive & delete</Link>
             </Button>
           </div>
         </div>

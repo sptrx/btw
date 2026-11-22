@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getCurrentUser } from "@/actions";
@@ -10,10 +11,24 @@ import { CountryBadge } from "@/components/geo/country-badge";
 import { RelativeDate } from "@/components/relative-date";
 import { btwDisplayFont, btwProse } from "@/lib/btw-ui";
 import { cn } from "@/lib/utils";
+import { pageMetadata } from "@/lib/seo";
 
 type Props = {
   params: Promise<{ id: string }>;
 };
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { id } = await params;
+  const request = await getPrayerRequestById(id);
+  if (!request) return { title: "Prayer request" };
+  // Title only: the request text itself stays on the page, not in link previews.
+  return pageMetadata({
+    title: request.title,
+    description: "A prayer request on the Believe The Works Prayer Wall. Join in prayer.",
+    path: `/prayer/${id}`,
+    noindex: request.isAnonymous,
+  });
+}
 
 export default async function PrayerRequestDetailPage({ params }: Props) {
   const { id } = await params;

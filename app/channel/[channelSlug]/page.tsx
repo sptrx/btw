@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import {
   getChannelBySlug,
@@ -12,11 +13,25 @@ import { ChannelPageContentList } from "@/components/channel-page-content-list";
 import { ChannelContentFilterSection } from "@/components/channel-content-filter-section";
 import { getCurrentUser } from "@/actions";
 import { isSharingType, type SharingType } from "@/lib/sharing-types";
+import { pageMetadata } from "@/lib/seo";
 
 type Props = {
   params: Promise<{ channelSlug: string }>;
   searchParams: Promise<{ type?: string }>;
 };
+
+export async function generateMetadata({ params }: Pick<Props, "params">): Promise<Metadata> {
+  const { channelSlug } = await params;
+  const channel = await getChannelBySlug(channelSlug);
+  if (!channel) return { title: "Channel" };
+  return pageMetadata({
+    title: channel.title,
+    description: channel.description ?? `${channel.title} on Believe The Works – testimonies, teaching and encouragement.`,
+    path: `/channel/${channelSlug}`,
+    image: channel.cover_image_url?.trim() || null,
+    noindex: Boolean(channel.archived_at),
+  });
+}
 
 export default async function ChannelPage({ params, searchParams }: Props) {
   const { channelSlug } = await params;
@@ -43,6 +58,16 @@ export default async function ChannelPage({ params, searchParams }: Props) {
 
   return (
     <div>
+      {channel.banner_image_url ? (
+        <div className="mb-4 overflow-hidden rounded-2xl border border-border/70">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={channel.banner_image_url}
+            alt=""
+            className="aspect-[3/1] w-full object-cover"
+          />
+        </div>
+      ) : null}
       <div className="mb-3 flex items-center justify-end">
         <ShareButton
           path={`/channel/${channelSlug}`}

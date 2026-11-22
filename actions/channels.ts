@@ -427,6 +427,10 @@ export async function updateChannel(formData: FormData) {
   const title = (formData.get("title") as string)?.trim();
   const description = (formData.get("description") as string)?.trim() || null;
   const slugInput = (formData.get("slug") as string)?.trim();
+  const bannerField = formData.get("banner_image_url");
+  const bannerUrl =
+    typeof bannerField === "string" ? sanitizeBannerUrl(bannerField) : undefined;
+  if (bannerUrl && typeof bannerUrl === "object") return bannerUrl;
 
   if (!channelId) return { error: "Missing channel." };
   if (!title) return { error: "Title is required." };
@@ -458,15 +462,28 @@ export async function updateChannel(formData: FormData) {
     }
   }
 
-  const { error: upErr } = await supabase
-    .from("topics")
-    .update({
-      title,
-      description,
-      slug: nextSlug,
-      updated_at: new Date().toISOString(),
-    })
-    .eq("id", channelId);
+  const updatePayload: {
+    title: string;
+    description: string | null;
+    slug: string;
+    updated_at: string;
+    banner_image_url?: string | null;
+  } = {
+    title,
+    description,
+    slug: nextSlug,
+    updated_at: new Date().toISOString(),
+  };
+  if (typeof bannerUrl === "string" || bannerUrl === null) {
+    updatePayload.banner_image_url = bannerUrl;
+  }
+
+  let { error: upErr } = await supabase.from("topics").update(updatePayload).eq("id", channelId);
+  if (upErr && isMissingTopicsBannerImageUrlColumn(upErr)) {
+    delete updatePayload.banner_image_url;
+    const retry = await supabase.from("topics").update(updatePayload).eq("id", channelId);
+    upErr = retry.error;
+  }
 
   if (upErr) return { error: upErr.message };
 
@@ -515,13 +532,37 @@ export async function deleteChannel(formData: FormData) {
   redirect("/channel?deleted=1");
 }
 
+function sanitizeBannerUrl(raw: string): string | null | { error: string } {
+  const value = raw.trim();
+  if (!value) return null;
+  if (value.startsWith("/") && !value.startsWith("//")) return value;
+  try {
+    const url = new URL(value);
+    if (url.protocol !== "https:") return { error: "Banner image must be an https link." };
+    return url.toString();
+  } catch {
+    return { error: "Banner image must be an https link." };
+  }
+}
+
 export async function getChannelBySlug(slug: string) {
   const supabase = await createClient();
-  const { data, error } = await supabase
+  let { data, error } = await supabase
     .from("topics")
-    .select("id, author_id, title, slug, description, cover_image_url, created_at, archived_at")
+    .select(
+      "id, author_id, title, slug, description, cover_image_url, banner_image_url, created_at, archived_at"
+    )
     .eq("slug", slug)
     .single();
+  if (error && isMissingTopicsBannerImageUrlColumn(error)) {
+    const retry = await supabase
+      .from("topics")
+      .select("id, author_id, title, slug, description, cover_image_url, created_at, archived_at")
+      .eq("slug", slug)
+      .single();
+    data = retry.data ? { ...retry.data, banner_image_url: null } : null;
+    error = retry.error;
+  }
   if (error || !data) return null;
   const profile = await getProfile(data.author_id);
   return {

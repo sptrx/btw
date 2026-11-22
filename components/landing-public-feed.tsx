@@ -1,6 +1,8 @@
+import { ViewTransition } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import {
+  Clock,
   FileText,
   Heart,
   MessageCircle,
@@ -9,8 +11,9 @@ import {
   Video,
 } from "lucide-react";
 import type { LandingFeedItem } from "@/actions/landing";
-import { ChannelContentMedia } from "@/components/channel-content-media";
+import { PostPoster } from "@/components/feed/post-poster";
 import { RelativeDate } from "@/components/relative-date";
+import { postPoster } from "@/lib/post-card";
 import { TopicTagPill } from "@/components/tags/topic-tag-pill";
 import { cn } from "@/lib/utils";
 
@@ -39,8 +42,10 @@ function FeedCard({
   item: LandingFeedItem;
   displayFontClassName: string;
 }) {
-  const previewMedia = item.mediaItems.slice(0, 1);
-  const showEmbed = previewMedia.length > 0;
+  const poster = postPoster(item.mediaItems, {
+    contentType: item.type,
+    channelCoverUrl: item.channelCoverUrl,
+  });
 
   const pageHref =
     item.pageSlug && item.pageSlug !== "home"
@@ -99,16 +104,18 @@ function FeedCard({
             </span>
           </div>
 
-          <Link href={item.href} className="mt-1 block group">
-            <h3
-              className={cn(
-                displayFontClassName,
-                "text-[17px] sm:text-xl font-normal leading-snug text-foreground group-hover:text-primary transition-colors"
-              )}
-            >
-              {item.title}
-            </h3>
-          </Link>
+          <ViewTransition name={`post-${item.id}`}>
+            <Link href={item.href} transitionTypes={["nav-forward"]} className="mt-1 block group">
+              <h3
+                className={cn(
+                  displayFontClassName,
+                  "text-[17px] sm:text-xl font-normal leading-snug text-foreground group-hover:text-primary transition-colors"
+                )}
+              >
+                {item.title}
+              </h3>
+            </Link>
+          </ViewTransition>
 
           {item.bodySnippet ? (
             <Link href={item.href} className="mt-1.5 block">
@@ -118,20 +125,31 @@ function FeedCard({
             </Link>
           ) : null}
 
-          {showEmbed ? (
-            <div className="mt-3 overflow-hidden rounded-xl border border-border/70 bg-muted/30">
-              <ChannelContentMedia items={previewMedia} className="mt-0 space-y-0 p-2 sm:p-3" />
-            </div>
-          ) : null}
+          {poster ? <PostPoster poster={poster} href={item.href} title={item.title} /> : null}
 
-          {!showEmbed && item.type === "video" && previewMedia.length === 0 ? (
-            <p className="mt-2 text-sm text-muted-foreground">
-              <Link href={item.href} className="font-medium text-primary hover:underline">
-                Open post
-              </Link>{" "}
-              to add a watch link or video.
-            </p>
-          ) : null}
+          <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+            {item.readMinutes ? (
+              <span className="inline-flex items-center gap-1">
+                <Clock className="size-3.5" aria-hidden />
+                {item.readMinutes} min read
+              </span>
+            ) : null}
+            {item.reactionCount > 0 ? (
+              <span className="inline-flex items-center gap-1">
+                <Heart className="size-3.5" aria-hidden />
+                <span className="tabular-nums">{item.reactionCount}</span>
+                <span className="sr-only">
+                  {item.reactionCount === 1 ? "reaction" : "reactions"}
+                </span>
+              </span>
+            ) : null}
+            {item.commentCount > 0 ? (
+              <span className="inline-flex items-center gap-1">
+                <MessageCircle className="size-3.5" aria-hidden />
+                <span className="tabular-nums">{item.commentCount}</span>
+              </span>
+            ) : null}
+          </div>
 
           <div className="mt-3 flex items-center gap-3 text-sm">
             <Link href={item.href} className="text-primary font-medium hover:underline">
@@ -140,28 +158,6 @@ function FeedCard({
             <Link href={`/channel/${item.channelSlug}`} className="text-muted-foreground hover:text-foreground">
               Channel
             </Link>
-            {item.commentCount > 0 || item.likeCount > 0 ? (
-              <div className="ml-auto inline-flex items-center gap-4 text-xs text-muted-foreground">
-                {item.commentCount > 0 ? (
-                  <span
-                    className="inline-flex items-center gap-1"
-                    aria-label={`${item.commentCount} ${item.commentCount === 1 ? "comment" : "comments"}`}
-                  >
-                    <MessageCircle className="size-3.5" aria-hidden />
-                    <span className="tabular-nums">{item.commentCount}</span>
-                  </span>
-                ) : null}
-                {item.likeCount > 0 ? (
-                  <span
-                    className="inline-flex items-center gap-1"
-                    aria-label={`${item.likeCount} ${item.likeCount === 1 ? "like" : "likes"}`}
-                  >
-                    <Heart className="size-3.5" aria-hidden />
-                    <span className="tabular-nums">{item.likeCount}</span>
-                  </span>
-                ) : null}
-              </div>
-            ) : null}
           </div>
 
           {item.tags && item.tags.length > 0 ? (

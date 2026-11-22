@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import {
@@ -12,11 +13,27 @@ import { ChannelContentFilterSection } from "@/components/channel-content-filter
 import AddContentLink from "../add-content-link";
 import { DeletePageButton } from "../delete-page-button";
 import { isSharingType, type SharingType } from "@/lib/sharing-types";
+import { pageMetadata } from "@/lib/seo";
 
 type Props = {
   params: Promise<{ channelSlug: string; pageSlug: string }>;
   searchParams: Promise<{ type?: string }>;
 };
+
+export async function generateMetadata({ params }: Pick<Props, "params">): Promise<Metadata> {
+  const { channelSlug, pageSlug } = await params;
+  const channel = await getChannelBySlug(channelSlug);
+  if (!channel) return { title: "Channel" };
+  const page = await getChannelPage(channel.id, pageSlug);
+  if (!page) return { title: channel.title };
+  return pageMetadata({
+    title: `${page.title} · ${channel.title}`,
+    description: page.description ?? channel.description,
+    path: `/channel/${channelSlug}/${pageSlug}`,
+    image: channel.cover_image_url?.trim() || null,
+    noindex: Boolean(page.archived_at || channel.archived_at),
+  });
+}
 
 export default async function ChannelSubPage({ params, searchParams }: Props) {
   const { channelSlug, pageSlug } = await params;

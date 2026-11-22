@@ -1,7 +1,10 @@
 "use server";
 
 import { createClient } from "@/utils/supabase/server";
+import { getPostReactions } from "@/actions/reactions";
 import { approvedModerationOrFilter, isMissingModerationStatusColumn } from "@/lib/moderation";
+import { readingMinutes } from "@/lib/post-card";
+import { totalReactions } from "@/lib/post-reactions";
 
 /** Card shape for `FeaturedChannelCarousel` (not used on the public home). */
 export type LandingFeaturedCard = {
@@ -28,6 +31,10 @@ export type LandingFeedItem = {
   mediaItems: { url: string; type: string }[];
   commentCount: number;
   likeCount: number;
+  /** Faith reactions when the table exists, otherwise the like count. */
+  reactionCount: number;
+  /** Null when the post is shorter than a short paragraph. */
+  readMinutes: number | null;
   tags: { id: string; slug: string; label: string }[];
   isFeatured: boolean;
 };
@@ -187,11 +194,25 @@ function mapFeedRows(
       mediaItems,
       commentCount,
       likeCount,
+      reactionCount: likeCount,
+      readMinutes: readingMinutes(body),
       tags,
       isFeatured: Boolean(r.is_featured),
     });
   }
   return out;
+}
+
+async function withFaithReactions(items: LandingFeedItem[]): Promise<LandingFeedItem[]> {
+  if (items.length === 0) return items;
+  const reactions = await getPostReactions(
+    items.map((item) => ({ postId: item.id, postKind: "topic_content" as const }))
+  );
+  return items.map((item) => {
+    const state = reactions.get(`topic_content:${item.id}`);
+    const faith = state ? totalReactions(state.counts) : 0;
+    return { ...item, reactionCount: faith || item.likeCount };
+  });
 }
 
 /**
@@ -289,7 +310,7 @@ export async function getLandingFeed(limit = 28): Promise<LandingFeedItem[]> {
 
   const rows = data as unknown as LandingFeedRow[];
   const { topicById, pageById } = await fetchFeedLookups(supabase, rows);
-  return mapFeedRows(rows, topicById, pageById);
+  return withFaithReactions(mapFeedRows(rows, topicById, pageById));
 }
 
 /**
@@ -326,7 +347,7 @@ export async function getLandingFeatured(limit = 4): Promise<LandingFeedItem[]> 
 
   const rows = data as unknown as LandingFeedRow[];
   const { topicById, pageById } = await fetchFeedLookups(supabase, rows);
-  return mapFeedRows(rows, topicById, pageById);
+  return withFaithReactions(mapFeedRows(rows, topicById, pageById));
 }
 
 /**

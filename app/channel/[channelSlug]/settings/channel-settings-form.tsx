@@ -6,12 +6,84 @@ import { updateChannel } from "@/actions/channels";
 import { authInputClass, authPrimaryButtonClass } from "@/lib/auth-form-styles";
 import { TopicTagPicker } from "@/components/tags/topic-tag-picker";
 
+function BannerField({ channelId, initialUrl }: { channelId: string; initialUrl: string }) {
+  const [url, setUrl] = useState(initialUrl);
+  const [error, setError] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+
+  async function onFile(file: File) {
+    setError(null);
+    setUploading(true);
+    try {
+      const body = new FormData();
+      body.set("channelId", channelId);
+      body.set("file", file, file.name);
+      const res = await fetch("/api/media/upload", {
+        method: "POST",
+        body,
+        credentials: "include",
+      });
+      const data = (await res.json()) as { error?: string; publicUrl?: string };
+      if (!res.ok || !data.publicUrl) {
+        throw new Error(data.error || "Upload failed. Paste an https image link instead.");
+      }
+      setUrl(data.publicUrl);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Upload failed.");
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  return (
+    <div id="banner" className="space-y-2 scroll-mt-28">
+      <label htmlFor="ch-banner" className="text-sm font-medium text-foreground">
+        Banner
+      </label>
+      <p className="text-xs text-muted-foreground">
+        A wide image at the top of your channel. Upload one, or paste an https link.
+      </p>
+      <input type="hidden" name="banner_image_url" value={url} />
+      <input
+        id="ch-banner"
+        type="url"
+        inputMode="url"
+        value={url}
+        onChange={(e) => setUrl(e.target.value)}
+        placeholder="https://"
+        className={authInputClass}
+      />
+      <input
+        type="file"
+        accept="image/jpeg,image/png,image/webp,image/gif"
+        disabled={uploading}
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          if (file) void onFile(file);
+        }}
+        className="block w-full text-sm text-muted-foreground file:mr-3 file:rounded-full file:border-0 file:bg-primary file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-primary-foreground"
+      />
+      {uploading ? <p className="text-sm text-muted-foreground">Uploading…</p> : null}
+      {error ? (
+        <p className="text-sm text-destructive" role="alert">
+          {error}
+        </p>
+      ) : null}
+      {url ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={url} alt="" className="aspect-[3/1] w-full rounded-xl object-cover" />
+      ) : null}
+    </div>
+  );
+}
+
 type Tag = { id: string; slug: string; label: string };
 
 type Props = {
   channelId: string;
   initialTitle: string;
   initialDescription: string;
+  initialBanner: string;
   initialSlug: string;
   allTags: Tag[];
   initialTagIds: string[];
@@ -21,6 +93,7 @@ export function ChannelSettingsForm({
   channelId,
   initialTitle,
   initialDescription,
+  initialBanner,
   initialSlug,
   allTags,
   initialTagIds,
@@ -62,7 +135,9 @@ export function ChannelSettingsForm({
         />
       </div>
 
-      <div className="space-y-2">
+      <BannerField channelId={channelId} initialUrl={initialBanner} />
+
+      <div id="description" className="space-y-2 scroll-mt-28">
         <label htmlFor="ch-desc" className="text-sm font-medium text-foreground">
           Description
         </label>

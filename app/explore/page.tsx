@@ -32,7 +32,7 @@ export default async function ExplorePage({ searchParams }: Props) {
       {/* Hero */}
       <section className="border-b border-border/60 bg-gradient-to-b from-amber-50/80 to-background dark:from-amber-950/20 dark:to-background">
         <div className="container mx-auto max-w-6xl px-4 py-14 sm:px-5 sm:py-16 md:py-20">
-          <p className="btw-section-eyebrow text-amber-800/80 dark:text-amber-200/80">
+          <p className="btw-section-eyebrow text-amber-950 dark:text-amber-100">
             Welcome — you belong here
           </p>
           <h1

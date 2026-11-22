@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
 import { Plus } from "lucide-react";
@@ -16,6 +17,13 @@ import { PraiseReportsSection } from "@/components/prayer/praise-reports-section
 import { Button } from "@/components/ui/button";
 import { btwDisplayFont, btwLead, btwPageTitle } from "@/lib/btw-ui";
 import { cn } from "@/lib/utils";
+import { pageMetadata } from "@/lib/seo";
+
+export const metadata: Metadata = pageMetadata({
+  title: "Prayer Wall",
+  description: "Share needs, pray for one another, and celebrate when God answers.",
+  path: "/prayer",
+});
 
 type Props = {
   searchParams: Promise<{ filter?: string; region?: string; country?: string }>;

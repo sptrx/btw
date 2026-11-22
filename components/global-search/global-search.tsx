@@ -316,6 +316,18 @@ export function GlobalSearch({
     setActiveIdx(0);
   }, [setOpen]);
 
+  // Close from anywhere. A search field can swallow Escape before the input handler runs.
+  React.useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "Escape") return;
+      e.preventDefault();
+      close();
+    };
+    window.addEventListener("keydown", onKey, true);
+    return () => window.removeEventListener("keydown", onKey, true);
+  }, [open, close]);
+
   const navigateTo = React.useCallback(
     (h: Hit) => {
       const href = hitHref(h);
@@ -487,10 +499,11 @@ function SearchOverlay(props: OverlayProps) {
           <Search className="h-4 w-4 text-muted-foreground shrink-0" aria-hidden />
           <input
             ref={inputRef}
-            type="search"
+            type="text"
             value={query}
             onChange={(e) => onQueryChange(e.target.value)}
             onKeyDown={onKeyDown}
+            enterKeyHint="search"
             placeholder="Search channels, posts, authors…"
             role="combobox"
             aria-expanded={hasResults}
@@ -537,7 +550,7 @@ function SearchOverlay(props: OverlayProps) {
               <Search className="h-4 w-4 text-muted-foreground shrink-0" aria-hidden />
               <input
                 ref={inputRef}
-                type="search"
+                type="text"
                 value={query}
                 onChange={(e) => onQueryChange(e.target.value)}
                 onKeyDown={onKeyDown}
@@ -549,14 +562,23 @@ function SearchOverlay(props: OverlayProps) {
                 aria-autocomplete="list"
                 autoComplete="off"
                 spellCheck={false}
+                enterKeyHint="search"
                 className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
               />
               {loading && (
                 <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" aria-hidden />
               )}
-              <kbd className="hidden sm:inline-flex items-center rounded border border-border bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
-                Esc
-              </kbd>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="h-8 shrink-0 gap-1.5 px-2 text-muted-foreground"
+                aria-label="Close search"
+                onClick={onClose}
+              >
+                <X className="h-4 w-4" aria-hidden />
+                Close
+              </Button>
             </div>
             <ResultsBody
               listboxId={listboxId}

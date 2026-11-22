@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { Heart } from "lucide-react";
+import { Clock, Heart } from "lucide-react";
 import type { LandingFeedItem } from "@/actions/landing";
 import { RelativeDate } from "@/components/relative-date";
 import { cn } from "@/lib/utils";
@@ -55,14 +55,20 @@ export function TestimonyPreviewCard({ item, displayFontClassName }: Props) {
         </p>
       ) : null}
       <div className="mt-4 flex items-center justify-between gap-2 text-sm">
-        {item.likeCount > 0 ? (
-          <span className="inline-flex items-center gap-1 text-muted-foreground">
-            <Heart className="size-3.5" aria-hidden />
-            {item.likeCount}
-          </span>
-        ) : (
-          <span />
-        )}
+        <span className="inline-flex items-center gap-3 text-muted-foreground">
+          {item.readMinutes ? (
+            <span className="inline-flex items-center gap-1">
+              <Clock className="size-3.5" aria-hidden />
+              {item.readMinutes} min
+            </span>
+          ) : null}
+          {(item.reactionCount || item.likeCount) > 0 ? (
+            <span className="inline-flex items-center gap-1">
+              <Heart className="size-3.5" aria-hidden />
+              {item.reactionCount || item.likeCount}
+            </span>
+          ) : null}
+        </span>
         <Link href={item.href} className="font-medium text-primary hover:underline">
           Read story
         </Link>

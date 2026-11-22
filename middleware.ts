@@ -82,9 +82,11 @@ export async function middleware(request: NextRequest) {
     path === "/invite" ||
     isMapPage;
   const isSeoFile = path === "/robots.txt" || path === "/sitemap.xml";
+  const isPwaFile = path === "/manifest.webmanifest" || path === "/sw.js";
   const isPublic =
     path === "/" ||
     isSeoFile ||
+    isPwaFile ||
     isFeed ||
     isOutreachPage ||
     isPublicChannel ||

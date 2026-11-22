@@ -201,3 +201,70 @@ export async function getDashboardOverview(
     recentComments,
   };
 }
+
+export type AuthorSetupChannel = {
+  slug: string;
+  title: string;
+  hasBanner: boolean;
+  hasDescription: boolean;
+  hasPost: boolean;
+};
+
+/**
+ * Progress for the channel-author checklist. Banner falls back to the cover
+ * image, and a missing banner column is treated as "not set" rather than an error.
+ */
+export async function getAuthorSetup(userId: string): Promise<AuthorSetupChannel[]> {
+  const supabase = await createClient();
+  const withBanner = await supabase
+    .from("topics")
+    .select("id, slug, title, description, cover_image_url, banner_image_url")
+    .eq("author_id", userId)
+    .is("archived_at", null)
+    .order("created_at", { ascending: false });
+
+  let rows = withBanner.data;
+  if (withBanner.error) {
+    const msg = withBanner.error.message.toLowerCase();
+    if (!msg.includes("banner_image_url")) {
+      console.warn("[dashboard] author setup:", withBanner.error.message);
+      return [];
+    }
+    const fallback = await supabase
+      .from("topics")
+      .select("id, slug, title, description, cover_image_url")
+      .eq("author_id", userId)
+      .is("archived_at", null)
+      .order("created_at", { ascending: false });
+    if (fallback.error) {
+      console.warn("[dashboard] author setup:", fallback.error.message);
+      return [];
+    }
+    rows = (fallback.data ?? []).map((row) => ({ ...row, banner_image_url: null }));
+  }
+
+  const channels = rows ?? [];
+  if (channels.length === 0) return [];
+
+  const ids = channels.map((c) => c.id);
+  const { data: posts } = await supabase
+    .from("topic_content")
+    .select("topic_id")
+    .in("topic_id", ids);
+
+  const posted = new Set((posts ?? []).map((p) => p.topic_id));
+
+  return channels.map((channel) => {
+    const banner =
+      ("banner_image_url" in channel ? channel.banner_image_url : null)?.trim() ||
+      channel.cover_image_url?.trim() ||
+      "";
+    return {
+      slug: channel.slug,
+      title: channel.title,
+      hasBanner: banner.length > 0,
+      hasDescription: Boolean(channel.description?.trim()),
+      hasPost: posted.has(channel.id),
+    };
+  });
+}

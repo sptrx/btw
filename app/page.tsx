@@ -1,15 +1,17 @@
-import { redirect } from "next/navigation";
 import { getLandingFeatured, getLandingFeed } from "@/actions/landing";
+import { getPersonalizedHome } from "@/actions/personalized-home";
 import { getCurrentUser } from "@/actions";
 import { getMapSummary, getRecentGeoPosts } from "@/actions/map";
 import { getHomepagePrayerRequests } from "@/actions/prayer";
 import { LandingHome } from "@/components/landing-home";
+import { PersonalizedHome } from "@/components/personalized-home";
 import { btwDisplayFont } from "@/lib/btw-ui";
 
 export default async function Home() {
   const user = await getCurrentUser();
   if (user) {
-    redirect("/feed");
+    const home = await getPersonalizedHome(user.id);
+    return <PersonalizedHome data={home} displayFontClassName={btwDisplayFont} />;
   }
 
   const [feed, featured, prayerRequests, mapSummary, geoPosts] = await Promise.all([

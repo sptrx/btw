@@ -1,8 +1,9 @@
+import { ViewTransition } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { HandHeart, MessageCircle } from "lucide-react";
+import { Clock, HandHeart, MessageCircle } from "lucide-react";
 import type { CommunityFeedItem } from "@/actions/feed";
-import { ChannelContentMedia } from "@/components/channel-content-media";
+import { PostPoster } from "@/components/feed/post-poster";
 import { PostReactions } from "@/components/post-reactions";
 import { RelativeDate } from "@/components/relative-date";
 import { SharingTypeBadge } from "@/components/sharing-type-badge";
@@ -11,6 +12,8 @@ import { cn } from "@/lib/utils";
 import { FollowUserButton } from "@/components/follow-user-button";
 import { CountryBadge } from "@/components/geo/country-badge";
 import { profilePath } from "@/lib/profile-url";
+import { postPoster } from "@/lib/post-card";
+import { totalReactions } from "@/lib/post-reactions";
 
 function cardImageUnoptimized(src: string) {
   return !src.includes("images.unsplash.com");
@@ -23,8 +26,11 @@ type Props = {
 };
 
 export function CommunityFeedCard({ item, displayFontClassName, isAuthenticated }: Props) {
-  const previewMedia = item.mediaItems?.slice(0, 1) ?? [];
-  const showEmbed = previewMedia.length > 0;
+  const poster = postPoster(item.mediaItems, {
+    contentType: item.contentType,
+    channelCoverUrl: item.channelCoverUrl,
+  });
+  const reactionTotal = totalReactions(item.reactions);
   const isChannel = item.postKind === "topic_content";
   const isQuestion = item.sharingType === "question";
   const commentHref = `${item.href}#comments`;
@@ -190,16 +196,18 @@ export function CommunityFeedCard({ item, displayFontClassName, isAuthenticated 
             </p>
           ) : null}
 
-          <Link href={item.href} className="mt-1 block group">
-            <h3
-              className={cn(
-                displayFontClassName,
-                "text-[17px] sm:text-xl font-normal leading-snug text-foreground group-hover:text-primary transition-colors"
-              )}
-            >
-              {item.title}
-            </h3>
-          </Link>
+          <ViewTransition name={`post-${item.id}`}>
+            <Link href={item.href} transitionTypes={["nav-forward"]} className="mt-1 block group">
+              <h3
+                className={cn(
+                  displayFontClassName,
+                  "text-[17px] sm:text-xl font-normal leading-snug text-foreground group-hover:text-primary transition-colors"
+                )}
+              >
+                {item.title}
+              </h3>
+            </Link>
+          </ViewTransition>
 
           {item.bodySnippet ? (
             <Link href={item.href} className="mt-1.5 block">
@@ -209,11 +217,27 @@ export function CommunityFeedCard({ item, displayFontClassName, isAuthenticated 
             </Link>
           ) : null}
 
-          {showEmbed ? (
-            <div className="mt-3 overflow-hidden rounded-xl border border-border/70 bg-muted/30">
-              <ChannelContentMedia items={previewMedia} className="mt-0 space-y-0 p-2 sm:p-3" />
-            </div>
-          ) : null}
+          {poster ? <PostPoster poster={poster} href={item.href} title={item.title} /> : null}
+
+          <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+            {item.readMinutes ? (
+              <span className="inline-flex items-center gap-1">
+                <Clock className="size-3.5" aria-hidden />
+                {item.readMinutes} min read
+              </span>
+            ) : null}
+            {reactionTotal > 0 ? (
+              <span className="tabular-nums">
+                {reactionTotal} {reactionTotal === 1 ? "reaction" : "reactions"}
+              </span>
+            ) : null}
+            {(item.commentCount ?? 0) > 0 ? (
+              <span className="inline-flex items-center gap-1">
+                <MessageCircle className="size-3.5" aria-hidden />
+                <span className="tabular-nums">{item.commentCount}</span>
+              </span>
+            ) : null}
+          </div>
 
           <div className="mt-3 flex flex-wrap items-center gap-3 text-sm">
             {isQuestion ? (
@@ -234,12 +258,6 @@ export function CommunityFeedCard({ item, displayFontClassName, isAuthenticated 
               >
                 Channel
               </Link>
-            ) : null}
-            {(item.commentCount ?? 0) > 0 ? (
-              <span className="ml-auto inline-flex items-center gap-1 text-xs text-muted-foreground">
-                <MessageCircle className="size-3.5" aria-hidden />
-                <span className="tabular-nums">{item.commentCount}</span>
-              </span>
             ) : null}
           </div>
 

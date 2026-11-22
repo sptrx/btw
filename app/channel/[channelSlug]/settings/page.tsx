@@ -59,6 +59,7 @@ export default async function ChannelSettingsPage({ params }: Props) {
           channelId={channel.id}
           initialTitle={channel.title}
           initialDescription={channel.description ?? ""}
+          initialBanner={channel.banner_image_url ?? ""}
           initialSlug={channel.slug}
           allTags={allTags}
           initialTagIds={initialTagIds}

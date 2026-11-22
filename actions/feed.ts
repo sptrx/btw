@@ -24,6 +24,7 @@ import {
 import type { GeoRegionId } from "@/lib/geo";
 import { isMissingGeoColumn } from "@/lib/geo/resolve-content-country";
 import { visiblePrayerCountryCode } from "@/lib/prayer-geo";
+import { readingMinutes } from "@/lib/post-card";
 
 export type CommunityFeedFilter = SharingFeedFilter;
 
@@ -35,6 +36,7 @@ export type CommunityFeedItem = {
   badge: CommunityFeedBadge;
   title: string;
   bodySnippet: string | null;
+  readMinutes: number | null;
   createdAt: string;
   href: string;
   fromFollowed: boolean;
@@ -568,6 +570,7 @@ export async function getCommunityFeedPage(
       badge,
       title: String(r.title ?? "").trim() || "Untitled",
       bodySnippet: snippet(r.body),
+      readMinutes: readingMinutes(r.body),
       createdAt: r.created_at,
       href: `/channel/${topic.slug}/content/${r.id}`,
       fromFollowed: followedTopicIds.has(r.topic_id),
@@ -611,6 +614,7 @@ export async function getCommunityFeedPage(
       sharingType: "prayer_request",
       title: r.title,
       bodySnippet: snippet(r.body),
+      readMinutes: readingMinutes(r.body),
       createdAt: r.created_at,
       href: `/prayer/${r.id}`,
       fromFollowed: followedUserIds.has(r.user_id),
@@ -639,6 +643,7 @@ export async function getCommunityFeedPage(
       sharingType: "praise_report",
       title,
       bodySnippet: snippet(r.body, 280),
+      readMinutes: readingMinutes(r.body),
       createdAt: r.created_at,
       href: "/prayer",
       fromFollowed: followedUserIds.has(r.user_id),

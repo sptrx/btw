@@ -7,6 +7,7 @@ import {
   isMissingSharingTypeColumn,
 } from "@/lib/moderation";
 import type { LandingFeedItem } from "@/actions/landing";
+import { readingMinutes } from "@/lib/post-card";
 
 type ExploreRow = {
   id: string;
@@ -139,6 +140,8 @@ export async function getExploreTestimonies(limit = 3): Promise<LandingFeedItem[
       mediaItems: parseMediaUrls(r.media_urls),
       commentCount: 0,
       likeCount: readEmbeddedCount(r.likes),
+      reactionCount: readEmbeddedCount(r.likes),
+      readMinutes: readingMinutes(body),
       tags: [],
       isFeatured: false,
     });

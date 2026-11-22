@@ -10,6 +10,7 @@ import { LandingFeatured } from "@/components/landing-featured";
 import { LandingPrayerWidget } from "@/components/prayer/landing-prayer-widget";
 import { LandingCta } from "@/components/landing-cta";
 import { LandingSeekerSection } from "@/components/landing-seeker-section";
+import { LandingHeroSlogan } from "@/components/landing-hero-slogan";
 import type { MapSummary, RecentGeoPost } from "@/actions/map";
 import { FaithMapWidget } from "@/components/map/faith-map-widget";
 import { GeoPostTicker } from "@/components/map/geo-post-ticker";
@@ -77,17 +78,13 @@ export function LandingHome({
                   An invitation to weigh the actions and evidence of Jesus Christ when words alone are hard to accept. John 10:38
                 </p>
               </div>
-              <h1
-                id="landing-hero-heading"
+              <LandingHeroSlogan
                 className={cn(
                   displayFontClassName,
                   "text-balance text-3xl font-normal leading-[1.18] tracking-tight text-amber-50 sm:text-4xl sm:leading-[1.15] md:text-[2.875rem] lg:text-5xl",
                   "[text-shadow:0_2px_14px_rgba(0,0,0,0.55),0_1px_2px_rgba(0,0,0,0.45)]"
                 )}
-              >
-                <span className="block">Share your witness</span>
-                <span className="mt-1 block sm:mt-1.5">Strengthen another</span>
-              </h1>
+              />
 
               <div className="space-y-3 rounded-r-xl border border-white/10 border-l-[3px] border-l-amber-300/80 bg-black/50 px-4 py-4 shadow-[0_8px_32px_rgba(0,0,0,0.35)] backdrop-blur-sm sm:space-y-3.5 sm:px-5 sm:py-5">
                 <p className="text-pretty text-base italic leading-relaxed text-amber-50 sm:text-lg sm:leading-relaxed [text-shadow:0_1px_2px_rgba(0,0,0,0.85),0_2px_12px_rgba(0,0,0,0.65)]">

@@ -201,18 +201,18 @@ export function HeaderContent({
     >
       <div className="container mx-auto max-w-6xl px-3 sm:px-5">
         {/* Top bar: flex on mobile; 3-column grid on desktop so nav stays visually centered */}
-        <div className="flex min-h-[var(--header-bar-height)] items-center gap-2 py-2.5 sm:gap-3 sm:py-3 md:grid md:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] md:items-center md:gap-4">
-          <div className="min-w-0 justify-self-start md:col-start-1">
+        <div className="flex min-h-[var(--header-bar-height)] items-center gap-2 py-2.5 sm:gap-3 sm:py-3 min-[1100px]:grid min-[1100px]:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] min-[1100px]:items-center min-[1100px]:gap-4">
+          <div className="min-w-0 overflow-hidden justify-self-start min-[1100px]:col-start-1">
             <BtwLogo
               href={primaryHomeHref}
               priority
               size="header"
-              linkClassName="flex max-w-full items-center rounded-lg px-1 -ml-1 transition-colors hover:bg-accent/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+              linkClassName="flex min-w-0 max-w-full items-center rounded-lg px-1 -ml-1 transition-colors hover:bg-accent/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
             />
           </div>
 
         <nav
-          className="hidden md:col-start-2 md:flex md:items-center md:justify-self-center md:gap-0.5 md:rounded-full md:border md:border-border/60 md:bg-muted/50 md:p-1 dark:md:border-transparent dark:md:bg-transparent"
+          className="hidden min-[1100px]:col-start-2 min-[1100px]:flex min-[1100px]:items-center min-[1100px]:justify-self-center min-[1100px]:gap-0.5 min-[1100px]:rounded-full min-[1100px]:border min-[1100px]:border-border/60 min-[1100px]:bg-muted/50 min-[1100px]:p-1 dark:min-[1100px]:border-transparent dark:min-[1100px]:bg-transparent"
           aria-label="Primary"
         >
           {navLinks.map((link) => {
@@ -254,13 +254,13 @@ export function HeaderContent({
           })}
         </nav>
 
-        <div className="ml-auto flex shrink-0 items-center justify-end gap-1 sm:gap-1.5 md:col-start-3 md:ml-0 md:gap-2 md:justify-self-end">
-          <div className="hidden md:block">
+        <div className="ml-auto flex shrink-0 items-center justify-end gap-1 sm:gap-1.5 min-[1100px]:col-start-3 min-[1100px]:ml-0 min-[1100px]:gap-2 min-[1100px]:justify-self-end">
+          <div className="hidden min-[1100px]:block">
             <GlobalSearch />
           </div>
           {user ? <NotificationBell className="shrink-0" /> : null}
-          <ThemeToggle className="hidden md:inline-flex" />
-          <div className="hidden min-w-0 md:flex md:items-center md:gap-2">
+          <ThemeToggle className="hidden min-[1100px]:inline-flex" />
+          <div className="hidden min-w-0 min-[1100px]:flex min-[1100px]:items-center min-[1100px]:gap-2">
             {user ? (
               <>
                 <Button size="sm" asChild>
@@ -359,7 +359,7 @@ export function HeaderContent({
           <Button
             variant="ghost"
             size="icon"
-            className="size-11 shrink-0 touch-manipulation md:hidden"
+            className="size-11 shrink-0 touch-manipulation min-[1100px]:hidden"
             onClick={() => setMobileOpen((o) => !o)}
             aria-expanded={mobileOpen}
             aria-controls={MOBILE_NAV_ID}
@@ -375,7 +375,7 @@ export function HeaderContent({
         <div
           id={MOBILE_NAV_ID}
           className={cn(
-            "md:hidden",
+            "min-[1100px]:hidden",
             mobileOpen
               ? "border-t border-header-border pb-3 pt-2 dark:border-border/40"
               : "hidden"

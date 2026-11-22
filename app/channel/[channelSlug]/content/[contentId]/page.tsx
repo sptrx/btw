@@ -1,3 +1,5 @@
+import type { Metadata } from "next";
+import { ViewTransition } from "react";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import {
@@ -28,10 +30,33 @@ import { ChannelContentMedia } from "@/components/channel-content-media";
 import { RelativeDate } from "@/components/relative-date";
 import { SharingTypeBadge } from "@/components/sharing-type-badge";
 import { isSharingType } from "@/lib/sharing-types";
+import { readingMinutes } from "@/lib/post-card";
+import { firstImageUrl, pageMetadata } from "@/lib/seo";
+import { ShareTestimonyButton } from "@/components/share-testimony-button";
 
 type Props = {
   params: Promise<{ channelSlug: string; contentId: string }>;
 };
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { channelSlug, contentId } = await params;
+  const user = await getCurrentUser();
+  const [content, channel] = await Promise.all([
+    getContentById(contentId, { viewerUserId: user?.id }),
+    getChannelBySlug(channelSlug),
+  ]);
+  if (!content || !channel) return { title: "Post" };
+  const status = (content as { moderation_status?: string | null }).moderation_status;
+  const isPublic = !status || status === "approved";
+  return pageMetadata({
+    title: `${content.title} · ${channel.title}`,
+    description: typeof content.body === "string" ? content.body : null,
+    path: `/channel/${channelSlug}/content/${contentId}`,
+    image: firstImageUrl(content.media_urls) ?? channel.cover_image_url?.trim() ?? null,
+    noindex: !isPublic || Boolean(channel.archived_at),
+    type: "article",
+  });
+}
 
 export default async function ChannelContentPage({ params }: Props) {
   const { channelSlug, contentId } = await params;
@@ -107,11 +132,13 @@ export default async function ChannelContentPage({ params }: Props) {
         : "testimony";
   const scriptureRef = (content as { scripture_reference?: string | null }).scripture_reference;
   const isQuestion = sharingType === "question";
+  const minutes = readingMinutes(typeof content.body === "string" ? content.body : null);
 
   return (
     <div>
       <Link
         href={`/channel/${channelSlug}`}
+        transitionTypes={["nav-back"]}
         className="mb-4 inline-flex items-center gap-1 text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
       >
         <span aria-hidden>←</span> Back to {channel.title}
@@ -149,7 +176,9 @@ export default async function ChannelContentPage({ params }: Props) {
         <div className="mb-3">
           <SharingTypeBadge sharingType={sharingType} size="md" />
         </div>
-        <h1 className="btw-page-title">{content.title}</h1>
+        <ViewTransition name={`post-${contentId}`}>
+          <h1 className="btw-page-title">{content.title}</h1>
+        </ViewTransition>
         {scriptureRef?.trim() ? (
           <p className="mt-2 text-sm font-medium text-muted-foreground">{scriptureRef.trim()}</p>
         ) : null}
@@ -186,6 +215,12 @@ export default async function ChannelContentPage({ params }: Props) {
               <RelativeDate date={content.created_at} />
             </>
           ) : null}
+          {minutes ? (
+            <>
+              <span aria-hidden>·</span>
+              <span>{minutes} min read</span>
+            </>
+          ) : null}
         </p>
 
         {content.body && (
@@ -207,6 +242,16 @@ export default async function ChannelContentPage({ params }: Props) {
               Your thoughtful response can help someone seeking truth feel welcomed.
             </p>
           </div>
+        ) : null}
+
+        {sharingType === "testimony" || sharingType === "praise_report" ? (
+          <ShareTestimonyButton
+            title={content.title}
+            quote={typeof content.body === "string" ? content.body : content.title}
+            channelName={channel.title}
+            path={`/channel/${channelSlug}/content/${contentId}`}
+            label={sharingType === "testimony" ? "Share this testimony" : "Share this praise"}
+          />
         ) : null}
 
         <ContentActions

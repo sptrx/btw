@@ -3,7 +3,8 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { FileText, Hash, MessageCircle } from "lucide-react";
 import { getCurrentUser } from "@/actions";
-import { getDashboardOverview, type RecentCommentRow } from "@/actions/dashboard";
+import { getAuthorSetup, getDashboardOverview, type RecentCommentRow } from "@/actions/dashboard";
+import { AuthorSetupChecklist } from "@/components/author-setup-checklist";
 import { RelativeDate } from "@/components/relative-date";
 
 export const metadata: Metadata = {
@@ -21,7 +22,10 @@ export default async function Dashboard() {
   const user = await getCurrentUser();
   if (!user) redirect("/auth/login");
 
-  const overview = await getDashboardOverview(user.id);
+  const [overview, setup] = await Promise.all([
+    getDashboardOverview(user.id),
+    getAuthorSetup(user.id),
+  ]);
 
   const stats: StatTile[] = [
     { label: "Channels", value: overview.channelCount, Icon: Hash },
@@ -40,6 +44,8 @@ export default async function Dashboard() {
       <p className="mb-8 mt-2 text-muted-foreground">
         Welcome back, {user.email?.split("@")[0] ?? "there"}.
       </p>
+
+      <AuthorSetupChecklist channels={setup} />
 
       <div className="mb-8 grid grid-cols-1 gap-3 sm:grid-cols-3">
         {stats.map(({ label, value, Icon }) => (

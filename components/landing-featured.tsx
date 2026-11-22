@@ -1,6 +1,7 @@
 import Link from "next/link";
-import { ArrowRight, Sparkles } from "lucide-react";
+import { ArrowRight, Clock, Sparkles } from "lucide-react";
 import type { LandingFeedItem } from "@/actions/landing";
+import { postPoster } from "@/lib/post-card";
 import { cn } from "@/lib/utils";
 
 type Props = {
@@ -28,12 +29,22 @@ export function LandingFeatured({ items, displayFontClassName }: Props) {
         </h2>
       </div>
       <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {items.slice(0, 3).map((item) => (
+        {items.slice(0, 3).map((item) => {
+          const poster = postPoster(item.mediaItems, {
+            contentType: item.type,
+            channelCoverUrl: item.channelCoverUrl,
+          });
+          return (
           <li key={item.id}>
             <Link
               href={item.href}
+              transitionTypes={["nav-forward"]}
               className="group flex h-full flex-col rounded-2xl border border-border/70 bg-card p-5 transition-colors hover:border-primary/40 hover:bg-muted/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
             >
+              {poster?.src ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={poster.src} alt="" className="mb-4 aspect-video w-full rounded-xl object-cover" />
+              ) : null}
               <p className="text-xs font-medium text-muted-foreground">{item.channelTitle}</p>
               <h3
                 className={cn(
@@ -48,13 +59,27 @@ export function LandingFeatured({ items, displayFontClassName }: Props) {
                   {item.bodySnippet}
                 </p>
               ) : null}
-              <span className="mt-auto inline-flex items-center gap-1.5 pt-4 text-sm font-medium text-primary">
-                Read more
-                <ArrowRight className="size-4" aria-hidden />
+              <span className="mt-auto flex items-center justify-between gap-3 pt-4 text-sm">
+                <span className="inline-flex items-center gap-3 text-xs text-muted-foreground">
+                  {item.readMinutes ? (
+                    <span className="inline-flex items-center gap-1">
+                      <Clock className="size-3.5" aria-hidden />
+                      {item.readMinutes} min
+                    </span>
+                  ) : null}
+                  {item.reactionCount > 0 ? (
+                    <span className="tabular-nums">{item.reactionCount} reactions</span>
+                  ) : null}
+                </span>
+                <span className="inline-flex items-center gap-1.5 font-medium text-primary">
+                  Read more
+                  <ArrowRight className="size-4" aria-hidden />
+                </span>
               </span>
             </Link>
           </li>
-        ))}
+          );
+        })}
       </ul>
     </section>
   );

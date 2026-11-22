@@ -6,8 +6,10 @@ import { SiteFooter } from "@/components/site-footer";
 import { ThemeProvider } from "@/components/theme-provider";
 import { AuthListener } from "@/components/auth-listener";
 import { SkipLink } from "@/components/skip-link";
+import { PwaRegister } from "@/components/pwa-register";
 import "./globals.css";
 import { cn } from "@/lib/utils";
+import { siteUrl } from "@/lib/site-url";
 import { getSupabaseInlineConfig } from "@/utils/supabase/public-env";
 
 /** Read Worker/runtime Supabase env on each request so we can inject it for the browser when NEXT_PUBLIC_* was missing at build. */
@@ -28,13 +30,44 @@ const playfair = Playfair_Display({
   adjustFontFallback: true,
 });
 
+const ROOT_DESCRIPTION =
+  "A Christian faith-based social platform with AI filtering for safe, encouraging community.";
+
 export const metadata: Metadata = {
+  metadataBase: new URL(siteUrl()),
   title: {
     template: "%s | BTW",
-    default: "BTW - Faith-Based Social Platform",
+    default: "Believe The Works – Share your witness, strengthen another",
   },
-  description:
-    "A Christian faith-based social platform with AI filtering for safe, encouraging community.",
+  description: ROOT_DESCRIPTION,
+  applicationName: "Believe The Works",
+  manifest: "/manifest.webmanifest",
+  appleWebApp: {
+    capable: true,
+    title: "Believe The Works",
+    statusBarStyle: "black-translucent",
+  },
+  icons: {
+    icon: [
+      { url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icons/icon-512.png", sizes: "512x512", type: "image/png" },
+    ],
+    apple: [{ url: "/icons/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
+  },
+  openGraph: {
+    type: "website",
+    siteName: "Believe The Works",
+    title: "Believe The Works – Share your witness, strengthen another",
+    description: ROOT_DESCRIPTION,
+    url: "/",
+    images: [{ url: "/og-default.jpg", width: 1200, height: 630, alt: "Believe The Works" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Believe The Works – Share your witness, strengthen another",
+    description: ROOT_DESCRIPTION,
+    images: ["/og-default.jpg"],
+  },
 };
 
 export const viewport: Viewport = {
@@ -77,6 +110,7 @@ export default function RootLayout({
           />
         ) : null}
         <ThemeProvider>
+          <PwaRegister />
           <SkipLink />
           <AuthListener />
           <Header />

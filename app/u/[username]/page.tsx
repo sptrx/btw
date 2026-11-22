@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { Suspense } from "react";
@@ -15,11 +16,26 @@ import { ProfileTabs, type ProfileTab } from "@/components/profile-tabs";
 import { RelativeDate } from "@/components/relative-date";
 import { UserAvatar } from "@/components/user-avatar";
 import { profilePath } from "@/lib/profile-url";
+import { pageMetadata } from "@/lib/seo";
 
 type Props = {
   params: Promise<{ username: string }>;
   searchParams: Promise<{ tab?: string }>;
 };
+
+export async function generateMetadata({ params }: Pick<Props, "params">): Promise<Metadata> {
+  const { username } = await params;
+  const profile = await getProfileByUsername(username);
+  if (!profile) return { title: "Profile" };
+  if (profile.profile_private) return { title: "Profile", robots: { index: false, follow: false } };
+  const name = profile.display_name?.trim() || `@${profile.username}`;
+  return pageMetadata({
+    title: name,
+    description: profile.bio ?? `${name} on Believe The Works.`,
+    path: `/u/${profile.username}`,
+    image: profile.avatar_url?.startsWith("https://") ? profile.avatar_url : null,
+  });
+}
 
 function parseTab(raw: string | undefined): ProfileTab {
   if (raw === "channels" || raw === "following" || raw === "followers") return raw;

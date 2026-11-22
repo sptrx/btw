@@ -103,7 +103,7 @@ export default function EditPageForm({ channelId, channelSlug, page, pageContent
         </h2>
         <p className="text-sm text-muted-foreground mb-6">
           Update how this page appears in the sidebar and at the top of the page. Your saved values are
-          summarized below—edit the fields to change them.
+          summarized below, edit the fields to change them.
         </p>
 
         {/* Read-only snapshot of what is currently saved (visitors see this) */}
@@ -127,7 +127,7 @@ export default function EditPageForm({ channelId, channelSlug, page, pageContent
               <dd className="text-foreground whitespace-pre-wrap">
                 {page.description?.trim()
                   ? page.description
-                  : "— No intro yet — visitors only see the title until you add one below."}
+                  : "No intro yet, visitors only see the title until you add one below."}
               </dd>
             </div>
             <div>

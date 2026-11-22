@@ -322,7 +322,7 @@ export default function AddContentForm({
           <CountryPicker
             value={countryCode}
             onChange={setCountryCode}
-            hint="Share where you're from (optional) — country only, never city or precise location. Leave blank to use your profile home country if set."
+            hint="Share where you're from (optional), country only, never city or precise location. Leave blank to use your profile home country if set."
           />
 
           <div>

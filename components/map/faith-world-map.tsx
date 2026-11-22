@@ -209,7 +209,7 @@ export function FaithWorldMap({ className, pollMs = 5 * 60 * 1000 }: Props) {
           style={{ left: hover.x + 12, top: hover.y + 12 }}
         >
           <p className="text-muted-foreground">
-            {countryName(hover.code) ?? hover.code} — no posts yet
+            {countryName(hover.code) ?? hover.code}, no posts yet
           </p>
         </div>
       ) : null}

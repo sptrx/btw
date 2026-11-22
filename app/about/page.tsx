@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 export const metadata: Metadata = {
   title: "About",
   description:
-    "Believe The Works — a welcoming place for believers to share testimony and for anyone to explore Christianity safely.",
+    "Believe The Works, a welcoming place for believers to share testimony and for anyone to explore Christianity safely.",
 };
 
 export default function AboutPage() {
@@ -21,8 +21,8 @@ export default function AboutPage() {
       <section className="space-y-3">
         <h2 className="btw-section-title">For believers</h2>
         <p className="btw-prose">
-          Join a global community of faith where you can share what God has done in your life —
-          your testimony — through posts, photos, podcasts, or video on your own channel. Encourage
+          Join a global community of faith where you can share what God has done in your life,
+          your testimony, through posts, photos, podcasts, or video on your own channel. Encourage
           others, follow channels you care about, and take part in prayer and praise alongside
           believers around the world.
         </p>
@@ -59,7 +59,7 @@ export default function AboutPage() {
         <h2 className="btw-section-title">Safe, thoughtful community</h2>
         <p className="btw-prose">
           Every post is reviewed by AI before it goes live, keeping conversations respectful and
-          on-mission — testimony, faith, and encouragement rather than harm or endless debate.
+          on-mission, testimony, faith, and encouragement rather than harm or endless debate.
           Families, churches, and new visitors can participate with confidence.
         </p>
       </section>
@@ -67,7 +67,7 @@ export default function AboutPage() {
       <section className="space-y-3">
         <h2 className="btw-section-title">Take a next step</h2>
         <p className="btw-prose">
-          Create a free account when you are ready — to save questions, follow stories, or share your
+          Create a free account when you are ready, to save questions, follow stories, or share your
           own witness. There is no rush.
         </p>
         <p className="flex flex-wrap gap-4 text-sm font-medium">
@@ -90,7 +90,7 @@ export default function AboutPage() {
         )}
       >
         They triumphed by the blood of the Lamb and by the word of their testimony.
-        <footer className="btw-meta mt-2 not-italic">— Revelation 12:11</footer>
+        <footer className="btw-meta mt-2 not-italic">Revelation 12:11</footer>
       </blockquote>
     </div>
   );

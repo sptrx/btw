@@ -8,7 +8,7 @@ export type ModerationCategory =
   | "spam";
 
 /** Short framing used in forms and the community guide. */
-export const MISSION_TAGLINE = "Share what God has done—not what you want the world to do.";
+export const MISSION_TAGLINE = "Share what God has done, not what you want the world to do.";
 
 const CATEGORY_MESSAGES: Record<Exclude<ModerationCategory, "ok">, string> = {
   safety:
@@ -18,7 +18,7 @@ const CATEGORY_MESSAGES: Record<Exclude<ModerationCategory, "ok">, string> = {
   pure_opinion:
     "This reads like general opinion or commentary rather than testimony or encouragement. Share your faith story, scripture reflection, or how God met you in this season.",
   off_topic:
-    "This doesn't seem connected to faith, testimony, or encouragement. BTW is a witness platform—help others by sharing what God has done in your life.",
+    "This doesn't seem connected to faith, testimony, or encouragement. BTW is a witness platform, help others by sharing what God has done in your life.",
   borderline:
     "This touches faith but reads thin on personal witness. A moderator will review it before it appears publicly.",
   spam: "This looks like promotional or repetitive content. Please share genuine testimony instead.",

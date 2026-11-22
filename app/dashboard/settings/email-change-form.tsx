@@ -83,7 +83,7 @@ export default function EmailChangeForm({ currentEmail }: Props) {
           Current email
         </label>
         <p className="break-all rounded-xl border border-border bg-muted/50 px-4 py-3 text-sm text-foreground">
-          {currentEmail || "—"}
+          {currentEmail || "Not set"}
         </p>
       </div>
       <div>

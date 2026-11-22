@@ -83,7 +83,7 @@ export function PrayerRequestForm({
         value={countryCode}
         onChange={setCountryCode}
         label="Where are you praying from?"
-        hint="Share where you're from (optional) — country only, never city. If you post anonymously, your country won't be shown to others."
+        hint="Share where you're from (optional), country only, never city. If you post anonymously, your country won't be shown to others."
       />
 
       <label className="flex items-start gap-3 rounded-xl border border-border/80 bg-muted/20 px-4 py-3 cursor-pointer">
@@ -93,7 +93,7 @@ export function PrayerRequestForm({
           className="mt-1 h-4 w-4 rounded border-input text-primary focus:ring-ring"
         />
         <span className="text-sm text-muted-foreground leading-relaxed">
-          Post anonymously — your name will show as &ldquo;A sister/brother in Christ&rdquo; to
+          Post anonymously, your name will show as &ldquo;A sister/brother in Christ&rdquo; to
           others. Your country won&apos;t be visible when anonymous.
         </span>
       </label>

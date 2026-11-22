@@ -6,7 +6,7 @@ import { donateUrl } from "@/lib/site-links";
 
 export const metadata: Metadata = {
   title: "Get involved",
-  description: "Support Believe The Works — give to our Gospel outreach ministry.",
+  description: "Support Believe The Works, give to our Gospel outreach ministry.",
 };
 
 export default function DonatePage() {

@@ -87,7 +87,7 @@ export const SHARING_TYPE_CONFIG: Record<SharingType, SharingTypeConfig> = {
     value: "question",
     label: "Question / seeking",
     shortLabel: "Question",
-    description: "Wrestle openly — welcome responses from the community",
+    description: "Wrestle openly, welcome responses from the community",
     placeholder: "What are you seeking understanding about?",
     icon: MessageCircleQuestion,
     badgeClass: "border-teal-500/40 bg-teal-500/15 text-teal-900 dark:text-teal-100",
@@ -97,7 +97,7 @@ export const SHARING_TYPE_CONFIG: Record<SharingType, SharingTypeConfig> = {
     label: "Discussion",
     shortLabel: "Discussion",
     description: "Open-ended topic or conversation",
-    placeholder: "Start the conversation — what's on your heart?",
+    placeholder: "Start the conversation, what's on your heart?",
     icon: MessagesSquare,
     badgeClass:
       "border-border/80 bg-muted/60 text-foreground/90",

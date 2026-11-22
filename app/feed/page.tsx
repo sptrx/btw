@@ -57,7 +57,7 @@ export default async function FeedPage({ searchParams }: Props) {
           Faith feed
         </h1>
         <p className="mt-2 max-w-lg text-sm text-muted-foreground leading-relaxed">
-          Stories, teaching, prayer, and praise from across Believe The Works — newest first, with
+          Stories, teaching, prayer, and praise from across Believe The Works, newest first, with
           channels you walk with highlighted.
         </p>
         {!user ? (

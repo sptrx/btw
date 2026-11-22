@@ -34,7 +34,7 @@ export function MarkAnsweredForm({ prayerRequestId }: Props) {
   return (
     <div className="rounded-xl border border-primary/30 bg-primary/5 px-4 py-4 space-y-3">
       <p className="text-sm font-medium text-foreground">
-        Share how God answered — this becomes a Praise Report for the community.
+        Share how God answered, this becomes a Praise Report for the community.
       </p>
       <textarea
         value={body}

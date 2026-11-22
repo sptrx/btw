@@ -12,7 +12,7 @@ import { cn } from "@/lib/utils";
 export const metadata: Metadata = {
   title: "Bible Q&A",
   description:
-    "Ask questions about the Bible and get thoughtful, Scripture-grounded answers — no account required to start.",
+    "Ask questions about the Bible and get thoughtful, Scripture-grounded answers, no account required to start.",
 };
 
 type Props = {
@@ -31,7 +31,7 @@ export default async function AskPage({ searchParams }: Props) {
         <p className="btw-section-eyebrow">Bible Q&A</p>
         <h1 className={cn(btwDisplayFont, "btw-page-title")}>Ask a Bible question</h1>
         <p className="btw-lead">
-          Honest questions welcome. Explore what Scripture says — at your pace, without pressure.
+          Honest questions welcome. Explore what Scripture says, at your pace, without pressure.
         </p>
       </header>
 

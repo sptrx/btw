@@ -14,7 +14,7 @@ export default function SessionManagement() {
     <div className="max-w-md space-y-4">
       <div className="rounded-xl border border-border bg-muted/40 p-4">
         <p className="mb-2 text-sm text-muted-foreground">
-          <strong className="text-foreground">This device</strong> – You are
+          <strong className="text-foreground">This device</strong>, you are
           currently signed in here.
         </p>
       </div>

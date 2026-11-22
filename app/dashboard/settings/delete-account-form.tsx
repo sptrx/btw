@@ -39,7 +39,7 @@ export default function DeleteAccountForm({ userEmail }: Props) {
       <div>
         <h3 className="font-semibold text-destructive">Delete account</h3>
         <p className="mt-1 text-sm text-muted-foreground">
-          Permanently remove your BTW account and all associated data — profile, posts,
+          Permanently remove your BTW account and all associated data, profile, posts,
           comments, likes, notifications, and channel memberships. This action cannot be
           undone.
         </p>
@@ -74,7 +74,7 @@ export default function DeleteAccountForm({ userEmail }: Props) {
             />
             <p className="mt-1 text-xs text-muted-foreground">
               Required for email/password accounts ({userEmail || "your account email"}).
-              OAuth users can leave this blank — your active session is your confirmation.
+              OAuth users can leave this blank, your active session is your confirmation.
             </p>
           </div>
           <div>

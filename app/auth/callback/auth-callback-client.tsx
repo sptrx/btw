@@ -193,7 +193,7 @@ export function AuthCallbackClient() {
               <strong>same browser</strong> where you requested the reset (so the security step matches).
             </p>
             <p className="text-muted-foreground text-sm">
-              Try again: request a new reset email, then open the link in this browser — or paste the link into
+              Try again: request a new reset email, then open the link in this browser, or paste the link into
               the browser where you requested the reset.
             </p>
             <Link href="/auth/forgot-password" className="inline-block text-primary font-medium hover:underline">

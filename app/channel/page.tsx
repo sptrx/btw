@@ -37,7 +37,7 @@ export default async function ChannelsHubPage({ searchParams }: PageProps) {
           <h1 className="btw-page-title">Start a channel</h1>
           <p className="mt-2 max-w-xl text-pretty text-sm text-muted-foreground sm:text-base">
             Share your witness through posts, photos, podcasts, or video. Creating a channel takes
-            just a minute—you can browse and walk with other channels anytime too.
+            just a minute, you can browse and walk with other channels anytime too.
           </p>
         </div>
         <div className="flex flex-col gap-2 sm:flex-row">
@@ -67,7 +67,7 @@ export default async function ChannelsHubPage({ searchParams }: PageProps) {
           <p className="btw-section-eyebrow">Manage</p>
           <h1 className="btw-page-title">Your channels</h1>
           <p className="mt-2 text-pretty text-sm text-muted-foreground sm:text-base">
-            Open a channel to edit pages and content. This list is only what you own—no other channels here.
+            Open a channel to edit pages and content. This list is only what you own, no other channels here.
           </p>
         </div>
         <div className="flex w-full shrink-0 flex-col gap-2 sm:w-auto sm:items-end">

@@ -119,7 +119,7 @@ export function ProfileAvatarField({ displayName, initialAvatarUrl }: Props) {
         />
         <p className="mt-1.5 text-xs text-muted-foreground">
           {uploadEnabled === false
-            ? "File upload is not enabled on this server — paste an image URL below, or add R2_* variables to your Cloudflare Worker (see docs/cloudflare-deploy.md)."
+            ? "File upload is not enabled on this server, paste an image URL below, or add R2_* variables to your Cloudflare Worker (see docs/cloudflare-deploy.md)."
             : "Upload a photo or paste a link to an image. Leave empty for initials."}
         </p>
       </div>

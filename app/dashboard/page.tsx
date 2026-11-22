@@ -109,7 +109,7 @@ function RecentCommentsSection({ comments }: { comments: RecentCommentRow[] }) {
 
       {comments.length === 0 ? (
         <p className="mt-3 text-sm text-muted-foreground">
-          No comments yet — share your work to start a conversation.
+          No comments yet, share your work to start a conversation.
         </p>
       ) : (
         <ul className="mt-4 divide-y divide-border/70">

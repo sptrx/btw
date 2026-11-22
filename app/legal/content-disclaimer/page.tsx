@@ -27,7 +27,7 @@ export default function ContentDisclaimerPage() {
         <section className="space-y-2">
           <h2 className="btw-section-title">Community and moderation</h2>
           <p>
-            Content should be testimony, encouragement, or faith-focused discussion—not political campaigns or
+            Content should be testimony, encouragement, or faith-focused discussion, not political campaigns or
             general opinion posts. See our{" "}
             <Link href="/legal/community-guidelines" className="text-primary font-medium hover:underline">
               community guidelines

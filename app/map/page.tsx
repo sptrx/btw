@@ -30,7 +30,7 @@ export default async function MapPage() {
         </h1>
         <p className="mt-2 max-w-2xl text-sm text-muted-foreground leading-relaxed">
           Christian faith is lived on every continent. Countries with community posts glow on the
-          map — hover for details, click to read posts from that nation. Location is always
+          map, hover for details, click to read posts from that nation. Location is always
           country-level and optional.
         </p>
         {summary.countryCount > 0 ? (

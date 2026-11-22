@@ -4,7 +4,7 @@ import { MISSION_TAGLINE } from "@/lib/moderation-messages";
 
 export const metadata: Metadata = {
   title: "Community guidelines",
-  description: "What belongs on Believe The Works — testimony, faith, and encouragement.",
+  description: "What belongs on Believe The Works, testimony, faith, and encouragement.",
 };
 
 export default function CommunityGuidelinesPage() {
@@ -13,7 +13,7 @@ export default function CommunityGuidelinesPage() {
       <h1 className="btw-page-title mb-2">Community guidelines</h1>
       <p className="btw-lead mb-2">{MISSION_TAGLINE}</p>
       <p className="btw-lead mb-8">
-        Believe The Works exists so Christians can share witness and strengthen one another—not debate politics or
+        Believe The Works exists so Christians can share witness and strengthen one another, not debate politics or
         publish general opinion blogs.
       </p>
 
@@ -21,7 +21,7 @@ export default function CommunityGuidelinesPage() {
         <section className="space-y-3">
           <h2 className="btw-section-title">What we encourage</h2>
           <ul className="list-disc space-y-1.5 pl-5">
-            <li>Personal testimony — what God has done in your life</li>
+            <li>Personal testimony, what God has done in your life</li>
             <li>Scripture shared with reflection or application from your journey</li>
             <li>Encouragement, prayer requests, and worship reflections</li>
             <li>Faith questions asked respectfully</li>
@@ -57,7 +57,7 @@ export default function CommunityGuidelinesPage() {
           <h2 className="btw-section-title">A simple test before you publish</h2>
           <p className="rounded-xl border border-border bg-muted/30 px-4 py-3 text-foreground">
             Ask: <em>Is this mainly my testimony or encouragement in Christ?</em> If the honest answer is no, try
-            reframing—or save it for another platform.
+            reframing, or save it for another platform.
           </p>
         </section>
       </div>

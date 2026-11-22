@@ -186,7 +186,7 @@ export function AnonymousBibleAskForm({
         <div className="mt-4 rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-foreground">
           <p className="font-medium">Want to save this conversation and ask more?</p>
           <p className="mt-1 text-muted-foreground">
-            Create a free account — no pressure, and you can keep exploring at your own pace.
+            Create a free account, no pressure, and you can keep exploring at your own pace.
           </p>
           <div className="mt-3 flex flex-wrap gap-2">
             <Button asChild size="sm" className="rounded-full">

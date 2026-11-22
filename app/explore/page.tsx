@@ -15,7 +15,7 @@ import { cn } from "@/lib/utils";
 export const metadata: Metadata = {
   title: "Explore faith",
   description:
-    "Curious about Christianity? Explore real stories, ask Bible questions, and learn about Believe The Works — no pressure.",
+    "Curious about Christianity? Explore real stories, ask Bible questions, and learn about Believe The Works, no pressure.",
 };
 
 type Props = {
@@ -33,7 +33,7 @@ export default async function ExplorePage({ searchParams }: Props) {
       <section className="border-b border-border/60 bg-gradient-to-b from-amber-50/80 to-background dark:from-amber-950/20 dark:to-background">
         <div className="container mx-auto max-w-6xl px-4 py-14 sm:px-5 sm:py-16 md:py-20">
           <p className="btw-section-eyebrow text-amber-950 dark:text-amber-100">
-            Welcome — you belong here
+            Welcome, you belong here
           </p>
           <h1
             className={cn(
@@ -44,7 +44,7 @@ export default async function ExplorePage({ searchParams }: Props) {
             Explore faith at your own pace
           </h1>
           <p className="mt-4 max-w-xl text-base leading-relaxed text-muted-foreground sm:text-lg">
-            Whether you are curious, skeptical, or simply visiting — ask questions, read real-life
+            Whether you are curious, skeptical, or simply visiting, ask questions, read real-life
             stories, and see what people around the world are sharing. No pressure to believe
             anything today.
           </p>
@@ -68,7 +68,7 @@ export default async function ExplorePage({ searchParams }: Props) {
           <div className="mt-4 space-y-4 btw-prose">
             <p>
               Believe The Works (BTW) is a welcoming online space where people share honest stories
-              about how faith has shaped their lives — and where anyone can ask questions about the
+              about how faith has shaped their lives, and where anyone can ask questions about the
               Bible.
             </p>
             <p>
@@ -92,7 +92,7 @@ export default async function ExplorePage({ searchParams }: Props) {
                 Stories of transformed lives
               </h2>
               <p className="mt-2 max-w-xl text-sm text-muted-foreground sm:text-base">
-                Real people sharing what changed for them — in their own words.
+                Real people sharing what changed for them, in their own words.
               </p>
             </div>
             <Link
@@ -127,7 +127,7 @@ export default async function ExplorePage({ searchParams }: Props) {
             Common questions people ask
           </h2>
           <p className="mt-2 max-w-xl text-sm text-muted-foreground sm:text-base">
-            Tap a question to try Bible Q&A (powered by xgesis.ai) — thoughtful,
+            Tap a question to try Bible Q&A (powered by xgesis.ai), thoughtful,
             Scripture-grounded answers without needing an account.
           </p>
           <ul className="mt-6 grid gap-3 sm:grid-cols-2">
@@ -161,7 +161,7 @@ export default async function ExplorePage({ searchParams }: Props) {
                 Ask a Bible question
               </h2>
               <p className="mt-2 text-sm text-muted-foreground sm:text-base max-w-2xl">
-                Type anything you have wondered about — who Jesus is, whether the Bible is
+                Type anything you have wondered about, who Jesus is, whether the Bible is
                 trustworthy, or where to begin. A few questions per hour are free without signing in.
               </p>
               <div className="mt-6 max-w-2xl">

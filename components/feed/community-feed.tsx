@@ -91,12 +91,12 @@ export function CommunityFeed({
           <p className="mt-2 text-sm text-muted-foreground max-w-md mx-auto">
             {filter === "following"
               ? isAuthenticated
-                ? "Follow people to see their posts here — browse channels and profiles to connect."
+                ? "Follow people to see their posts here, browse channels and profiles to connect."
                 : "Sign in and follow people to build your following feed."
               : filter === "prayer"
               ? "Prayer requests from the community will appear here."
               : filter === "questions"
-                ? "Questions and seekers welcome — be the first to respond with grace."
+                ? "Questions and seekers welcome, be the first to respond with grace."
                 : filter === "testimonies"
                   ? "Testimonies and praise reports will show up as the community shares."
                   : filter === "devotionals"

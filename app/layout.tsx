@@ -37,7 +37,7 @@ export const metadata: Metadata = {
   metadataBase: new URL(siteUrl()),
   title: {
     template: "%s | BTW",
-    default: "Believe The Works – Share your witness, strengthen another",
+    default: "Believe The Works, share your witness, strengthen another",
   },
   description: ROOT_DESCRIPTION,
   applicationName: "Believe The Works",
@@ -57,14 +57,14 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     siteName: "Believe The Works",
-    title: "Believe The Works – Share your witness, strengthen another",
+    title: "Believe The Works, share your witness, strengthen another",
     description: ROOT_DESCRIPTION,
     url: "/",
     images: [{ url: "/og-default.jpg", width: 1200, height: 630, alt: "Believe The Works" }],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Believe The Works – Share your witness, strengthen another",
+    title: "Believe The Works, share your witness, strengthen another",
     description: ROOT_DESCRIPTION,
     images: ["/og-default.jpg"],
   },

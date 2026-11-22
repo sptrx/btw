@@ -217,7 +217,7 @@ export function MediaUploadField({ channelId, mediaUrls, onMediaChange }: Props)
           )}
         </Button>
         <span className="text-xs text-muted-foreground">
-          Cloudflare R2 — files ≤ ~{proxyMb} MB use the app server (no R2 CORS); larger files upload directly (R2 CORS required)
+          Cloudflare R2, files ≤ ~{proxyMb} MB use the app server (no R2 CORS); larger files upload directly (R2 CORS required)
         </span>
       </div>
       {uploadError && (

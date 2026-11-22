@@ -32,7 +32,7 @@ export function LandingSeekerSection({ displayFontClassName }: Props) {
           </h2>
           <p className="mt-4 text-pretty text-base leading-relaxed text-muted-foreground sm:text-lg">
             Ask any question about the Bible, read real stories of transformed lives, or just
-            explore — no pressure, no commitment.
+            explore, no pressure, no commitment.
           </p>
           <div className="mt-8 flex flex-col items-stretch justify-center gap-3 sm:flex-row sm:items-center">
             <div className="flex flex-col items-stretch gap-1.5 sm:items-center">

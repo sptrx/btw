@@ -20,7 +20,7 @@ export function CountryPicker({
   onChange,
   name = "country_code",
   label = "Where are you sharing from?",
-  hint = "Share where you're from (optional) — country only, never city or precise location.",
+  hint = "Share where you're from (optional), country only, never city or precise location.",
   className,
   id = "country-picker",
 }: Props) {

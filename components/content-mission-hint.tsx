@@ -19,7 +19,7 @@ export function ContentMissionHint({ variant = "default" }: Props) {
         {MISSION_TAGLINE}
       </p>
       <p>
-        Share testimony, scripture reflection, prayer, or encouragement—not political campaigns or general
+        Share testimony, scripture reflection, prayer, or encouragement, not political campaigns or general
         opinion posts.{" "}
         <Link href="/legal/community-guidelines" className="text-primary font-medium hover:underline">
           Read community guidelines

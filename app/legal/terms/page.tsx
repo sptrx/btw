@@ -51,7 +51,7 @@ export default function TermsPage() {
           <p className="btw-legal-body">
             The Service is provided “as is.” We do not guarantee uninterrupted or error-free operation. Content posted by
             users does not reflect our views. For important matters (including health, legal, or financial decisions),
-            seek qualified professionals—the Service is not a substitute for professional advice.
+            seek qualified professionals, the Service is not a substitute for professional advice.
           </p>
         </section>
 

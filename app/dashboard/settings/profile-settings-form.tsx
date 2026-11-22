@@ -99,7 +99,7 @@ export default function ProfileSettingsForm({
         value={homeCountry}
         onChange={setHomeCountry}
         label="Home country"
-        hint="Your home country (optional). We may suggest this from your connection on sign-up — you can change it anytime. Country level only."
+        hint="Your home country (optional). We may suggest this from your connection on sign-up, you can change it anytime. Country level only."
         id="profile-home-country"
       />
 

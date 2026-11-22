@@ -26,7 +26,7 @@ export async function generateMetadata({ params }: Pick<Props, "params">): Promi
   if (!channel) return { title: "Channel" };
   return pageMetadata({
     title: channel.title,
-    description: channel.description ?? `${channel.title} on Believe The Works – testimonies, teaching and encouragement.`,
+    description: channel.description ?? `${channel.title} on Believe The Works, testimonies, teaching and encouragement.`,
     path: `/channel/${channelSlug}`,
     image: channel.cover_image_url?.trim() || null,
     noindex: Boolean(channel.archived_at),

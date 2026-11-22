@@ -112,7 +112,7 @@ export function ShareTestimonyButton({
     const blob = await canvasBlob();
     const url = shareUrl(path);
     const text = quote.trim()
-      ? `${quote.trim().slice(0, 180)} — ${channelName}`
+      ? `${quote.trim().slice(0, 180)}, ${channelName}`
       : title;
     if (!blob) {
       setStatus("Could not build the card.");

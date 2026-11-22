@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { updatePassword } from "@/actions/auth";
+import { PasswordRules } from "@/components/password-rules";
 import { MIN_PASSWORD_LENGTH, passwordTooShortMessage } from "@/lib/password-policy";
 
 // userEmail is still passed by the settings page; the server action reads the session instead.
@@ -91,8 +92,12 @@ export default function PasswordChangeForm(_props: Props) {
           minLength={MIN_PASSWORD_LENGTH}
           autoComplete="new-password"
           placeholder={`At least ${MIN_PASSWORD_LENGTH} characters`}
+          aria-describedby="change-password-rules"
           className="w-full min-h-11 rounded-xl border border-input bg-background px-4 py-3 text-base text-foreground placeholder:text-muted-foreground/60 transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background sm:text-sm"
         />
+        <div className="mt-2">
+          <PasswordRules id="change-password-rules" includeMatch />
+        </div>
       </div>
       <div>
         <label

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { createImplicitRecoveryClient } from "@/utils/supabase/client";
+import { PasswordRules } from "@/components/password-rules";
 import { authInputClass, authPrimaryButtonClass } from "@/lib/auth-form-styles";
 
 export default function ForgotPasswordPage() {
@@ -65,6 +66,7 @@ export default function ForgotPasswordPage() {
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="flex flex-col gap-4" noValidate>
+            <PasswordRules id="forgot-password-rules" />
             <div className="space-y-2">
               <label htmlFor="forgot-email" className="text-sm font-medium text-foreground">
                 Email

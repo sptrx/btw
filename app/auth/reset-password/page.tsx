@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { createClient } from "@/utils/supabase/client";
 import { authInputClass, authPrimaryButtonClass } from "@/lib/auth-form-styles";
+import { PasswordRules } from "@/components/password-rules";
 import { MIN_PASSWORD_LENGTH, passwordTooShortMessage } from "@/lib/password-policy";
 
 export default function ResetPasswordPage() {
@@ -74,7 +75,7 @@ export default function ResetPasswordPage() {
           <form onSubmit={handleSubmit} className="flex flex-col gap-4" noValidate suppressHydrationWarning>
             <div className="space-y-2">
               <label htmlFor="reset-password-new" className="text-sm font-medium text-foreground">
-                New password <span className="font-normal text-muted-foreground">(min {MIN_PASSWORD_LENGTH} characters)</span>
+                New password
               </label>
               <input
                 id="reset-password-new"
@@ -87,8 +88,9 @@ export default function ResetPasswordPage() {
                 className={authInputClass}
                 autoComplete="new-password"
                 aria-invalid={invalid}
-                aria-describedby={invalid ? "reset-error" : undefined}
+                aria-describedby={invalid ? "reset-password-rules reset-error" : "reset-password-rules"}
               />
+              <PasswordRules id="reset-password-rules" includeMatch />
             </div>
             <div className="space-y-2">
               <label htmlFor="reset-password-confirm" className="text-sm font-medium text-foreground">

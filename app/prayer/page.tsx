@@ -13,6 +13,7 @@ import { RegionFilter } from "@/components/geo/region-filter";
 import { isGeoRegionId, normalizeCountryCode } from "@/lib/geo";
 import { PrayerFilterTabs } from "@/components/prayer/prayer-filter-tabs";
 import { PrayerRequestCard } from "@/components/prayer/prayer-request-card";
+import { PrayerHowItWorks } from "@/components/prayer/prayer-how-it-works";
 import { PraiseReportsSection } from "@/components/prayer/praise-reports-section";
 import { Button } from "@/components/ui/button";
 import { btwDisplayFont, btwLead, btwPageTitle } from "@/lib/btw-ui";
@@ -72,6 +73,8 @@ export default async function PrayerWallPage({ searchParams }: Props) {
           </Button>
         )}
       </header>
+
+      <PrayerHowItWorks defaultOpen={!isAuthenticated} />
 
       <div className="mb-6">
         <Suspense fallback={null}>

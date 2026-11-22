@@ -14,6 +14,7 @@ import {
   Folder,
   UserRound,
   LogOut,
+  Plus,
   Search,
   Home,
   Hash,
@@ -199,7 +200,7 @@ export function HeaderContent({
       className="sticky top-0 z-50 w-full overflow-x-clip border-b border-header-border bg-[oklch(0.72_0.04_108)]/95 pt-[env(safe-area-inset-top)] shadow-[0_1px_0_0_var(--header-border)] backdrop-blur-sm transition-[background,box-shadow,border-color] duration-300 dark:border-border/50 dark:bg-neutral-900/90 dark:shadow-none dark:backdrop-blur-md"
       role="banner"
     >
-      <div className="container mx-auto max-w-6xl px-3 sm:px-5">
+      <div className="container mx-auto max-w-6xl px-4 sm:px-5">
         {/* Top bar: flex on mobile; 3-column grid on desktop so nav stays visually centered */}
         <div className="flex min-h-[var(--header-bar-height)] items-center gap-2 py-2.5 sm:gap-3 sm:py-3 min-[1100px]:grid min-[1100px]:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] min-[1100px]:items-center min-[1100px]:gap-4">
           <div className="min-w-0 overflow-hidden justify-self-start min-[1100px]:col-start-1">
@@ -263,9 +264,6 @@ export function HeaderContent({
           <div className="hidden min-w-0 min-[1100px]:flex min-[1100px]:items-center min-[1100px]:gap-2">
             {user ? (
               <>
-                <Button size="sm" asChild>
-                  <Link href="/channel/new">Create Channel</Link>
-                </Button>
                 <DropdownMenu.Root>
                   <DropdownMenu.Trigger asChild>
                     <button
@@ -295,6 +293,12 @@ export function HeaderContent({
                         )}
                       </div>
                       <DropdownMenu.Separator className="my-1 h-px bg-border" />
+                      <DropdownMenu.Item asChild>
+                        <Link href="/channel/new" className={dropdownItemClass}>
+                          <Plus className="size-4 text-muted-foreground" aria-hidden />
+                          Create channel
+                        </Link>
+                      </DropdownMenu.Item>
                       <DropdownMenu.Item asChild>
                         <Link href="/dashboard" className={dropdownItemClass}>
                           <LayoutDashboard className="size-4 text-muted-foreground" aria-hidden />

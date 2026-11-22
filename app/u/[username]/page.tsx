@@ -63,7 +63,7 @@ export default async function UserProfileByUsername({ params, searchParams }: Pr
   const basePath = profilePath(profile);
 
   return (
-    <div className="container mx-auto max-w-3xl px-4 py-8 sm:px-6">
+    <div className="mx-auto max-w-3xl py-6 sm:py-8">
       <ProfileHeader
         profile={profile}
         showEditLink={isOwnProfile}

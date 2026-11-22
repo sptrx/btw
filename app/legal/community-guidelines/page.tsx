@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 
 export default function CommunityGuidelinesPage() {
   return (
-    <div className="container mx-auto max-w-3xl px-4 py-10 sm:py-14">
+    <div className="mx-auto max-w-3xl py-6 sm:py-10">
       <h1 className="btw-page-title mb-2">Community guidelines</h1>
       <p className="btw-lead mb-2">{MISSION_TAGLINE}</p>
       <p className="btw-lead mb-8">

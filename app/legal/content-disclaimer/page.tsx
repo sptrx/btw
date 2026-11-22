@@ -8,7 +8,7 @@ export const metadata: Metadata = {
 
 export default function ContentDisclaimerPage() {
   return (
-    <div className="container mx-auto max-w-3xl px-4 py-10 sm:py-14">
+    <div className="mx-auto max-w-3xl py-6 sm:py-10">
       <h1 className="btw-page-title mb-2">Content disclaimer</h1>
       <p className="btw-lead mb-8">
         This page explains responsibilities when you post or comment on channels.

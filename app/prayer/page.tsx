@@ -50,7 +50,7 @@ export default async function PrayerWallPage({ searchParams }: Props) {
   const isAuthenticated = !!user;
 
   return (
-    <div className="container mx-auto max-w-3xl px-4 py-10 sm:px-5 sm:py-12 md:py-14">
+    <div className="mx-auto max-w-3xl py-6 sm:py-8">
       <header className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="space-y-2">
           <p className="btw-overline text-primary">Community</p>

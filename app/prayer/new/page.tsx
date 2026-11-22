@@ -14,7 +14,7 @@ export default async function NewPrayerRequestPage() {
     : [false, null];
 
   return (
-    <div className="container mx-auto max-w-2xl px-4 py-10 sm:px-5 sm:py-12">
+    <div className="mx-auto max-w-2xl py-6 sm:py-8">
       <nav className="mb-6 text-sm text-muted-foreground">
         <Link href="/prayer" className="hover:text-primary hover:underline">
           Prayer Wall

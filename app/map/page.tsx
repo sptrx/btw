@@ -17,7 +17,7 @@ export default async function MapPage() {
   const summary = await getMapSummary();
 
   return (
-    <div className="container mx-auto max-w-6xl px-4 pb-16 sm:px-6">
+    <div className="pb-8">
       <header className="border-b border-border/80 py-8 sm:py-10">
         <p className="btw-overline text-muted-foreground">Global community</p>
         <h1

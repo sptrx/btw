@@ -8,7 +8,7 @@ export const metadata: Metadata = {
 
 export default function TermsPage() {
   return (
-    <div className="container mx-auto max-w-3xl px-4 py-10 sm:py-14">
+    <div className="mx-auto max-w-3xl py-6 sm:py-10">
       <h1 className="btw-page-title mb-2">Terms and conditions</h1>
       <p className="text-sm text-muted-foreground mb-8">Last updated: {new Date().toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" })}</p>
 

@@ -48,10 +48,10 @@ export default async function FeedPage({ searchParams }: Props) {
   ]);
 
   return (
-    <div className="container mx-auto max-w-5xl px-4 pb-16 sm:px-6">
+    <div className="pb-8">
       <div className="lg:grid lg:grid-cols-[1fr_17rem] lg:gap-8 lg:items-start">
         <div className="min-w-0 max-w-3xl lg:max-w-none">
-      <header className="border-b border-border/80 px-4 py-8 sm:px-6">
+      <header className="border-b border-border/80 py-8">
         <p className="btw-overline text-muted-foreground">Community</p>
         <h1 className={cn(btwDisplayFont, "mt-1 text-3xl font-normal text-foreground sm:text-4xl")}>
           Faith feed
@@ -70,7 +70,7 @@ export default async function FeedPage({ searchParams }: Props) {
         ) : null}
       </header>
 
-      <div className="mb-4 px-4 sm:px-6">
+      <div className="mb-4">
         <Suspense fallback={null}>
           <RegionFilter basePath="/feed" preserveParams={["filter", "country"]} />
         </Suspense>

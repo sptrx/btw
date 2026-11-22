@@ -43,7 +43,14 @@ export async function updatePassword(formData: FormData): Promise<{ error?: stri
     }
   }
 
-  const { error } = await supabase.auth.updateUser({ password: newPassword });
+  // Auth is configured to require the current password on the update itself.
+  // Verifying with signInWithPassword is not enough; the field has to travel
+  // with the new password or Auth returns "Current password required…".
+  const { error } = await supabase.auth.updateUser(
+    hasPasswordIdentity
+      ? { password: newPassword, current_password: currentPassword }
+      : { password: newPassword }
+  );
 
   if (error) return { error: error.message };
 

@@ -1,5 +1,4 @@
-import { createServerClient } from "@supabase/ssr";
-import { createClient as createSupabaseClient, type SupabaseClient } from "@supabase/supabase-js";
+﻿import { createServerClient } from "@supabase/ssr";
 import { cookies, headers } from "next/headers";
 import { getSupabaseAnonKeyServer, getSupabaseUrlServer } from "@/utils/supabase/public-env";
 
@@ -7,36 +6,33 @@ import { getSupabaseAnonKeyServer, getSupabaseUrlServer } from "@/utils/supabase
  * Supabase client for server actions, route handlers and server components.
  *
  * Browsers authenticate with the session cookie. The mobile app has no cookie and
- * sends `Authorization: Bearer <access token>` instead; that client runs every query
- * under the same RLS as the user, and `auth.getUser()` validates the token with
- * Supabase Auth, so actions behave the same for both.
+ * sends `Authorization: Bearer <access token>` instead. That client runs every
+ * query under the same RLS as the user. `auth.getUser()` is called with the JWT so
+ * actions see the signed-in user without importing `@supabase/supabase-js` here
+ * (that import breaks the "use server" webpack graph for `getCurrentUser`).
  */
-export async function createClient(): Promise<SupabaseClient> {
-  const bearer = bearerTokenFrom((await headers()).get("authorization"));
-  if (bearer) return createBearerClient(bearer);
+export async function createClient() {
+  const accessToken = bearerTokenFrom((await headers()).get("authorization"));
+  if (accessToken) return createBearerClient(accessToken);
 
   const cookieStore = await cookies();
 
-  return createServerClient(
-    getSupabaseUrlServer(),
-    getSupabaseAnonKeyServer(),
-    {
-      cookies: {
-        getAll() {
-          return cookieStore.getAll();
-        },
-        setAll(cookiesToSet) {
-          try {
-            cookiesToSet.forEach(({ name, value, options }) =>
-              cookieStore.set(name, value, options)
-            );
-          } catch {
-            /* read-only contexts (e.g. some Server Component renders) */
-          }
-        },
+  return createServerClient(getSupabaseUrlServer(), getSupabaseAnonKeyServer(), {
+    cookies: {
+      getAll() {
+        return cookieStore.getAll();
       },
-    }
-  );
+      setAll(cookiesToSet) {
+        try {
+          cookiesToSet.forEach(({ name, value, options }) =>
+            cookieStore.set(name, value, options)
+          );
+        } catch {
+          /* read-only contexts (e.g. some Server Component renders) */
+        }
+      },
+    },
+  });
 }
 
 export function bearerTokenFrom(header: string | null): string | null {
@@ -44,12 +40,23 @@ export function bearerTokenFrom(header: string | null): string | null {
   return match ? match[1] : null;
 }
 
-function createBearerClient(accessToken: string): SupabaseClient {
-  const client = createSupabaseClient(getSupabaseUrlServer(), getSupabaseAnonKeyServer(), {
-    global: { headers: { Authorization: `Bearer ${accessToken}` } },
-    auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
+function createBearerClient(accessToken: string) {
+  const client = createServerClient(getSupabaseUrlServer(), getSupabaseAnonKeyServer(), {
+    cookies: {
+      getAll() {
+        return [];
+      },
+      setAll() {
+        /* mobile Bearer clients have no cookie jar to write */
+      },
+    },
+    global: {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    },
   });
+
+  // Cookie session is empty; pass the JWT so auth.getUser() validates the mobile token.
   const getUser = client.auth.getUser.bind(client.auth);
-  client.auth.getUser = (jwt?: string) => getUser(jwt ?? accessToken);
+  client.auth.getUser = ((jwt?: string) => getUser(jwt ?? accessToken)) as typeof client.auth.getUser;
   return client;
 }

@@ -1,0 +1,98 @@
+import * as Haptics from 'expo-haptics';
+import { useRouter } from 'expo-router';
+import { useState } from 'react';
+import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
+
+import { AppText } from '@/components/ui';
+import { Radius, Spacing } from '@/constants/theme';
+import { useTheme } from '@/hooks/use-theme';
+import { api } from '@/lib/api';
+import { useAuth } from '@/lib/auth';
+import { REACTIONS, type PostKind, type ReactionCounts, type ReactionType } from '@/lib/types';
+
+const EMPTY: ReactionCounts = { amen: 0, blessed: 0, spirit_filled: 0, sharing: 0, praise_god: 0 };
+
+export function ReactionBar({
+  postId,
+  postKind,
+  counts,
+  userReaction,
+}: {
+  postId: string;
+  postKind: PostKind;
+  counts: ReactionCounts | null;
+  userReaction: ReactionType | null;
+}) {
+  const theme = useTheme();
+  const router = useRouter();
+  const { session } = useAuth();
+  const [state, setState] = useState({ counts: counts ?? EMPTY, mine: userReaction });
+
+  async function choose(type: ReactionType) {
+    if (!session) {
+      router.push('/sign-in');
+      return;
+    }
+    const previous = state;
+    const next = previous.mine === type ? null : type;
+    const nextCounts = { ...previous.counts };
+    if (previous.mine) nextCounts[previous.mine] = Math.max(0, nextCounts[previous.mine] - 1);
+    if (next) nextCounts[next] += 1;
+    setState({ counts: nextCounts, mine: next });
+    Haptics.selectionAsync().catch(() => {});
+
+    try {
+      await api('react', { postId, postKind, reaction: next ?? '' });
+    } catch (e) {
+      setState(previous);
+      Alert.alert('Could not save your response', e instanceof Error ? e.message : undefined);
+    }
+  }
+
+  return (
+    <View style={styles.row}>
+      {REACTIONS.map((r) => {
+        const selected = state.mine === r.type;
+        const count = state.counts[r.type];
+        return (
+          <Pressable
+            key={r.type}
+            onPress={() => choose(r.type)}
+            accessibilityRole="button"
+            accessibilityLabel={`${r.label}, ${count}`}
+            accessibilityState={{ selected }}
+            hitSlop={4}
+            style={[
+              styles.pill,
+              { borderColor: selected ? theme.accent : theme.border },
+              selected && { backgroundColor: theme.muted },
+            ]}>
+            <Text style={styles.emoji}>{r.emoji}</Text>
+            {count > 0 ? (
+              <AppText variant="caption" tone={selected ? 'primary' : 'secondary'} style={styles.count}>
+                {count}
+              </AppText>
+            ) : null}
+          </Pressable>
+        );
+      })}
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  row: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.two },
+  pill: {
+    minHeight: 36,
+    minWidth: 44,
+    paddingHorizontal: Spacing.two,
+    borderRadius: Radius.pill,
+    borderWidth: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: Spacing.one,
+  },
+  emoji: { fontSize: 16 },
+  count: { fontWeight: '600' },
+});

@@ -23,6 +23,7 @@ A Christian faith-based social platform with channels, AI moderation, and commun
 ## Tech Stack
 
 - **Frontend**: Next.js, React, Tailwind CSS
+- **Mobile**: Expo (React Native) app in [`mobile/`](./mobile) — iOS-first, same Supabase project + `/api/mobile` on this site
 - **Backend**: Supabase (database + auth)
 - **AI**: OpenRouter / Google AI / OpenAI for moderation
 

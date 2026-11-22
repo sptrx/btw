@@ -11,5 +11,5 @@ export default defineConfig([
       "react-hooks/error-boundaries": "warn",
     },
   },
-  globalIgnores([".next/**", ".open-next/**", ".wrangler/**", "cli/**", "node_modules/**", "out/**", "next-env.d.ts"]),
+  globalIgnores([".next/**", ".open-next/**", ".wrangler/**", "cli/**", "mobile/**", "node_modules/**", "out/**", "next-env.d.ts"]),
 ]);

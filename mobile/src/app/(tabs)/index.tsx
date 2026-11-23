@@ -1,30 +1,84 @@
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, FlatList, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
+import {
+  ActivityIndicator,
+  FlatList,
+  Pressable,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  View,
+} from 'react-native';
 
 import { FeedCard } from '@/components/feed-card';
-import { Chip, EmptyState, ErrorState, LoadingState, ScreenHeader } from '@/components/ui';
+import { AppChrome } from '@/components/app-chrome';
+import { WordOfGodPanel } from '@/components/word-of-god-panel';
+import { AppText, EmptyState, ErrorState, LoadingState } from '@/components/ui';
 import { MaxContentWidth, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { api } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
-import { FEED_FILTERS, type FeedCursor, type FeedFilter, type FeedItem, type FeedPage } from '@/lib/types';
+import type { FeedCursor, FeedItem, FeedPage } from '@/lib/types';
 
-export default function FeedScreen() {
+type HomeTab = 'for_you' | 'following' | 'word';
+
+export default function HomeScreen() {
+  const theme = useTheme();
   const { session } = useAuth();
-  const [filter, setFilter] = useState<FeedFilter>('all');
-  const userId = session?.user.id ?? '';
-  return <FeedList key={`${filter}:${userId}`} filter={filter} onFilterChange={setFilter} signedIn={!!userId} />;
+  const [tab, setTab] = useState<HomeTab>('for_you');
+
+  return (
+    <View style={[styles.fill, { backgroundColor: theme.background }]}>
+      <AppChrome>
+        <View style={[styles.tabs, { borderBottomColor: theme.border }]}>
+          {(
+            [
+              { id: 'for_you', label: 'For you' },
+              { id: 'following', label: 'Following' },
+              { id: 'word', label: 'Word Of God' },
+            ] as const
+          ).map((t) => {
+            const selected = tab === t.id;
+            return (
+              <Pressable
+                key={t.id}
+                onPress={() => setTab(t.id)}
+                style={[styles.tab, selected && { borderBottomColor: theme.accent }]}
+                accessibilityRole="tab"
+                accessibilityState={{ selected }}>
+                <AppText
+                  variant="small"
+                  tone={selected ? 'primary' : 'secondary'}
+                  style={selected ? styles.tabSelected : undefined}>
+                  {t.label}
+                </AppText>
+              </Pressable>
+            );
+          })}
+        </View>
+
+        {tab === 'word' ? (
+          <ScrollView contentContainerStyle={styles.wordScroll} contentInsetAdjustmentBehavior="automatic">
+            <WordOfGodPanel />
+          </ScrollView>
+        ) : (
+          <FeedList
+            key={`${tab}:${session?.user.id ?? ''}`}
+            mode={tab}
+            signedIn={Boolean(session)}
+          />
+        )}
+      </AppChrome>
+    </View>
+  );
 }
 
 type Status = 'loading' | 'refreshing' | 'more' | 'idle';
 
 function FeedList({
-  filter,
-  onFilterChange,
+  mode,
   signedIn,
 }: {
-  filter: FeedFilter;
-  onFilterChange: (filter: FeedFilter) => void;
+  mode: 'for_you' | 'following';
   signedIn: boolean;
 }) {
   const theme = useTheme();
@@ -47,37 +101,34 @@ function FeedList({
 
   useEffect(() => {
     let cancelled = false;
-    api<FeedPage>('feed', { filter, cursor: null }).then(
+    api<FeedPage>('feed', { mode, cursor: null }).then(
       (page) => !cancelled && apply(page, false),
       (e) => !cancelled && fail(e)
     );
     return () => {
       cancelled = true;
     };
-  }, [filter]);
+  }, [mode]);
 
-  function load(mode: Exclude<Status, 'idle'>) {
-    const after = mode === 'more' ? cursor : null;
-    setStatus(mode);
-    api<FeedPage>('feed', { filter, cursor: after }).then((page) => apply(page, Boolean(after)), fail);
+  function load(s: Exclude<Status, 'idle'>) {
+    const after = s === 'more' ? cursor : null;
+    setStatus(s);
+    api<FeedPage>('feed', { mode, cursor: after }).then((page) => apply(page, Boolean(after)), fail);
   }
 
-  const header = (
-    <View>
-      <ScreenHeader title="Feed" subtitle="Testimonies, prayer and teaching from the community" />
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filters}>
-        {FEED_FILTERS.filter((f) => signedIn || f.id !== 'following').map((f) => (
-          <Chip key={f.id} label={f.label} selected={filter === f.id} onPress={() => onFilterChange(f.id)} />
-        ))}
-      </ScrollView>
-    </View>
-  );
+  if (mode === 'following' && !signedIn) {
+    return (
+      <EmptyState
+        title="Follow people you love"
+        message="Sign in to see posts from people and channels you follow."
+      />
+    );
+  }
 
   return (
     <FlatList
       style={{ backgroundColor: theme.background }}
       contentContainerStyle={styles.list}
-      contentInsetAdjustmentBehavior="automatic"
       data={items}
       keyExtractor={(item) => `${item.postKind}:${item.id}`}
       renderItem={({ item }) => (
@@ -85,14 +136,13 @@ function FeedList({
           <FeedCard item={item} />
         </View>
       )}
-      ListHeaderComponent={header}
       ListEmptyComponent={
         status === 'loading' ? (
           <LoadingState />
         ) : error ? (
           <ErrorState message={error} onRetry={() => load('loading')} />
         ) : (
-          <EmptyState title="Nothing here yet" message="Try another filter, or check back soon." />
+          <EmptyState title="Nothing here yet" message="Check back soon for new posts." />
         )
       }
       ListFooterComponent={
@@ -114,8 +164,17 @@ function FeedList({
 }
 
 const styles = StyleSheet.create({
+  fill: { flex: 1 },
+  tabs: { flexDirection: 'row', borderBottomWidth: StyleSheet.hairlineWidth },
+  tab: {
+    flex: 1,
+    alignItems: 'center',
+    paddingVertical: Spacing.three,
+    borderBottomWidth: 2,
+    borderBottomColor: 'transparent',
+  },
+  tabSelected: { fontWeight: '700' },
   list: { paddingBottom: Spacing.six, flexGrow: 1 },
-  filters: { paddingHorizontal: Spacing.three, paddingVertical: Spacing.two, gap: Spacing.two },
   item: {
     paddingHorizontal: Spacing.three,
     paddingTop: Spacing.three,
@@ -124,4 +183,5 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
   },
   footer: { padding: Spacing.four },
+  wordScroll: { paddingBottom: Spacing.six },
 });

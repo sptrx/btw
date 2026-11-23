@@ -32,10 +32,10 @@ Add any other server-side secrets (`OPENROUTER_API_KEY`, R2 keys, etc.) the same
 
 ### Scripture Chat (bible-ai)
 
-Production BTW calls **Scripture Chat** at [https://bible-ai-c3q.pages.dev](https://bible-ai-c3q.pages.dev/) for:
+Production BTW calls **xgesis** at [https://xgesis.org](https://xgesis.org/) for:
 
-- **Bible Q&A** nav link → `/ask` on that host (defaults are baked in when `NODE_ENV=production`; override with **`NEXT_PUBLIC_BIBLE_AI_URL`** if you use another Pages project).
-- **Scripture guide replies** on comments → server `POST` to `https://bible-ai-c3q.pages.dev/api/v1/commentary` with JSON body including **`userId`** (signed-in BTW user) and **`feature`: `"commentary"`** (defaults when **`BIBLE_AI_BASE_URL`** is unset in production; override for staging).
+- **Bible Q&A** nav link → `/ask` on that host (defaults are baked in when `NODE_ENV=production`; override with **`NEXT_PUBLIC_BIBLE_AI_URL`** if you use another origin).
+- **Scripture guide replies** on comments → server `POST` to `https://xgesis.org/api/v1/commentary` with JSON body including **`userId`** (signed-in BTW user) and **`feature`: `"commentary"`** (defaults when **`BIBLE_AI_BASE_URL`** is unset in production; override for staging).
 
 On the Worker (**Settings** → **Variables / Secrets**), set **`BIBLE_AI_API_KEY`** to the **same** value as bible-ai's **`BIBLE_AI_API_KEY`** (secret). Production bible-ai requires the partner key on all `/api/v1/*` POST routes.
 
@@ -50,7 +50,7 @@ Optional overrides:
 | Variable | Purpose |
 | -------- | ------- |
 | `BIBLE_AI_BASE_URL` | Server-only guide API origin (no trailing slash). |
-| `NEXT_PUBLIC_BIBLE_AI_URL` | Full URL for the header **Bible Q&A** link (e.g. `https://bible-ai-c3q.pages.dev/ask`). Must be present at **`cf:build`** time if you rely on env instead of the production default. |
+| `NEXT_PUBLIC_BIBLE_AI_URL` | Full URL for the header **Bible Q&A** link (e.g. `https://xgesis.org/ask`). Must be present at **`cf:build`** time if you rely on env instead of the production default. |
 
 ## 3. Build for Cloudflare
 

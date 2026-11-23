@@ -19,6 +19,12 @@ vi.mock("@/actions/reactions", () => ({
   setPostReaction: actions.setPostReaction,
   clearPostReaction: actions.clearPostReaction,
 }));
+vi.mock("@/lib/bible-ai", () => ({
+  isScriptureGuideConfigured: () => false,
+  fetchBibleTranslations: vi.fn(),
+  fetchBibleBooks: vi.fn(),
+  fetchBibleChapter: vi.fn(),
+}));
 
 import { MobileApiError, mobileHandlers, parseMediaItems, redirectTarget } from "@/lib/mobile-api";
 

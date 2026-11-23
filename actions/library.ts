@@ -281,3 +281,83 @@ export async function getUserLibrary(userId: string): Promise<UserLibrary> {
 
   return { walkingWith, kept };
 }
+
+export type ShareableLibrary = UserLibrary & {
+  owner: {
+    id: string;
+    displayName: string | null;
+    username: string | null;
+    avatarUrl: string | null;
+  };
+  libraryTitle: string;
+  memorized: {
+    id: string;
+    reference: string;
+    text: string;
+    practicedOn: string;
+    practiceCount: number;
+  }[];
+  notes: {
+    id: string;
+    title: string;
+    body: string;
+    isPublic: boolean;
+    updatedAt: string;
+  }[];
+  isOwner: boolean;
+};
+
+/** Named like "Ravi's Library" — public when the profile is not private. */
+export async function getShareableLibrary(
+  usernameOrId: string
+): Promise<ShareableLibrary | { error: string }> {
+  const supabase = await createClient();
+  const {
+    data: { user: viewer },
+  } = await supabase.auth.getUser();
+
+  let profileQuery = supabase
+    .from("profiles")
+    .select("id, display_name, username, avatar_url, profile_private");
+  if (/^[0-9a-f-]{36}$/i.test(usernameOrId)) {
+    profileQuery = profileQuery.eq("id", usernameOrId);
+  } else {
+    profileQuery = profileQuery.eq("username", usernameOrId.toLowerCase());
+  }
+  const { data: profile } = await profileQuery.maybeSingle();
+  if (!profile) return { error: "Library not found." };
+
+  const isOwner = viewer?.id === profile.id;
+  if (profile.profile_private && !isOwner) {
+    return { error: "This library is private." };
+  }
+
+  const firstName =
+    profile.display_name?.trim().split(/\s+/)[0] ||
+    profile.username ||
+    "My";
+  const libraryTitle = `${firstName}'s Library`;
+
+  const base = await getUserLibrary(profile.id);
+  const { listMemorizedScriptures } = await import("@/actions/word-of-god");
+  const { listJournalNotes } = await import("@/actions/journal");
+
+  const [memorized, notes] = await Promise.all([
+    listMemorizedScriptures(profile.id),
+    listJournalNotes(profile.id, { publicOnly: !isOwner }),
+  ]);
+
+  return {
+    ...base,
+    owner: {
+      id: profile.id,
+      displayName: profile.display_name,
+      username: profile.username,
+      avatarUrl: profile.avatar_url,
+    },
+    libraryTitle,
+    memorized,
+    notes,
+    isOwner,
+  };
+}

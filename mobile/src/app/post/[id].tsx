@@ -133,7 +133,31 @@ export default function PostScreen() {
           counts={data.reactions}
           userReaction={data.userReaction}
         />
-        <Button title="Share" variant="secondary" small onPress={share} style={styles.start} />
+        <View style={styles.rowActions}>
+          <Button title="Share" variant="secondary" small onPress={share} />
+          {session && post.channelSlug ? (
+            <Button
+              title="Keep in library"
+              variant="secondary"
+              small
+              onPress={async () => {
+                try {
+                  await api('library.keep', {
+                    contentId: post.id,
+                    channelSlug: post.channelSlug,
+                    keep: true,
+                  });
+                  setNotice({ tone: 'success', text: 'Saved to your library.' });
+                } catch (e) {
+                  setNotice({
+                    tone: 'error',
+                    text: e instanceof Error ? e.message : 'Could not save.',
+                  });
+                }
+              }}
+            />
+          ) : null}
+        </View>
 
         <Divider />
         <AppText variant="heading">
@@ -202,6 +226,7 @@ const styles = StyleSheet.create({
   },
   body: { fontSize: 17, lineHeight: 27 },
   start: { alignSelf: 'flex-start' },
+  rowActions: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.two },
   guide: { borderLeftWidth: 3, paddingLeft: Spacing.two, gap: Spacing.one, marginTop: Spacing.one },
   composer: { gap: Spacing.three },
 });

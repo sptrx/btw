@@ -2,7 +2,7 @@
  * Hosted Scripture Chat (bible-ai on Cloudflare Pages).
  * Override with BIBLE_AI_BASE_URL / NEXT_PUBLIC_BIBLE_AI_URL for staging or self-hosted installs.
  */
-export const BIBLE_AI_PRODUCTION_ORIGIN = "https://bible-ai-c3q.pages.dev";
+export const BIBLE_AI_PRODUCTION_ORIGIN = "https://xgesis.org";
 
 export function bibleAiPublicAskUrl(): string {
   const env = process.env.NEXT_PUBLIC_BIBLE_AI_URL?.trim();
@@ -46,7 +46,7 @@ export function showBibleAiSsoNav(): boolean {
 /** Partner id xgesis uses for BTW-sourced sessions. */
 export const BTW_XGESIS_PARTNER_ID = "believetheworks";
 
-/** Relative URL on BTW that mints handoff and redirects to xgesis.ai. */
+/** Relative URL on BTW that mints handoff and redirects to xgesis. */
 export function bibleAiSsoPath(
   next = "/ask",
   partner = BTW_XGESIS_PARTNER_ID,
@@ -58,11 +58,11 @@ export function bibleAiSsoPath(
   return `/api/bible-ai/sso?${params.toString()}`;
 }
 
-export const BIBLE_QA_NAV_DESCRIPTION = "Powered by xgesis.ai" as const;
+export const BIBLE_QA_NAV_DESCRIPTION = "Powered by xgesis" as const;
 
 /** One-line subcopy under Bible Q&A in the mobile nav drawer. */
 export const BIBLE_QA_NAV_MOBILE_LINE =
-  "Ask any question about Scripture · Powered by xgesis.ai" as const;
+  "Ask any question about Scripture · Powered by xgesis" as const;
 
 export type BibleAiNavLink = {
   href: string;

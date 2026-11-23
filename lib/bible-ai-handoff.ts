@@ -3,7 +3,7 @@ import "server-only";
 import { SignJWT } from "jose";
 
 const HANDOFF_ISSUER = "btw";
-const HANDOFF_AUDIENCE = "xgesis.ai";
+const HANDOFF_AUDIENCE = "xgesis";
 
 function handoffSecret(): string {
   const s = (process.env.BIBLE_AI_HANDOFF_SECRET ?? "").trim();

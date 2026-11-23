@@ -52,16 +52,16 @@ type BibleAiSuccess = {
 
 type BibleAiError = { error: string };
 
-async function postBibleAi<TBody extends Record<string, unknown>>(
+async function requestBibleAi<T>(
   path: string,
-  body: TBody,
+  init: { method: "GET" | "POST"; body?: Record<string, unknown> },
   timeoutMs = 15_000,
-): Promise<BibleAiSuccess | BibleAiError> {
+): Promise<T | BibleAiError> {
   const base = baseUrl();
   if (!base) {
     return {
       error:
-        "xgesis.ai URL is not configured. Set BIBLE_AI_BASE_URL for local development.",
+        "xgesis URL is not configured. Set BIBLE_AI_BASE_URL for local development.",
     };
   }
 
@@ -71,9 +71,9 @@ async function postBibleAi<TBody extends Record<string, unknown>>(
   let res: Response;
   try {
     res = await fetch(`${base}${path}`, {
-      method: "POST",
+      method: init.method,
       headers: authHeaders(),
-      body: JSON.stringify(body),
+      body: init.body ? JSON.stringify(init.body) : undefined,
       cache: "no-store",
       signal: controller.signal,
     });
@@ -82,31 +82,41 @@ async function postBibleAi<TBody extends Record<string, unknown>>(
     const isTimeout = e instanceof Error && e.name === "AbortError";
     return {
       error: isTimeout
-        ? `xgesis.ai request timed out (>${Math.round(timeoutMs / 1000)} s).`
-        : `xgesis.ai unreachable: ${msg}`,
+        ? `xgesis request timed out (>${Math.round(timeoutMs / 1000)} s).`
+        : `xgesis unreachable: ${msg}`,
     };
   } finally {
     clearTimeout(timeout);
   }
 
-  const data = (await res.json()) as {
-    error?: string;
-    response?: string;
-    hint?: string;
-    citations?: BibleAiCitation[];
-  };
+  const data = (await res.json().catch(() => null)) as
+    | (T & { error?: string; hint?: string })
+    | null;
 
-  if (!res.ok) {
-    const detail = data.hint
+  if (!res.ok || !data) {
+    const detail = data?.hint
       ? `${data.error ?? "Error"}\n${data.hint}`
-      : data.error ?? "Request failed";
+      : data?.error ?? "Request failed";
     return { error: detail };
   }
 
-  if (!data.response?.trim()) {
-    return { error: "Empty response from xgesis.ai." };
+  if (typeof data.error === "string" && data.error.trim()) {
+    return { error: data.error };
   }
 
+  return data as T;
+}
+
+async function postBibleAi<TBody extends Record<string, unknown>>(
+  path: string,
+  body: TBody,
+  timeoutMs = 15_000,
+): Promise<BibleAiSuccess | BibleAiError> {
+  const data = await requestBibleAi<BibleAiSuccess>(path, { method: "POST", body }, timeoutMs);
+  if ("error" in data) return data;
+  if (!data.response?.trim()) {
+    return { error: "Empty response from xgesis." };
+  }
   return {
     response: data.response.trim(),
     citations: data.citations,
@@ -149,4 +159,67 @@ export async function fetchBibleExplanation(
 
 export function isScriptureGuideConfigured(): boolean {
   return baseUrl().length > 0;
+}
+
+export type BibleTranslation = { id: string; label: string };
+
+export type BibleBookSummary = {
+  abbrev: string;
+  title: string;
+  chapterCount: number;
+  index: number;
+};
+
+export type BibleChapterVerse = { verse: number; text: string };
+
+export type BibleChapterNav = {
+  abbrev: string;
+  bookTitle: string;
+  chapter: number;
+};
+
+export type BibleChapter = {
+  translationId: string;
+  translationLabel: string;
+  abbrev: string;
+  bookTitle: string;
+  chapter: number;
+  chapterCount: number;
+  verses: BibleChapterVerse[];
+  prev: BibleChapterNav | null;
+  next: BibleChapterNav | null;
+};
+
+/** Free-rights translations available for the Bible reader. */
+export async function fetchBibleTranslations(): Promise<
+  { translations: BibleTranslation[] } | BibleAiError
+> {
+  return requestBibleAi<{ translations: BibleTranslation[] }>("/api/v1/translations", {
+    method: "GET",
+  });
+}
+
+export async function fetchBibleBooks(
+  translationId = "kjv",
+): Promise<
+  | { translationId: string; translationLabel: string; books: BibleBookSummary[] }
+  | BibleAiError
+> {
+  const q = new URLSearchParams({ translationId });
+  return requestBibleAi(`/api/v1/books?${q.toString()}`, { method: "GET" });
+}
+
+export async function fetchBibleChapter(input: {
+  translationId?: string;
+  book: string;
+  chapter: number;
+}): Promise<BibleChapter | BibleAiError> {
+  const q = new URLSearchParams({
+    translationId: input.translationId?.trim() || "kjv",
+    book: input.book.trim(),
+    chapter: String(input.chapter),
+  });
+  return requestBibleAi<BibleChapter>(`/api/v1/chapter?${q.toString()}`, {
+    method: "GET",
+  });
 }

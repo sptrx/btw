@@ -1,4 +1,4 @@
--- Daily usage counters for xgesis.ai / bible-ai calls initiated from BTW (Phase 1 quotas).
+-- Daily usage counters for xgesis / bible-ai calls initiated from BTW (Phase 1 quotas).
 
 create table if not exists public.bible_ai_daily_usage (
   user_id uuid not null references auth.users (id) on delete cascade,

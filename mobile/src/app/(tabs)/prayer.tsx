@@ -2,6 +2,7 @@ import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { FlatList, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 
+import { AppChrome } from '@/components/app-chrome';
 import { PrayButton } from '@/components/pray-button';
 import {
   AppText,
@@ -12,7 +13,6 @@ import {
   EmptyState,
   ErrorState,
   LoadingState,
-  ScreenHeader,
 } from '@/components/ui';
 import { MaxContentWidth, Spacing } from '@/constants/theme';
 import { useApi } from '@/hooks/use-api';
@@ -41,15 +41,20 @@ export default function PrayerScreen() {
   const praise = data?.praise.slice(0, 3) ?? [];
 
   return (
+    <AppChrome>
     <FlatList
       style={{ backgroundColor: theme.background }}
       contentContainerStyle={styles.list}
-      contentInsetAdjustmentBehavior="automatic"
       data={data?.requests ?? []}
       keyExtractor={(r) => r.id}
       ListHeaderComponent={
         <View>
-          <ScreenHeader title="Prayer Wall" subtitle="Lift each other up. Tap “I prayed” when you pray." />
+          <View style={styles.titleBlock}>
+            <AppText variant="title">Prayer Wall</AppText>
+            <AppText variant="small" tone="secondary">
+              Lift each other up. Tap “I prayed” when you pray.
+            </AppText>
+          </View>
           <View style={styles.section}>
             <Button
               title="Ask for prayer"
@@ -100,6 +105,7 @@ export default function PrayerScreen() {
       }
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={reload} tintColor={theme.accent} />}
     />
+    </AppChrome>
   );
 }
 
@@ -137,6 +143,7 @@ function PrayerCard({ request }: { request: PrayerRequest }) {
 
 const styles = StyleSheet.create({
   list: { paddingBottom: Spacing.six, flexGrow: 1 },
+  titleBlock: { paddingHorizontal: Spacing.three, paddingTop: Spacing.three, gap: Spacing.one },
   section: {
     paddingHorizontal: Spacing.three,
     paddingTop: Spacing.three,

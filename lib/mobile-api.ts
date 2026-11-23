@@ -19,8 +19,26 @@ import {
   getPageContentForEditPage,
   isChannelAuthor,
 } from "@/actions/channels";
-import { getCommunityFeedPage, type CommunityFeedCursor } from "@/actions/feed";
+import {
+  getCommunityFeedPage,
+  getForYouFeedPage,
+  type CommunityFeedCursor,
+} from "@/actions/feed";
 import { followUser, getFollowCounts, unfollowUser } from "@/actions/follows";
+import {
+  deleteJournalNote,
+  listJournalNotes,
+  upsertJournalNote,
+} from "@/actions/journal";
+import {
+  getShareableLibrary,
+  keepContent,
+  unkeepContent,
+} from "@/actions/library";
+import {
+  getNotificationPrefs,
+  updateNotificationPrefs,
+} from "@/actions/notification-prefs";
 import {
   addPrayerComment,
   createPrayerRequest,
@@ -33,6 +51,16 @@ import {
   type PrayerWallFilter,
 } from "@/actions/prayer";
 import { clearPostReaction, getPostReactions, setPostReaction } from "@/actions/reactions";
+import {
+  completeWordOfGodPractice,
+  getTodaysWordOfGod,
+} from "@/actions/word-of-god";
+import {
+  fetchBibleBooks,
+  fetchBibleChapter,
+  fetchBibleTranslations,
+  isScriptureGuideConfigured,
+} from "@/lib/bible-ai";
 import { POST_REACTION_TYPES, type FeedPostKind, type PostReactionType } from "@/lib/post-reactions";
 import { SHARING_FEED_FILTERS, type SharingFeedFilter } from "@/lib/sharing-types";
 
@@ -156,9 +184,134 @@ export const mobileHandlers: Record<string, Handler> = {
   },
 
   async feed(args) {
-    const filter = str(args, "filter") || "all";
-    if (!FEED_FILTERS.has(filter)) throw new MobileApiError("Unknown feed filter.");
-    return getCommunityFeedPage(filter as SharingFeedFilter, 20, readCursor(args.cursor));
+    const mode = str(args, "mode") || str(args, "filter") || "all";
+    const category = (str(args, "category") || "all") as SharingFeedFilter;
+    const cursor = readCursor(args.cursor);
+
+    if (mode === "for_you") {
+      if (category !== "all" && !FEED_FILTERS.has(category)) {
+        throw new MobileApiError("Unknown category.");
+      }
+      return getForYouFeedPage(category, 20, cursor);
+    }
+
+    if (mode === "following") {
+      return getCommunityFeedPage("following", 20, cursor);
+    }
+
+    if (!FEED_FILTERS.has(mode)) throw new MobileApiError("Unknown feed filter.");
+    return getCommunityFeedPage(mode as SharingFeedFilter, 20, cursor);
+  },
+
+  async "bible.translations"() {
+    if (!isScriptureGuideConfigured()) {
+      throw new MobileApiError("Bible reading is not available right now.", 503);
+    }
+    const result = await fetchBibleTranslations();
+    if ("error" in result) throw new MobileApiError(result.error, 502);
+    return result;
+  },
+
+  async "bible.books"(args) {
+    if (!isScriptureGuideConfigured()) {
+      throw new MobileApiError("Bible reading is not available right now.", 503);
+    }
+    const translationId = str(args, "translationId", { max: 32 }) || "kjv";
+    const result = await fetchBibleBooks(translationId);
+    if ("error" in result) throw new MobileApiError(result.error, 502);
+    return result;
+  },
+
+  async "bible.chapter"(args) {
+    if (!isScriptureGuideConfigured()) {
+      throw new MobileApiError("Bible reading is not available right now.", 503);
+    }
+    const translationId = str(args, "translationId", { max: 32 }) || "kjv";
+    const book = str(args, "book", { required: true, max: 64 });
+    const chapterRaw = args.chapter;
+    const chapter =
+      typeof chapterRaw === "number"
+        ? chapterRaw
+        : typeof chapterRaw === "string"
+          ? Number(chapterRaw)
+          : NaN;
+    if (!Number.isFinite(chapter) || chapter < 1) {
+      throw new MobileApiError("chapter must be a positive integer.");
+    }
+    const result = await fetchBibleChapter({
+      translationId,
+      book,
+      chapter: Math.floor(chapter),
+    });
+    if ("error" in result) throw new MobileApiError(result.error, 502);
+    return result;
+  },
+
+  async "wordOfGod.today"() {
+    return getTodaysWordOfGod();
+  },
+
+  async "wordOfGod.practice"(args) {
+    return completeWordOfGodPractice(str(args, "attempt", { required: true, max: 8000 }));
+  },
+
+  async library(args) {
+    const key = str(args, "username") || str(args, "userId");
+    if (!key) {
+      const user = await getCurrentUser();
+      if (!user) throw new MobileApiError("Please sign in.", 401);
+      const result = await getShareableLibrary(user.id);
+      if ("error" in result) throw new MobileApiError(result.error, 404);
+      return result;
+    }
+    const result = await getShareableLibrary(key);
+    if ("error" in result) throw new MobileApiError(result.error, 404);
+    return result;
+  },
+
+  async "library.keep"(args) {
+    const contentId = str(args, "contentId", { required: true, max: 64 });
+    const channelSlug = str(args, "channelSlug", { required: true, max: 200 });
+    return bool(args, "keep")
+      ? keepContent(contentId, channelSlug)
+      : unkeepContent(contentId, channelSlug);
+  },
+
+  async "journal.list"() {
+    const userId = await requireUserId();
+    return listJournalNotes(userId);
+  },
+
+  async "journal.save"(args) {
+    return upsertJournalNote({
+      id: str(args, "id", { max: 64 }) || undefined,
+      title: str(args, "title", { required: true, max: 200 }),
+      body: str(args, "body", { required: true, max: 20000 }),
+      isPublic: bool(args, "isPublic"),
+    });
+  },
+
+  async "journal.delete"(args) {
+    return deleteJournalNote(str(args, "id", { required: true, max: 64 }));
+  },
+
+  async "notifications.get"() {
+    return getNotificationPrefs();
+  },
+
+  async "notifications.update"(args) {
+    const patch: Record<string, boolean> = {};
+    for (const key of [
+      "prayerUpdates",
+      "comments",
+      "follows",
+      "reactions",
+      "wordOfGodReminder",
+      "channelUpdates",
+    ] as const) {
+      if (key in args) patch[key] = bool(args, key);
+    }
+    return updateNotificationPrefs(patch);
   },
 
   async channels(args) {

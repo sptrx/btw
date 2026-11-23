@@ -3,16 +3,20 @@ import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 
+import { AppDrawer } from '@/components/app-drawer';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useTheme } from '@/hooks/use-theme';
 import { AuthProvider, useAuth } from '@/lib/auth';
+import { DrawerProvider } from '@/lib/drawer';
 
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   return (
     <AuthProvider>
-      <RootStack />
+      <DrawerProvider>
+        <RootStack />
+      </DrawerProvider>
     </AuthProvider>
   );
 }
@@ -43,10 +47,15 @@ function RootStack() {
         },
       }}>
       <StatusBar style="auto" />
+      <AppDrawer />
       <Stack screenOptions={{ headerBackButtonDisplayMode: 'minimal', headerTintColor: theme.accent }}>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="post/[id]" options={{ title: '' }} />
         <Stack.Screen name="channel/[slug]" options={{ title: '' }} />
+        <Stack.Screen name="library/index" options={{ title: 'Library' }} />
+        <Stack.Screen name="library/[username]" options={{ title: 'Library' }} />
+        <Stack.Screen name="settings" options={{ title: 'Security & account' }} />
+        <Stack.Screen name="notifications" options={{ title: 'Notification alerts' }} />
         <Stack.Screen name="prayer/[id]" options={{ title: 'Prayer request' }} />
         <Stack.Screen name="prayer/new" options={{ title: 'Ask for prayer', presentation: 'modal' }} />
         <Stack.Screen name="sign-in" options={{ title: 'Sign in', presentation: 'modal' }} />

@@ -261,6 +261,7 @@ async function fetchTopicContentSlice(
     if (filter === "questions" && withSharingCol) q = q.eq("sharing_type", "question");
     if (filter === "devotionals" && withSharingCol) q = q.eq("sharing_type", "devotional");
     if (filter === "praise" && withSharingCol) q = q.eq("sharing_type", "praise_report");
+    if (filter === "prophecies" && withSharingCol) q = q.eq("sharing_type", "prophecy");
     if (filter === "testimonies" && withSharingCol) {
       q = q.eq("sharing_type", "testimony");
     } else if (filter === "revelations" && withSharingCol) {
@@ -449,6 +450,72 @@ function cursorBefore(
   return item.postKind < cursor.postKind;
 }
 
+/**
+ * Personalized ranking for the mobile "For you" tab.
+ * Heuristic (no cloud ML model): boost followed authors, types the viewer
+ * reacts to / saves, and fresher posts — then blend so the feed stays diverse.
+ */
+async function preferenceBoosts(userId: string | null): Promise<{
+  preferredTypes: Set<string>;
+}> {
+  if (!userId) return { preferredTypes: new Set() };
+  const supabase = await createClient();
+  const since = new Date(Date.now() - 45 * 86_400_000).toISOString();
+  const [{ data: reactions }, { data: saved }] = await Promise.all([
+    supabase
+      .from("post_reaction")
+      .select("post_id, post_kind")
+      .eq("user_id", userId)
+      .gte("created_at", since)
+      .limit(80),
+    supabase
+      .from("saved_content")
+      .select("topic_content_id")
+      .eq("user_id", userId)
+      .limit(40),
+  ]);
+
+  const contentIds = [
+    ...new Set([
+      ...(reactions ?? [])
+        .filter((r) => r.post_kind === "topic_content")
+        .map((r) => r.post_id),
+      ...(saved ?? []).map((r) => r.topic_content_id),
+    ]),
+  ].slice(0, 60);
+
+  if (contentIds.length === 0) return { preferredTypes: new Set() };
+
+  const { data: rows } = await supabase
+    .from("topic_content")
+    .select("sharing_type, type")
+    .in("id", contentIds);
+
+  const preferredTypes = new Set<string>();
+  for (const row of rows ?? []) {
+    if (row.sharing_type) preferredTypes.add(String(row.sharing_type));
+    if (row.type) preferredTypes.add(String(row.type));
+  }
+  return { preferredTypes };
+}
+
+function scoreForYouItem(
+  item: CommunityFeedItem,
+  preferredTypes: Set<string>,
+  now: number
+): number {
+  let score = 0;
+  if (item.fromFollowed || item.viewerFollowsAuthor) score += 40;
+  if (item.sharingType && preferredTypes.has(String(item.sharingType))) score += 25;
+  if (item.contentType && preferredTypes.has(item.contentType)) score += 12;
+  const ageHours = Math.max(0, (now - new Date(item.createdAt).getTime()) / 3_600_000);
+  score += Math.max(0, 30 - ageHours); // fresher posts rank higher
+  const reactionTotal = Object.values(item.reactions).reduce((a, b) => a + b, 0);
+  score += Math.min(20, reactionTotal * 2);
+  score += Math.min(10, item.commentCount ?? 0);
+  return score;
+}
+
 export async function getCommunityFeedPage(
   filter: CommunityFeedFilter = "all",
   limit = 20,
@@ -461,41 +528,48 @@ export async function getCommunityFeedPage(
   } = await supabase.auth.getUser();
   const followedTopicIds = await getFollowedTopicIds(user?.id ?? null);
   const followedUserIds = await getFollowedUserIds(user?.id ?? null);
+
+  // "for_you" fetches the broad pool (or a category passed as geo.category via filter remap).
+  // Callers that want a category under For you should pass that category as `filter` and
+  // set options.forYou — mobile API does that via getForYouFeedPage.
+  const contentFilter: CommunityFeedFilter = filter === "for_you" ? "all" : filter;
+
   const followedAuthorIds =
-    filter === "following" ? [...followedUserIds] : null;
+    contentFilter === "following" ? [...followedUserIds] : null;
 
   const safeLimit = Math.min(Math.max(limit, 1), 30);
-  const fetchLimit = safeLimit * 3;
+  const fetchLimit = filter === "for_you" ? safeLimit * 5 : safeLimit * 3;
 
   const tagMap = await getTagIdsBySlugs([TESTIMONY_TAG_SLUG, REVELATION_TAG_SLUG]);
   const testimonyTagId = tagMap.get(TESTIMONY_TAG_SLUG);
   const revelationTagId = tagMap.get(REVELATION_TAG_SLUG);
 
-  const [testimonyContentIds, revelationContentIds] = await Promise.all([
-    filter === "testimonies" || filter === "all"
+  const [testimonyContentIds, revelationContentIds, boosts] = await Promise.all([
+    contentFilter === "testimonies" || contentFilter === "all" || filter === "for_you"
       ? testimonyTagId
         ? getContentIdsWithTag(testimonyTagId)
         : Promise.resolve(new Set<string>())
       : Promise.resolve(null),
-    filter === "revelations" || filter === "all"
+    contentFilter === "revelations" || contentFilter === "all" || filter === "for_you"
       ? revelationTagId
         ? getContentIdsWithTag(revelationTagId)
         : Promise.resolve(new Set<string>())
       : Promise.resolve(null),
+    filter === "for_you" ? preferenceBoosts(user?.id ?? null) : Promise.resolve({ preferredTypes: new Set<string>() }),
   ]);
 
   const [contentRows, prayerRows, praiseRows] = await Promise.all([
     fetchTopicContentSlice(
-      filter,
+      contentFilter,
       fetchLimit,
       cursor,
-      filter === "testimonies" ? testimonyContentIds : null,
-      filter === "revelations" ? revelationContentIds : null,
+      contentFilter === "testimonies" ? testimonyContentIds : null,
+      contentFilter === "revelations" ? revelationContentIds : null,
       followedAuthorIds,
       geo
     ),
-    fetchPrayerSlice(filter, fetchLimit, cursor, followedAuthorIds, geo),
-    fetchPraiseSlice(filter, fetchLimit, cursor, followedAuthorIds),
+    fetchPrayerSlice(contentFilter, fetchLimit, cursor, followedAuthorIds, geo),
+    fetchPraiseSlice(contentFilter, fetchLimit, cursor, followedAuthorIds),
   ]);
 
   const topicIds = [...new Set(contentRows.map((r) => r.topic_id))];
@@ -545,6 +619,7 @@ export async function getCommunityFeedPage(
 
     if (filter === "testimonies" && sharing !== "testimony") continue;
     if (filter === "revelations" && sharing !== "revelation") continue;
+    if (filter === "prophecies" && sharing !== "prophecy") continue;
     if (filter === "questions" && sharing !== "question") continue;
     if (filter === "devotionals" && sharing !== "devotional") continue;
     if (filter === "praise" && sharing !== "praise_report") continue;
@@ -656,23 +731,36 @@ export async function getCommunityFeedPage(
     });
   }
 
-  const sorted = sortFeedItems(items).filter((item) => cursorBefore(item, cursor));
-  const pageItems = sorted.slice(0, safeLimit);
-  const hasMore = sorted.length > safeLimit;
+  const candidate = sortFeedItems(items).filter((item) => cursorBefore(item, cursor));
 
-  const reactionKeys: PostReactionKey[] = pageItems.map((i) => ({
+  // Load reactions before ranking so engagement can influence "For you".
+  const reactionKeys: PostReactionKey[] = candidate.map((i) => ({
     postId: i.id,
     postKind: i.postKind,
   }));
   const reactions = await getPostReactions(reactionKeys);
-
-  for (const item of pageItems) {
+  for (const item of candidate) {
     const state = reactions.get(`${item.postKind}:${item.id}`);
     if (state) {
       item.reactions = state.counts;
       item.userReaction = state.userReaction;
     }
   }
+
+  const ranked =
+    filter === "for_you"
+      ? [...candidate].sort((a, b) => {
+          const now = Date.now();
+          const diff =
+            scoreForYouItem(b, boosts.preferredTypes, now) -
+            scoreForYouItem(a, boosts.preferredTypes, now);
+          if (diff !== 0) return diff;
+          return b.createdAt.localeCompare(a.createdAt);
+        })
+      : candidate;
+
+  const pageItems = ranked.slice(0, safeLimit);
+  const hasMore = ranked.length > safeLimit;
 
   const last = pageItems[pageItems.length - 1];
   const nextCursor: CommunityFeedCursor | null =
@@ -681,4 +769,34 @@ export async function getCommunityFeedPage(
       : null;
 
   return { items: pageItems, nextCursor };
+}
+
+/** For you tab with an optional category chip (testimonies, prophecies, …). */
+export async function getForYouFeedPage(
+  category: CommunityFeedFilter = "all",
+  limit = 20,
+  cursor: CommunityFeedCursor | null = null,
+  geo: CommunityFeedGeoFilter = {}
+): Promise<CommunityFeedPage> {
+  const categoryFilter =
+    category === "following" || category === "for_you" ? "all" : category;
+  if (categoryFilter === "all") {
+    return getCommunityFeedPage("for_you", limit, cursor, geo);
+  }
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const page = await getCommunityFeedPage(categoryFilter, Math.min(limit * 3, 30), cursor, geo);
+  const boosts = await preferenceBoosts(user?.id ?? null);
+  const now = Date.now();
+  const ranked = [...page.items].sort(
+    (a, b) =>
+      scoreForYouItem(b, boosts.preferredTypes, now) -
+      scoreForYouItem(a, boosts.preferredTypes, now)
+  );
+  return {
+    items: ranked.slice(0, limit),
+    nextCursor: page.nextCursor,
+  };
 }

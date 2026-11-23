@@ -13,19 +13,19 @@ export type ReactionCounts = Record<ReactionType, number>;
 export type PostKind = 'topic_content' | 'prayer_request' | 'praise_report';
 export type MediaItem = { url: string; type: string };
 
-export const FEED_FILTERS = [
-  { id: 'all', label: 'All' },
-  { id: 'following', label: 'Following' },
-  { id: 'testimonies', label: 'Testimonies' },
-  { id: 'revelations', label: 'Revelations' },
-  { id: 'questions', label: 'Questions' },
-  { id: 'devotionals', label: 'Devotionals' },
-  { id: 'discussions', label: 'Discussions' },
-  { id: 'praise', label: 'Praise' },
-  { id: 'prayer', label: 'Prayer' },
-  { id: 'videos', label: 'Videos' },
-] as const;
-export type FeedFilter = (typeof FEED_FILTERS)[number]['id'];
+export type FeedFilter =
+  | 'all'
+  | 'following'
+  | 'for_you'
+  | 'testimonies'
+  | 'revelations'
+  | 'prophecies'
+  | 'discussions'
+  | 'questions'
+  | 'devotionals'
+  | 'praise'
+  | 'prayer'
+  | 'videos';
 
 export type FeedItem = {
   id: string;
@@ -179,10 +179,85 @@ export type PrayerComment = {
   authorId: string;
 };
 
-/** Returned by actions that may hold a submission for human review. */
 export type SubmitResult = {
   success: true;
   pendingReview?: boolean;
   message?: string;
   guideError?: string;
+};
+
+export type ShareableLibrary = {
+  libraryTitle: string;
+  isOwner: boolean;
+  owner: {
+    id: string;
+    displayName: string | null;
+    username: string | null;
+    avatarUrl: string | null;
+  };
+  walkingWith: {
+    topicId: string;
+    title: string;
+    slug: string;
+    description: string | null;
+    coverImageUrl: string | null;
+  }[];
+  kept: {
+    contentId: string;
+    title: string;
+    typeLabel: string;
+    channelSlug: string;
+    channelTitle: string;
+    bodySnippet: string | null;
+  }[];
+  memorized: {
+    id: string;
+    reference: string;
+    text: string;
+    practicedOn: string;
+    practiceCount: number;
+  }[];
+  notes: {
+    id: string;
+    title: string;
+    body: string;
+    isPublic: boolean;
+    updatedAt: string;
+  }[];
+};
+
+export type NotificationPrefs = {
+  prayerUpdates: boolean;
+  comments: boolean;
+  follows: boolean;
+  reactions: boolean;
+  wordOfGodReminder: boolean;
+  channelUpdates: boolean;
+};
+
+export type BibleTranslation = { id: string; label: string };
+
+export type BibleBookSummary = {
+  abbrev: string;
+  title: string;
+  chapterCount: number;
+  index: number;
+};
+
+export type BibleChapterNav = {
+  abbrev: string;
+  bookTitle: string;
+  chapter: number;
+};
+
+export type BibleChapter = {
+  translationId: string;
+  translationLabel: string;
+  abbrev: string;
+  bookTitle: string;
+  chapter: number;
+  chapterCount: number;
+  verses: { verse: number; text: string }[];
+  prev: BibleChapterNav | null;
+  next: BibleChapterNav | null;
 };

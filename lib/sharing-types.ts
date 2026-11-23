@@ -7,12 +7,14 @@ import {
   MessagesSquare,
   Sparkles,
   Sun,
+  ScrollText,
 } from "lucide-react";
 
 /** Semantic "what are you sharing?" — separate from media format (`ContentType`). */
 export type SharingType =
   | "testimony"
   | "revelation"
+  | "prophecy"
   | "prayer_request"
   | "praise_report"
   | "question"
@@ -22,6 +24,7 @@ export type SharingType =
 export const SHARING_TYPES: SharingType[] = [
   "testimony",
   "revelation",
+  "prophecy",
   "prayer_request",
   "praise_report",
   "question",
@@ -62,6 +65,16 @@ export const SHARING_TYPE_CONFIG: Record<SharingType, SharingTypeConfig> = {
     icon: Lightbulb,
     badgeClass:
       "border-violet-500/40 bg-violet-500/15 text-violet-900 dark:text-violet-100",
+  },
+  prophecy: {
+    value: "prophecy",
+    label: "Prophecy",
+    shortLabel: "Prophecy",
+    description: "A word you believe the Lord is speaking for edification",
+    placeholder: "Share the prophetic word carefully and with humility…",
+    icon: ScrollText,
+    badgeClass:
+      "border-indigo-500/40 bg-indigo-500/15 text-indigo-900 dark:text-indigo-100",
   },
   prayer_request: {
     value: "prayer_request",
@@ -131,8 +144,10 @@ export function sharingTypeBadgeClass(type: string): string {
 export type SharingFeedFilter =
   | "all"
   | "following"
+  | "for_you"
   | "testimonies"
   | "revelations"
+  | "prophecies"
   | "discussions"
   | "questions"
   | "devotionals"
@@ -143,8 +158,10 @@ export type SharingFeedFilter =
 export const SHARING_FEED_FILTERS: { id: SharingFeedFilter; label: string }[] = [
   { id: "all", label: "All" },
   { id: "following", label: "Following" },
+  { id: "for_you", label: "For you" },
   { id: "testimonies", label: "Testimonies" },
   { id: "revelations", label: "Revelations" },
+  { id: "prophecies", label: "Prophecies" },
   { id: "questions", label: "Questions" },
   { id: "devotionals", label: "Devotionals" },
   { id: "discussions", label: "Discussions" },
@@ -153,8 +170,22 @@ export const SHARING_FEED_FILTERS: { id: SharingFeedFilter; label: string }[] = 
   { id: "videos", label: "Videos" },
 ];
 
+/** Category chips under the mobile "For you" tab (not top-level navigation). */
+export const FOR_YOU_CATEGORY_FILTERS: { id: SharingFeedFilter; label: string }[] = [
+  { id: "all", label: "All" },
+  { id: "testimonies", label: "Testimonies" },
+  { id: "prophecies", label: "Prophecies" },
+  { id: "revelations", label: "Revelations" },
+  { id: "discussions", label: "Discussions" },
+  { id: "questions", label: "Questions" },
+  { id: "devotionals", label: "Devotionals" },
+  { id: "praise", label: "Praise" },
+  { id: "prayer", label: "Prayer requests" },
+  { id: "videos", label: "Videos" },
+];
+
 export function browseTypeHref(type: SharingType): string {
-  return `/feed?filter=${type === "testimony" ? "testimonies" : type === "revelation" ? "revelations" : type === "question" ? "questions" : type === "devotional" ? "devotionals" : type === "praise_report" ? "praise" : type === "prayer_request" ? "prayer" : type === "discussion" ? "discussions" : "all"}`;
+  return `/feed?filter=${type === "testimony" ? "testimonies" : type === "revelation" ? "revelations" : type === "prophecy" ? "prophecies" : type === "question" ? "questions" : type === "devotional" ? "devotionals" : type === "praise_report" ? "praise" : type === "prayer_request" ? "prayer" : type === "discussion" ? "discussions" : "all"}`;
 }
 
 /** Map sharing type to default media `type` on insert. */

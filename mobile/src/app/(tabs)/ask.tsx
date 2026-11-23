@@ -10,7 +10,8 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { AppText, Button, Chip, Notice, ScreenHeader } from '@/components/ui';
+import { AppChrome } from '@/components/app-chrome';
+import { AppText, Button, Chip, Notice } from '@/components/ui';
 import { MaxContentWidth, Radius, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { askBible } from '@/lib/api';
@@ -55,16 +56,21 @@ export default function AskScreen() {
   }
 
   return (
+    <AppChrome>
     <KeyboardAvoidingView
       style={[styles.fill, { backgroundColor: theme.background }]}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView
         ref={scroll}
         contentContainerStyle={styles.content}
-        contentInsetAdjustmentBehavior="automatic"
         keyboardDismissMode="interactive"
         onContentSizeChange={() => scroll.current?.scrollToEnd({ animated: true })}>
-        <ScreenHeader title="Ask" subtitle="Questions about the Bible, answered with Scripture" />
+        <View style={styles.titleBlock}>
+          <AppText variant="title">Ask</AppText>
+          <AppText variant="small" tone="secondary">
+            Questions about the Bible, answered with Scripture
+          </AppText>
+        </View>
         <View style={styles.thread}>
           {messages.length === 0 ? (
             <View style={styles.suggestions}>
@@ -120,12 +126,14 @@ export default function AskScreen() {
         <Button title="Ask" small onPress={() => send(input)} disabled={!input.trim() || thinking} />
       </SafeAreaView>
     </KeyboardAvoidingView>
+    </AppChrome>
   );
 }
 
 const styles = StyleSheet.create({
   fill: { flex: 1 },
   content: { paddingBottom: Spacing.four },
+  titleBlock: { paddingHorizontal: Spacing.three, paddingTop: Spacing.three, gap: Spacing.one },
   thread: {
     paddingHorizontal: Spacing.three,
     gap: Spacing.three,

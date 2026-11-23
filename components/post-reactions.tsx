@@ -2,12 +2,10 @@
 
 import { useCallback, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Popover } from "radix-ui";
 import { clearPostReaction, setPostReaction } from "@/actions/reactions";
 import {
   POST_REACTION_META,
   POST_REACTION_TYPES,
-  reactionTypesWithCounts,
   totalReactions,
   type FeedPostKind,
   type PostReactionType,
@@ -22,9 +20,46 @@ type Props = {
   initialUserReaction: PostReactionType | null;
   isAuthenticated: boolean;
   loginNext?: string;
-  compact?: boolean;
+  /** Site-relative path used when tapping Sharing (e.g. `/channel/foo/content/123`). */
+  sharePath?: string;
+  shareTitle?: string;
+  shareText?: string;
   className?: string;
 };
+
+function buildShareUrl(path: string): string {
+  if (typeof window === "undefined") return path;
+  try {
+    const u = new URL(path, window.location.origin);
+    return `${u.origin}${u.pathname}`;
+  } catch {
+    return `${window.location.origin}${path.startsWith("/") ? path : `/${path}`}`;
+  }
+}
+
+async function shareLink(path: string, title?: string, text?: string) {
+  const url = buildShareUrl(path);
+  if (typeof navigator !== "undefined" && typeof navigator.share === "function") {
+    const payload = { title, text: text ?? title, url };
+    try {
+      if (!navigator.canShare || navigator.canShare(payload)) {
+        await navigator.share(payload);
+        return;
+      }
+    } catch (err) {
+      if (err instanceof Error && err.name === "AbortError") return;
+    }
+  }
+  try {
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(url);
+      return;
+    }
+  } catch {
+    /* fall through */
+  }
+  window.prompt("Copy this link to share:", url);
+}
 
 export function PostReactions({
   postId,
@@ -33,15 +68,17 @@ export function PostReactions({
   initialUserReaction,
   isAuthenticated,
   loginNext,
-  compact = false,
+  sharePath,
+  shareTitle,
+  shareText,
   className,
 }: Props) {
   const router = useRouter();
   const [counts, setCounts] = useState(initialCounts);
   const [userReaction, setUserReaction] = useState(initialUserReaction);
-  const [open, setOpen] = useState(false);
   const [pulseType, setPulseType] = useState<PostReactionType | null>(null);
   const [pending, startTransition] = useTransition();
+  const [shareHint, setShareHint] = useState<string | null>(null);
 
   const loginHref = `/auth/login?next=${encodeURIComponent(loginNext ?? "/")}`;
 
@@ -64,16 +101,28 @@ export function PostReactions({
   };
 
   const handlePick = (type: PostReactionType) => {
+    if (type === "sharing" && sharePath) {
+      void shareLink(sharePath, shareTitle, shareText).then(() => {
+        setShareHint("Ready to share");
+        window.setTimeout(() => setShareHint(null), 1600);
+      });
+    }
+
     if (!isAuthenticated) {
-      router.push(loginHref);
+      // Sharing already opened the sheet; other reactions need sign-in.
+      if (type !== "sharing") router.push(loginHref);
       return;
     }
 
     const prev = userReaction;
     const next = prev === type ? null : type;
+    // Tapping Sharing while already selected still shares above, but don't clear the reaction.
+    if (type === "sharing" && prev === "sharing") {
+      return;
+    }
+
     applyOptimistic(prev, next);
     if (next) triggerPulse(next);
-    setOpen(false);
 
     startTransition(async () => {
       const res =
@@ -89,99 +138,55 @@ export function PostReactions({
     });
   };
 
-  const activeTypes = reactionTypesWithCounts(counts);
   const total = totalReactions(counts);
-  const pickerLabel = userReaction
-    ? POST_REACTION_META[userReaction].label
-    : "Respond in faith";
 
   return (
     <div className={cn("space-y-2", className)}>
-      <div className="flex flex-wrap items-center gap-2">
-        <Popover.Root open={open} onOpenChange={setOpen}>
-          <Popover.Trigger asChild>
+      <div className="flex flex-wrap items-center gap-1.5" role="group" aria-label="Faith reactions">
+        {POST_REACTION_TYPES.map((type) => {
+          const meta = POST_REACTION_META[type];
+          const selected = userReaction === type;
+          const count = counts[type];
+          return (
             <button
+              key={type}
               type="button"
-              disabled={pending}
-              aria-label={pickerLabel}
-              aria-haspopup="dialog"
+              disabled={pending && type !== "sharing"}
+              title={type === "sharing" ? `${meta.label} — open share sheet` : meta.label}
+              aria-label={
+                type === "sharing"
+                  ? `Share this post${count > 0 ? `, ${count}` : ""}`
+                  : `${meta.label}${count > 0 ? `, ${count}` : ""}`
+              }
+              aria-pressed={selected}
+              onClick={() => handlePick(type)}
               className={cn(
-                "inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm font-medium transition-all duration-150",
-                "border-border/80 bg-background/80 text-foreground hover:bg-muted/60 active:scale-[0.98]",
-                userReaction && "border-primary/40 bg-primary/5 text-foreground",
-                compact && "px-2.5 py-1 text-xs"
+                "inline-flex min-h-9 items-center gap-1 rounded-full border px-2.5 py-1.5 text-sm transition-all duration-150",
+                "border-border/80 bg-background/80 hover:bg-muted/60 active:scale-[0.98]",
+                selected && "border-primary/40 bg-primary/5",
+                pulseType === type && "scale-105"
               )}
             >
-              <span aria-hidden className="text-base leading-none">
-                {userReaction ? POST_REACTION_META[userReaction].emoji : "✨"}
+              <span className="text-base leading-none" aria-hidden>
+                {meta.emoji}
               </span>
-              <span>{userReaction ? POST_REACTION_META[userReaction].shortLabel : "Respond"}</span>
+              <span className="text-xs font-medium text-muted-foreground">{meta.shortLabel}</span>
+              {count > 0 ? (
+                <span className="text-xs tabular-nums text-muted-foreground">{count}</span>
+              ) : null}
             </button>
-          </Popover.Trigger>
-          <Popover.Portal>
-            <Popover.Content
-              side="top"
-              align="start"
-              sideOffset={8}
-              className="z-50 rounded-xl border border-border/80 bg-popover p-2 shadow-lg outline-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0"
-            >
-              <p className="px-2 pb-1.5 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
-                Faith reactions
-              </p>
-              <div className="flex flex-wrap gap-1 max-w-[min(100vw-2rem,20rem)]">
-                {POST_REACTION_TYPES.map((type) => {
-                  const meta = POST_REACTION_META[type];
-                  const selected = userReaction === type;
-                  return (
-                    <button
-                      key={type}
-                      type="button"
-                      title={meta.label}
-                      onClick={() => handlePick(type)}
-                      className={cn(
-                        "flex flex-col items-center gap-0.5 rounded-lg px-2.5 py-2 text-xs transition-all duration-150 hover:bg-muted",
-                        selected && "bg-primary/10 ring-1 ring-primary/30",
-                        pulseType === type && "scale-110"
-                      )}
-                    >
-                      <span className="text-lg leading-none" aria-hidden>
-                        {meta.emoji}
-                      </span>
-                      <span className="max-w-[4.5rem] text-center leading-tight text-muted-foreground">
-                        {meta.shortLabel}
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
-              <Popover.Arrow className="fill-border" />
-            </Popover.Content>
-          </Popover.Portal>
-        </Popover.Root>
+          );
+        })}
+      </div>
 
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
         {total > 0 ? (
-          <span className="text-xs text-muted-foreground tabular-nums">
+          <span className="tabular-nums">
             {total} {total === 1 ? "response" : "responses"}
           </span>
         ) : null}
+        {shareHint ? <span className="text-primary">{shareHint}</span> : null}
       </div>
-
-      {activeTypes.length > 0 ? (
-        <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
-          {activeTypes.map((type) => (
-            <span
-              key={type}
-              className={cn(
-                "inline-flex items-center gap-1 tabular-nums transition-transform duration-200",
-                pulseType === type && "scale-110 text-foreground"
-              )}
-            >
-              <span aria-hidden>{POST_REACTION_META[type].emoji}</span>
-              <span>{counts[type]}</span>
-            </span>
-          ))}
-        </div>
-      ) : null}
     </div>
   );
 }

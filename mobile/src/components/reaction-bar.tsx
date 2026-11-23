@@ -1,7 +1,7 @@
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Alert, Pressable, Share, StyleSheet, Text, View } from 'react-native';
 
 import { AppText } from '@/components/ui';
 import { Radius, Spacing } from '@/constants/theme';
@@ -17,23 +17,51 @@ export function ReactionBar({
   postKind,
   counts,
   userReaction,
+  shareUrl,
+  shareTitle,
 }: {
   postId: string;
   postKind: PostKind;
   counts: ReactionCounts | null;
   userReaction: ReactionType | null;
+  /** When set, tapping Sharing opens the system share sheet. */
+  shareUrl?: string | null;
+  shareTitle?: string | null;
 }) {
   const theme = useTheme();
   const router = useRouter();
   const { session } = useAuth();
   const [state, setState] = useState({ counts: counts ?? EMPTY, mine: userReaction });
 
+  async function openShare() {
+    if (!shareUrl) return;
+    try {
+      await Share.share({
+        message: shareTitle ? `${shareTitle}\n${shareUrl}` : shareUrl,
+        url: shareUrl,
+        title: shareTitle ?? undefined,
+      });
+    } catch {
+      /* user cancelled */
+    }
+  }
+
   async function choose(type: ReactionType) {
+    if (type === 'sharing') {
+      await openShare();
+    }
+
     if (!session) {
-      router.push('/sign-in');
+      if (type !== 'sharing') router.push('/sign-in');
       return;
     }
+
     const previous = state;
+    // Sharing always shares; don't clear the reaction if already selected.
+    if (type === 'sharing' && previous.mine === 'sharing') {
+      return;
+    }
+
     const next = previous.mine === type ? null : type;
     const nextCounts = { ...previous.counts };
     if (previous.mine) nextCounts[previous.mine] = Math.max(0, nextCounts[previous.mine] - 1);
@@ -59,7 +87,9 @@ export function ReactionBar({
             key={r.type}
             onPress={() => choose(r.type)}
             accessibilityRole="button"
-            accessibilityLabel={`${r.label}, ${count}`}
+            accessibilityLabel={
+              r.type === 'sharing' ? `Share, ${count}` : `${r.label}, ${count}`
+            }
             accessibilityState={{ selected }}
             hitSlop={4}
             style={[
@@ -68,6 +98,9 @@ export function ReactionBar({
               selected && { backgroundColor: theme.muted },
             ]}>
             <Text style={styles.emoji}>{r.emoji}</Text>
+            <AppText variant="caption" tone={selected ? 'primary' : 'secondary'}>
+              {r.label}
+            </AppText>
             {count > 0 ? (
               <AppText variant="caption" tone={selected ? 'primary' : 'secondary'} style={styles.count}>
                 {count}
@@ -84,7 +117,6 @@ const styles = StyleSheet.create({
   row: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.two },
   pill: {
     minHeight: 36,
-    minWidth: 44,
     paddingHorizontal: Spacing.two,
     borderRadius: Radius.pill,
     borderWidth: 1,

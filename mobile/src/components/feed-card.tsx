@@ -3,8 +3,20 @@ import { StyleSheet, View } from 'react-native';
 
 import { ReactionBar } from '@/components/reaction-bar';
 import { AppText, Badge, Card } from '@/components/ui';
+import { config } from '@/lib/config';
 import { plural, timeAgo } from '@/lib/format';
 import type { FeedItem } from '@/lib/types';
+
+function shareUrlFor(item: FeedItem): string {
+  if (item.postKind === 'topic_content') {
+    const slug = item.channelSlug ?? 'browse';
+    return `${config.siteUrl}/channel/${slug}/content/${item.id}`;
+  }
+  if (item.postKind === 'prayer_request') {
+    return `${config.siteUrl}/prayer/${item.id}`;
+  }
+  return `${config.siteUrl}/prayer`;
+}
 
 export function FeedCard({ item }: { item: FeedItem }) {
   const router = useRouter();
@@ -59,6 +71,8 @@ export function FeedCard({ item }: { item: FeedItem }) {
         postKind={item.postKind}
         counts={item.reactions}
         userReaction={item.userReaction}
+        shareUrl={shareUrlFor(item)}
+        shareTitle={item.title}
       />
     </Card>
   );

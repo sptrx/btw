@@ -271,6 +271,9 @@ export function CommunityFeedCard({ item, displayFontClassName, isAuthenticated 
             initialUserReaction={item.userReaction}
             isAuthenticated={isAuthenticated}
             loginNext={item.href}
+            sharePath={item.href}
+            shareTitle={item.title}
+            shareText={item.title ? `Check out: ${item.title}` : undefined}
             className="mt-3"
           />
         </div>

@@ -45,6 +45,9 @@ export default function ContentActions({
         initialUserReaction={userReaction}
         isAuthenticated={isAuthenticated}
         loginNext={sharePath}
+        sharePath={sharePath}
+        shareTitle={contentTitle}
+        shareText={contentTitle ? `Check out: ${contentTitle}` : undefined}
       />
 
       <div className="flex flex-wrap items-center gap-3">

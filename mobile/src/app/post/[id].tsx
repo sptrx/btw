@@ -132,6 +132,8 @@ export default function PostScreen() {
           postKind="topic_content"
           counts={data.reactions}
           userReaction={data.userReaction}
+          shareUrl={`${config.siteUrl}/channel/${post.channelSlug ?? 'browse'}/content/${post.id}`}
+          shareTitle={post.title}
         />
         <View style={styles.rowActions}>
           <Button title="Share" variant="secondary" small onPress={share} />

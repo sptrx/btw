@@ -109,7 +109,7 @@ function FeedCard({
               <h3
                 className={cn(
                   displayFontClassName,
-                  "text-[17px] sm:text-xl font-normal leading-snug text-foreground group-hover:text-primary transition-colors"
+                  "text-[17px] sm:text-xl leading-snug text-foreground group-hover:text-primary transition-colors"
                 )}
               >
                 {item.title}

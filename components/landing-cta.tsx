@@ -21,7 +21,7 @@ export function LandingCta({ displayFontClassName, isAuthenticated = false }: Pr
           </p>
           <h2
             id="landing-cta-heading"
-            className={cn(displayFontClassName, "text-3xl sm:text-4xl font-normal text-balance")}
+            className={cn(displayFontClassName, "text-3xl sm:text-4xl text-balance")}
           >
             Join the community
           </h2>

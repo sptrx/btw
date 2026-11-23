@@ -49,7 +49,7 @@ export function LandingFeatured({ items, displayFontClassName }: Props) {
               <h3
                 className={cn(
                   displayFontClassName,
-                  "mt-2 text-xl font-normal leading-snug text-foreground group-hover:text-primary transition-colors text-balance"
+                  "mt-2 text-xl leading-snug text-foreground group-hover:text-primary transition-colors text-balance"
                 )}
               >
                 {item.title}

@@ -12,7 +12,7 @@ type Props = {
 
 export function TestimonyPreviewCard({ item, displayFontClassName }: Props) {
   return (
-    <article className="btw-surface flex h-full flex-col rounded-2xl border border-border/70 p-5 shadow-sm transition-shadow hover:shadow-md">
+    <article className="btw-surface flex h-full flex-col p-5 transition-colors hover:bg-muted/40">
       <div className="flex items-center gap-3">
         <Link
           href={`/channel/${item.channelSlug}`}
@@ -44,7 +44,7 @@ export function TestimonyPreviewCard({ item, displayFontClassName }: Props) {
           </p>
         </div>
       </div>
-      <h3 className={cn(displayFontClassName, "mt-4 text-lg font-normal leading-snug")}>
+      <h3 className={cn(displayFontClassName, "mt-4 text-lg leading-snug")}>
         <Link href={item.href} className="hover:underline">
           {item.title}
         </Link>

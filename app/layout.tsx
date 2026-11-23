@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, Playfair_Display } from "next/font/google";
+import { DM_Sans, Source_Serif_4 } from "next/font/google";
 import Script from "next/script";
 import Header from "@/components/header";
 import { SiteShell } from "@/components/site-shell";
@@ -16,7 +16,8 @@ import { getSupabaseInlineConfig } from "@/utils/supabase/public-env";
 /** Read Worker/runtime Supabase env on each request so we can inject it for the browser when NEXT_PUBLIC_* was missing at build. */
 export const dynamic = "force-dynamic";
 
-const inter = Inter({
+/** UI + titles — matches mobile “calm fintech” sans hierarchy (not Inter). */
+const dmSans = DM_Sans({
   subsets: ["latin"],
   variable: "--font-sans",
   display: "swap",
@@ -24,10 +25,11 @@ const inter = Inter({
   adjustFontFallback: true,
 });
 
-const playfair = Playfair_Display({
+/** Scripture / long-form reading only (Bible, verse blocks). */
+const sourceSerif = Source_Serif_4({
   subsets: ["latin"],
   display: "swap",
-  variable: "--font-landing-display",
+  variable: "--font-reader",
   adjustFontFallback: true,
 });
 
@@ -76,8 +78,8 @@ export const viewport: Viewport = {
   initialScale: 1,
   viewportFit: "cover",
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#faf6ee" },
-    { media: "(prefers-color-scheme: dark)", color: "#1c1812" },
+    { media: "(prefers-color-scheme: light)", color: "#F8F4EA" },
+    { media: "(prefers-color-scheme: dark)", color: "#0F0E0C" },
   ],
 };
 
@@ -91,11 +93,11 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={cn("font-sans", inter.variable, playfair.variable)}
+      className={cn("font-sans", dmSans.variable, sourceSerif.variable)}
       suppressHydrationWarning
     >
       <body
-        className={cn(inter.className, "min-h-dvh pb-[env(safe-area-inset-bottom)]")}
+        className={cn(dmSans.className, "min-h-dvh pb-[env(safe-area-inset-bottom)]")}
         suppressHydrationWarning
       >
         {supabaseInline ? (

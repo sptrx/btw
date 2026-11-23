@@ -1,5 +1,8 @@
-/** Shared BTW typography — Playfair display + Inter UI (see globals.css). */
-export const btwDisplayFont = "font-[family-name:var(--font-landing-display)]";
+/** Shared BTW typography — DM Sans for UI + titles; Source Serif for reader only. */
+export const btwDisplayFont =
+  "font-[family-name:var(--font-landing-display)] font-semibold tracking-tight";
+
+export const btwReaderFont = "font-[family-name:var(--font-reader)]";
 
 export const btwPageTitle = "btw-page-title";
 export const btwPageTitleSm = "btw-page-title-sm";

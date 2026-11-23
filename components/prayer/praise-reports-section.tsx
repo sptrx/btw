@@ -16,7 +16,7 @@ export function PraiseReportsSection({ reports, displayFontClassName }: Props) {
       <div className="mb-6 space-y-1">
         <h2
           id="praise-reports-heading"
-          className={cn(displayFontClassName, "text-2xl font-normal text-foreground sm:text-3xl")}
+          className={cn(displayFontClassName, "text-2xl text-foreground sm:text-3xl")}
         >
           Praise Reports
         </h2>

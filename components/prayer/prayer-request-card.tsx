@@ -68,7 +68,7 @@ export function PrayerRequestCard({
             <h2
               className={cn(
                 displayFontClassName,
-                "text-lg font-normal text-foreground group-hover:text-primary transition-colors sm:text-xl"
+                "text-lg text-foreground group-hover:text-primary transition-colors sm:text-xl"
               )}
             >
               {item.title}

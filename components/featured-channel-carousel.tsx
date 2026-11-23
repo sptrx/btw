@@ -94,7 +94,7 @@ function FeaturedCarouselSlide({
               <p
                 className={cn(
                   displayFontClassName,
-                  "mt-2 text-xl sm:text-2xl md:text-3xl font-normal leading-tight"
+                  "mt-2 text-xl sm:text-2xl md:text-3xl leading-tight"
                 )}
               >
                 {item.title}

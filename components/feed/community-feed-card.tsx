@@ -186,7 +186,7 @@ export function CommunityFeedCard({ item, displayFontClassName, isAuthenticated 
           </div>
 
           {item.scriptureReference ? (
-            <p className="mt-1 text-xs font-medium text-muted-foreground">
+            <p className="mt-1 text-xs font-medium text-primary">
               {item.scriptureReference}
             </p>
           ) : null}
@@ -196,7 +196,7 @@ export function CommunityFeedCard({ item, displayFontClassName, isAuthenticated 
               <h3
                 className={cn(
                   displayFontClassName,
-                  "text-[17px] sm:text-xl font-normal leading-snug text-foreground group-hover:text-primary transition-colors"
+                  "text-[17px] sm:text-xl leading-snug text-foreground group-hover:text-primary transition-colors"
                 )}
               >
                 {item.title}

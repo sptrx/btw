@@ -15,7 +15,7 @@ export function PersonalizedHome({ data, displayFontClassName }: Props) {
     <div className="space-y-10 pb-8">
       <header className="space-y-2">
         <p className="btw-overline text-primary">Your home</p>
-        <h1 className={cn(displayFontClassName, "text-3xl font-normal sm:text-4xl")}>
+        <h1 className={cn(displayFontClassName, "text-3xl sm:text-4xl")}>
           Welcome back, {data.displayName}
         </h1>
         <p className="max-w-xl text-sm text-muted-foreground">

@@ -25,7 +25,7 @@ export function LandingPrayerWidget({ requests, displayFontClassName }: Props) {
             <p className="btw-overline text-primary">Prayer Wall</p>
             <h2
               id="landing-prayer-heading"
-              className={cn(displayFontClassName, "text-2xl font-normal sm:text-3xl")}
+              className={cn(displayFontClassName, "text-2xl sm:text-3xl")}
             >
               Pray with us
             </h2>

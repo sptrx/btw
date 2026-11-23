@@ -25,7 +25,7 @@ export function LandingSeekerSection({ displayFontClassName }: Props) {
             id="landing-seeker-heading"
             className={cn(
               displayFontClassName,
-              "mt-5 text-balance text-2xl font-normal tracking-tight sm:text-3xl md:text-4xl",
+              "mt-5 text-balance text-2xl tracking-tight sm:text-3xl md:text-4xl",
             )}
           >
             Curious about faith? You&apos;re welcome here.

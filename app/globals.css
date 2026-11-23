@@ -239,7 +239,8 @@ body {
   }
 
   .btw-surface-interactive:hover {
-    @apply motion-safe:border-border motion-safe:bg-muted/60;
+    @apply motion-safe:border-border;
+    background-color: color-mix(in oklch, var(--muted) 60%, var(--background));
   }
 
   .btw-surface-lift {
@@ -247,7 +248,8 @@ body {
   }
 
   .btw-surface-lift:hover {
-    @apply motion-safe:border-border motion-safe:bg-muted/60;
+    @apply motion-safe:border-border;
+    background-color: color-mix(in oklch, var(--muted) 60%, var(--background));
   }
 
   .btw-content-panel {
@@ -259,7 +261,11 @@ body {
   }
 
   .btw-app-row {
-    @apply block border-b border-border bg-transparent px-4 py-4 text-foreground no-underline motion-safe:transition-colors motion-safe:duration-200 motion-safe:hover:bg-muted/40;
+    @apply block border-b border-border bg-transparent px-4 py-4 text-foreground no-underline motion-safe:transition-colors motion-safe:duration-200;
+  }
+
+  .btw-app-row:hover {
+    background-color: color-mix(in oklch, var(--muted) 40%, var(--background));
   }
 
   /* Shared empty-state block — calm dashed surface for "nothing here yet" */

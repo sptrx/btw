@@ -7,7 +7,6 @@ import {
   AppText,
   Badge,
   Button,
-  Card,
   Divider,
   ErrorState,
   LoadingState,
@@ -107,10 +106,7 @@ export default function PrayerDetailScreen() {
         {request.title}
       </AppText>
       <AppText variant="small" tone="secondary">
-        {[
-          request.authorDisplayName ?? 'Community member',
-          timeAgo(request.createdAt),
-        ]
+        {[request.authorDisplayName ?? 'Community member', timeAgo(request.createdAt)]
           .filter(Boolean)
           .join(' · ')}
       </AppText>
@@ -140,7 +136,12 @@ export default function PrayerDetailScreen() {
               maxLength={5000}
             />
             <View style={styles.row}>
-              <Button title="Share praise report" onPress={markAnswered} loading={sendingPraise} disabled={!praise.trim()} />
+              <Button
+                title="Share praise report"
+                onPress={markAnswered}
+                loading={sendingPraise}
+                disabled={!praise.trim()}
+              />
               <Button title="Cancel" variant="ghost" onPress={() => setAnswering(false)} />
             </View>
           </View>
@@ -156,13 +157,13 @@ export default function PrayerDetailScreen() {
         <AppText tone="secondary">Be the first to leave a word of encouragement.</AppText>
       ) : null}
       {comments.map((c) => (
-        <Card key={c.id}>
+        <View key={c.id} style={[styles.comment, { borderBottomColor: theme.border }]}>
           <AppText variant="label">{c.authorDisplayName ?? 'Member'}</AppText>
           <AppText selectable>{c.body}</AppText>
           <AppText variant="caption" tone="secondary">
             {timeAgo(c.createdAt)}
           </AppText>
-        </Card>
+        </View>
       ))}
 
       {session ? (
@@ -197,5 +198,10 @@ const styles = StyleSheet.create({
   },
   body: { fontSize: 17, lineHeight: 27 },
   row: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.two, alignItems: 'center' },
-  form: { gap: Spacing.three },
+  form: { gap: Spacing.three, marginTop: Spacing.two },
+  comment: {
+    gap: Spacing.one,
+    paddingBottom: Spacing.three,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  },
 });

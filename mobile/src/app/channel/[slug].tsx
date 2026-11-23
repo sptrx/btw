@@ -1,9 +1,9 @@
 import { Image } from 'expo-image';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
-import { FlatList, RefreshControl, ScrollView, Share, StyleSheet, View } from 'react-native';
+import { FlatList, Pressable, RefreshControl, ScrollView, Share, StyleSheet, View } from 'react-native';
 
-import { AppText, Badge, Button, Card, Chip, EmptyState, ErrorState, LoadingState, Notice } from '@/components/ui';
+import { AppText, Badge, Button, Chip, EmptyState, ErrorState, LoadingState, Notice } from '@/components/ui';
 import { MaxContentWidth, Radius, Spacing } from '@/constants/theme';
 import { useApi } from '@/hooks/use-api';
 import { useTheme } from '@/hooks/use-theme';
@@ -75,25 +75,30 @@ export default function ChannelScreen() {
           </View>
         }
         renderItem={({ item }) => (
-          <View style={styles.item}>
-            <Card
-              accessibilityLabel={item.title}
-              onPress={() => router.push({ pathname: '/post/[id]', params: { id: item.id } })}>
-              <View style={styles.badges}>
-                <Badge label={item.sharingLabel} />
-                {item.type !== 'article' && item.type !== 'discussion' ? <Badge label={item.typeLabel} /> : null}
-              </View>
-              <AppText variant="heading">{item.title}</AppText>
-              {item.bodySnippet ? (
-                <AppText variant="small" tone="secondary" numberOfLines={3}>
-                  {item.bodySnippet}
-                </AppText>
-              ) : null}
-              <AppText variant="caption" tone="secondary">
-                {timeAgo(item.createdAt)}
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={item.title}
+            onPress={() => router.push({ pathname: '/post/[id]', params: { id: item.id } })}
+            style={({ pressed }) => [
+              styles.item,
+              { borderBottomColor: theme.border, opacity: pressed ? 0.88 : 1 },
+            ]}>
+            <View style={styles.badges}>
+              <Badge label={item.sharingLabel} />
+              {item.type !== 'article' && item.type !== 'discussion' ? <Badge label={item.typeLabel} /> : null}
+            </View>
+            <AppText variant="heading" numberOfLines={3}>
+              {item.title}
+            </AppText>
+            {item.bodySnippet ? (
+              <AppText variant="small" tone="secondary" numberOfLines={3}>
+                {item.bodySnippet}
               </AppText>
-            </Card>
-          </View>
+            ) : null}
+            <AppText variant="caption" tone="secondary">
+              {timeAgo(item.createdAt)}
+            </AppText>
+          </Pressable>
         )}
         ListEmptyComponent={
           loading ? <LoadingState /> : <EmptyState title="No posts on this page yet" />
@@ -119,10 +124,12 @@ const styles = StyleSheet.create({
   pages: { gap: Spacing.two, paddingVertical: Spacing.two },
   item: {
     paddingHorizontal: Spacing.three,
-    paddingTop: Spacing.three,
+    paddingVertical: Spacing.three,
+    gap: Spacing.two,
     width: '100%',
     maxWidth: MaxContentWidth,
     alignSelf: 'center',
+    borderBottomWidth: StyleSheet.hairlineWidth,
   },
-  badges: { flexDirection: 'row', gap: Spacing.two },
+  badges: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.two },
 });

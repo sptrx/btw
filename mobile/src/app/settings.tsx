@@ -1,8 +1,9 @@
 import { useRouter } from 'expo-router';
-import { Alert, ScrollView, StyleSheet, View } from 'react-native';
+import type { ReactNode } from 'react';
+import { Alert, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
 import { openSitePage } from '@/components/disclaimer';
-import { AppText, Button, Card } from '@/components/ui';
+import { AppText, Button } from '@/components/ui';
 import { MaxContentWidth, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { useAuth } from '@/lib/auth';
@@ -23,29 +24,23 @@ export default function SettingsScreen() {
 
   return (
     <ScrollView style={{ backgroundColor: theme.background }} contentContainerStyle={styles.content}>
-      <Card>
-        <AppText variant="heading">Account</AppText>
+      <Section title="Account">
         <AppText tone="secondary">{me?.user?.email}</AppText>
-        <Button title="Edit profile" variant="secondary" onPress={() => router.push('/profile-edit')} />
-        <Button
-          title="Change password"
-          variant="secondary"
-          onPress={() => openSitePage('/auth/forgot-password')}
-        />
-      </Card>
+        <Row label="Edit profile" onPress={() => router.push('/profile-edit')} />
+        <Row label="Change password" onPress={() => openSitePage('/auth/forgot-password')} />
+      </Section>
 
-      <Card>
-        <AppText variant="heading">Security</AppText>
-        <AppText tone="secondary">
-          Password reset, email change, and signing out of other devices are available on the website dashboard.
+      <Section title="Security">
+        <AppText variant="small" tone="secondary">
+          Password reset, email change, and signing out of other devices are available on the website
+          dashboard.
         </AppText>
-        <Button title="Open security on the web" variant="secondary" onPress={() => openSitePage('/dashboard/settings')} />
-      </Card>
+        <Row label="Open security on the web" onPress={() => openSitePage('/dashboard/settings')} />
+      </Section>
 
-      <Card>
-        <AppText variant="heading">Alerts</AppText>
-        <Button title="Notification choices" variant="secondary" onPress={() => router.push('/notifications')} />
-      </Card>
+      <Section title="Alerts">
+        <Row label="Notification choices" onPress={() => router.push('/notifications')} />
+      </Section>
 
       <View style={styles.danger}>
         <Button
@@ -64,13 +59,51 @@ export default function SettingsScreen() {
   );
 }
 
+function Section({ title, children }: { title: string; children: ReactNode }) {
+  const theme = useTheme();
+  return (
+    <View style={[styles.section, { borderBottomColor: theme.border }]}>
+      <AppText variant="label" tone="secondary">
+        {title}
+      </AppText>
+      {children}
+    </View>
+  );
+}
+
+function Row({ label, onPress }: { label: string; onPress: () => void }) {
+  const theme = useTheme();
+  return (
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      style={({ pressed }) => [
+        styles.row,
+        { borderBottomColor: theme.border, opacity: pressed ? 0.75 : 1 },
+      ]}>
+      <AppText>{label}</AppText>
+      <AppText tone="secondary">›</AppText>
+    </Pressable>
+  );
+}
+
 const styles = StyleSheet.create({
   content: {
     padding: Spacing.three,
-    gap: Spacing.three,
+    gap: Spacing.four,
     width: '100%',
     maxWidth: MaxContentWidth,
     alignSelf: 'center',
+    paddingBottom: Spacing.six,
+  },
+  section: { gap: Spacing.two, paddingBottom: Spacing.three, borderBottomWidth: StyleSheet.hairlineWidth },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    minHeight: 44,
+    paddingVertical: Spacing.two,
+    borderBottomWidth: StyleSheet.hairlineWidth,
   },
   danger: { gap: Spacing.two, marginTop: Spacing.two },
 });

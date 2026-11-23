@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   FlatList,
+  Platform,
   Pressable,
   RefreshControl,
   ScrollView,
@@ -17,7 +18,7 @@ import {
   ErrorState,
   LoadingState,
 } from '@/components/ui';
-import { MaxContentWidth, Spacing } from '@/constants/theme';
+import { MaxContentWidth, Radius, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { api } from '@/lib/api';
 import type {
@@ -28,6 +29,12 @@ import type {
 } from '@/lib/types';
 
 type ViewMode = 'books' | 'chapters' | 'read';
+
+const verseFont = Platform.select({
+  ios: 'Georgia',
+  android: 'serif',
+  default: 'serif',
+});
 
 export default function BibleScreen() {
   const theme = useTheme();
@@ -57,34 +64,37 @@ export default function BibleScreen() {
     }
   }, []);
 
-  const openChapter = useCallback(async (abbrev: string, chapterNum: number, tid = translationId) => {
-    setError(null);
-    setLoading(true);
-    try {
-      const data = await api<BibleChapter>('bible.chapter', {
-        translationId: tid,
-        book: abbrev,
-        chapter: chapterNum,
-      });
-      setChapter(data);
-      setBook((prev) => {
-        if (prev?.abbrev === data.abbrev) return prev;
-        return (
-          books.find((b) => b.abbrev === data.abbrev) ?? {
-            abbrev: data.abbrev,
-            title: data.bookTitle,
-            chapterCount: data.chapterCount,
-            index: 0,
-          }
-        );
-      });
-      setMode('read');
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Could not load chapter.');
-    } finally {
-      setLoading(false);
-    }
-  }, [books, translationId]);
+  const openChapter = useCallback(
+    async (abbrev: string, chapterNum: number, tid = translationId) => {
+      setError(null);
+      setLoading(true);
+      try {
+        const data = await api<BibleChapter>('bible.chapter', {
+          translationId: tid,
+          book: abbrev,
+          chapter: chapterNum,
+        });
+        setChapter(data);
+        setBook((prev) => {
+          if (prev?.abbrev === data.abbrev) return prev;
+          return (
+            books.find((b) => b.abbrev === data.abbrev) ?? {
+              abbrev: data.abbrev,
+              title: data.bookTitle,
+              chapterCount: data.chapterCount,
+              index: 0,
+            }
+          );
+        });
+        setMode('read');
+      } catch (e) {
+        setError(e instanceof Error ? e.message : 'Could not load chapter.');
+      } finally {
+        setLoading(false);
+      }
+    },
+    [books, translationId]
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -140,6 +150,7 @@ export default function BibleScreen() {
             data={books}
             keyExtractor={(b) => b.abbrev}
             contentContainerStyle={styles.list}
+            style={{ backgroundColor: theme.background }}
             refreshControl={
               <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={theme.accent} />
             }
@@ -147,7 +158,7 @@ export default function BibleScreen() {
               <View style={styles.header}>
                 <AppText variant="title">Bible</AppText>
                 <AppText variant="small" tone="secondary">
-                  Free-rights translations · Read chapter by chapter
+                  Free-rights translations · Chapter by chapter
                 </AppText>
                 <ScrollView
                   horizontal
@@ -172,10 +183,13 @@ export default function BibleScreen() {
             renderItem={({ item }) => (
               <Pressable
                 onPress={() => selectBook(item)}
-                style={[styles.bookRow, { borderBottomColor: theme.border }]}
+                style={({ pressed }) => [
+                  styles.bookRow,
+                  { borderBottomColor: theme.border, opacity: pressed ? 0.88 : 1 },
+                ]}
                 accessibilityRole="button"
                 accessibilityLabel={`${item.title}, ${item.chapterCount} chapters`}>
-                <AppText variant="body">{item.title}</AppText>
+                <AppText variant="heading">{item.title}</AppText>
                 <AppText variant="caption" tone="secondary">
                   {item.chapterCount} ch
                 </AppText>
@@ -195,12 +209,13 @@ export default function BibleScreen() {
 
         {mode === 'chapters' && book ? (
           <ScrollView
+            style={{ backgroundColor: theme.background }}
             contentContainerStyle={styles.list}
             refreshControl={
               <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={theme.accent} />
             }>
             <View style={styles.header}>
-              <Pressable onPress={() => setMode('books')} accessibilityRole="button">
+              <Pressable onPress={() => setMode('books')} accessibilityRole="button" hitSlop={8}>
                 <AppText variant="small" tone="primary">
                   ← All books
                 </AppText>
@@ -215,10 +230,16 @@ export default function BibleScreen() {
                 <Pressable
                   key={n}
                   onPress={() => void openChapter(book.abbrev, n)}
-                  style={[styles.chapterCell, { borderColor: theme.border, backgroundColor: theme.card }]}
+                  style={({ pressed }) => [
+                    styles.chapterCell,
+                    {
+                      borderColor: theme.border,
+                      backgroundColor: pressed ? theme.accentSoft : theme.muted,
+                    },
+                  ]}
                   accessibilityRole="button"
                   accessibilityLabel={`Chapter ${n}`}>
-                  <AppText variant="body">{n}</AppText>
+                  <AppText variant="label">{n}</AppText>
                 </Pressable>
               ))}
             </View>
@@ -234,18 +255,20 @@ export default function BibleScreen() {
             <FlatList
               data={chapter.verses}
               keyExtractor={(v) => String(v.verse)}
+              style={{ backgroundColor: theme.background }}
               contentContainerStyle={styles.list}
               refreshControl={
                 <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={theme.accent} />
               }
               ListHeaderComponent={
-                <View style={styles.header}>
+                <View style={[styles.header, styles.readHeader, { borderBottomColor: theme.border }]}>
                   <Pressable
                     onPress={() => {
                       setMode('chapters');
                       setChapter(null);
                     }}
-                    accessibilityRole="button">
+                    accessibilityRole="button"
+                    hitSlop={8}>
                     <AppText variant="small" tone="primary">
                       ← {chapter.bookTitle}
                     </AppText>
@@ -265,16 +288,18 @@ export default function BibleScreen() {
               }
               renderItem={({ item }) => (
                 <View style={styles.verseRow}>
-                  <AppText variant="caption" tone="secondary" style={styles.verseNum}>
+                  <AppText variant="caption" tone="primary" style={styles.verseNum}>
                     {item.verse}
                   </AppText>
-                  <AppText variant="body" style={styles.verseText}>
+                  <AppText
+                    variant="body"
+                    style={[styles.verseText, { color: theme.text, fontFamily: verseFont }]}>
                     {item.text}
                   </AppText>
                 </View>
               )}
               ListFooterComponent={
-                <View style={styles.navRow}>
+                <View style={[styles.navRow, { borderTopColor: theme.border }]}>
                   <Button
                     title="Previous"
                     variant="secondary"
@@ -284,7 +309,7 @@ export default function BibleScreen() {
                   />
                   <Button
                     title="Chapters"
-                    variant="secondary"
+                    variant="ghost"
                     small
                     onPress={() => {
                       setMode('chapters');
@@ -324,6 +349,11 @@ const styles = StyleSheet.create({
     paddingTop: Spacing.three,
     gap: Spacing.one,
   },
+  readHeader: {
+    paddingBottom: Spacing.three,
+    marginBottom: Spacing.two,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  },
   chips: {
     gap: Spacing.two,
     paddingVertical: Spacing.two,
@@ -347,7 +377,7 @@ const styles = StyleSheet.create({
   chapterCell: {
     width: 48,
     height: 48,
-    borderRadius: 8,
+    borderRadius: Radius.sm,
     borderWidth: StyleSheet.hairlineWidth,
     alignItems: 'center',
     justifyContent: 'center',
@@ -356,10 +386,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: Spacing.two,
     paddingHorizontal: Spacing.three,
-    paddingVertical: Spacing.one,
+    paddingVertical: Spacing.two,
   },
-  verseNum: { minWidth: 28, paddingTop: 2 },
-  verseText: { flex: 1, lineHeight: 26 },
+  verseNum: { minWidth: 28, paddingTop: 4, fontWeight: '700' },
+  verseText: { flex: 1, lineHeight: 28, fontSize: 17 },
   navRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -367,5 +397,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.three,
     paddingTop: Spacing.four,
     paddingBottom: Spacing.two,
+    marginTop: Spacing.two,
+    borderTopWidth: StyleSheet.hairlineWidth,
   },
 });

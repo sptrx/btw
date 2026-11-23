@@ -2,7 +2,10 @@ import '@/global.css';
 
 import { Platform } from 'react-native';
 
-/** Matches the website's parchment (light) and night (dark) palettes in app/globals.css. */
+/**
+ * BTW mobile palette — parchment (light) / night (dark).
+ * Sparse “calm fintech” structure; warm gold accent (not trading green).
+ */
 export const Colors = {
   light: {
     text: '#2B251C',
@@ -14,19 +17,21 @@ export const Colors = {
     primary: '#3D3222',
     onPrimary: '#FFFDF8',
     accent: '#B8892E',
+    accentSoft: 'rgba(184, 137, 46, 0.12)',
     danger: '#B42318',
     success: '#2F7D4F',
   },
   dark: {
     text: '#F4EFE4',
-    textSecondary: '#B5AB98',
-    background: '#1C1812',
-    card: '#27221B',
+    textSecondary: '#A89F8F',
+    background: '#0F0E0C',
+    card: '#1A1713',
     border: '#3A3328',
-    muted: '#322B22',
+    muted: '#221E18',
     primary: '#E8C878',
-    onPrimary: '#1C1812',
+    onPrimary: '#0F0E0C',
     accent: '#E8C878',
+    accentSoft: 'rgba(232, 200, 120, 0.14)',
     danger: '#F97066',
     success: '#6CCB91',
   },

@@ -1,8 +1,10 @@
 import { useRouter } from 'expo-router';
-import { StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 
 import { ReactionBar } from '@/components/reaction-bar';
-import { AppText, Badge, Card } from '@/components/ui';
+import { AppText, Badge } from '@/components/ui';
+import { Spacing } from '@/constants/theme';
+import { useTheme } from '@/hooks/use-theme';
 import { config } from '@/lib/config';
 import { plural, timeAgo } from '@/lib/format';
 import type { FeedItem } from '@/lib/types';
@@ -19,6 +21,7 @@ function shareUrlFor(item: FeedItem): string {
 }
 
 export function FeedCard({ item }: { item: FeedItem }) {
+  const theme = useTheme();
   const router = useRouter();
   const open =
     item.postKind === 'topic_content'
@@ -34,17 +37,24 @@ export function FeedCard({ item }: { item: FeedItem }) {
     item.commentCount ? plural(item.commentCount, 'comment') : null,
   ].filter(Boolean);
 
-  return (
-    <Card onPress={open} accessibilityLabel={`${item.badge}: ${item.title}`}>
+  const body = (
+    <>
       <View style={styles.top}>
         <Badge label={item.badge} />
-        {item.fromFollowed ? (
-          <AppText variant="caption" tone="primary">
-            Following
-          </AppText>
-        ) : null}
+        <View style={styles.topRight}>
+          {item.fromFollowed ? (
+            <AppText variant="caption" tone="primary">
+              Following
+            </AppText>
+          ) : null}
+          {meta[0] ? (
+            <AppText variant="caption" tone="secondary">
+              {meta[0]}
+            </AppText>
+          ) : null}
+        </View>
       </View>
-      <AppText variant="heading" numberOfLines={3}>
+      <AppText variant="heading" numberOfLines={3} style={styles.title}>
         {item.title}
       </AppText>
       {item.scriptureReference ? (
@@ -53,18 +63,15 @@ export function FeedCard({ item }: { item: FeedItem }) {
         </AppText>
       ) : null}
       {item.bodySnippet && item.bodySnippet !== item.title ? (
-        <AppText variant="small" tone="secondary" numberOfLines={4}>
+        <AppText variant="small" tone="secondary" numberOfLines={3}>
           {item.bodySnippet}
         </AppText>
       ) : null}
-      {byline ? (
+      {byline || meta.length > 1 ? (
         <AppText variant="caption" tone="secondary" numberOfLines={1}>
-          {byline}
+          {[byline, ...meta.slice(1)].filter(Boolean).join(' · ')}
         </AppText>
       ) : null}
-      <AppText variant="caption" tone="secondary">
-        {meta.join(' · ')}
-      </AppText>
       <ReactionBar
         key={JSON.stringify([item.reactions, item.userReaction])}
         postId={item.id}
@@ -74,10 +81,40 @@ export function FeedCard({ item }: { item: FeedItem }) {
         shareUrl={shareUrlFor(item)}
         shareTitle={item.title}
       />
-    </Card>
+    </>
+  );
+
+  if (!open) {
+    return <View style={[styles.row, { borderBottomColor: theme.border }]}>{body}</View>;
+  }
+
+  return (
+    <Pressable
+      onPress={open}
+      accessibilityRole="button"
+      accessibilityLabel={`${item.badge}: ${item.title}`}
+      style={({ pressed }) => [
+        styles.row,
+        { borderBottomColor: theme.border, opacity: pressed ? 0.88 : 1 },
+      ]}>
+      {body}
+    </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
-  top: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  row: {
+    paddingVertical: Spacing.three,
+    gap: Spacing.two,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    backgroundColor: 'transparent',
+  },
+  top: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: Spacing.two,
+  },
+  topRight: { flexDirection: 'row', alignItems: 'center', gap: Spacing.two },
+  title: { marginTop: 2 },
 });

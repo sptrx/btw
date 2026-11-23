@@ -57,75 +57,84 @@ export default function AskScreen() {
 
   return (
     <AppChrome>
-    <KeyboardAvoidingView
-      style={[styles.fill, { backgroundColor: theme.background }]}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <ScrollView
-        ref={scroll}
-        contentContainerStyle={styles.content}
-        keyboardDismissMode="interactive"
-        onContentSizeChange={() => scroll.current?.scrollToEnd({ animated: true })}>
-        <View style={styles.titleBlock}>
-          <AppText variant="title">Ask</AppText>
-          <AppText variant="small" tone="secondary">
-            Questions about the Bible, answered with Scripture
-          </AppText>
-        </View>
-        <View style={styles.thread}>
-          {messages.length === 0 ? (
-            <View style={styles.suggestions}>
-              <AppText tone="secondary">Try asking:</AppText>
-              {SUGGESTIONS.map((s) => (
-                <Chip key={s} label={s} onPress={() => send(s)} />
-              ))}
-            </View>
-          ) : null}
-
-          {messages.map((m, i) => (
-            <View
-              key={i}
-              style={[
-                styles.bubble,
-                m.role === 'user'
-                  ? [styles.userBubble, { backgroundColor: theme.primary }]
-                  : [styles.answerBubble, { backgroundColor: theme.card, borderColor: theme.border }],
-              ]}>
-              <AppText selectable tone={m.role === 'user' ? 'onPrimary' : 'default'}>
-                {m.content}
-              </AppText>
-            </View>
-          ))}
-
-          {thinking ? <ActivityIndicator color={theme.accent} style={styles.thinking} /> : null}
-          {error ? <Notice tone="error">{error}</Notice> : null}
-          {remaining !== null ? (
-            <AppText variant="caption" tone="secondary">
-              {remaining} {remaining === 1 ? 'question' : 'questions'} left today
-              {session ? '' : '. Sign in to ask more.'}
+      <KeyboardAvoidingView
+        style={[styles.fill, { backgroundColor: theme.background }]}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+        <ScrollView
+          ref={scroll}
+          contentContainerStyle={styles.content}
+          keyboardDismissMode="interactive"
+          onContentSizeChange={() => scroll.current?.scrollToEnd({ animated: true })}>
+          <View style={styles.titleBlock}>
+            <AppText variant="title">Ask</AppText>
+            <AppText variant="small" tone="secondary">
+              Questions about the Bible, answered with Scripture
             </AppText>
-          ) : null}
-          <AppText variant="caption" tone="secondary">
-            Answers are AI-generated. Check them against Scripture and talk with your church community.
-          </AppText>
-        </View>
-      </ScrollView>
+          </View>
+          <View style={styles.thread}>
+            {messages.length === 0 ? (
+              <View style={styles.suggestions}>
+                <AppText variant="caption" tone="secondary">
+                  Try asking
+                </AppText>
+                {SUGGESTIONS.map((s) => (
+                  <Chip key={s} label={s} onPress={() => send(s)} />
+                ))}
+              </View>
+            ) : null}
 
-      <SafeAreaView
-        edges={['bottom']}
-        style={[styles.composer, { borderTopColor: theme.border, backgroundColor: theme.background }]}>
-        <TextInput
-          value={input}
-          onChangeText={setInput}
-          placeholder="Ask a question about the Bible"
-          placeholderTextColor={theme.textSecondary}
-          multiline
-          maxLength={2000}
-          accessibilityLabel="Your question"
-          style={[styles.input, { color: theme.text, backgroundColor: theme.card, borderColor: theme.border }]}
-        />
-        <Button title="Ask" small onPress={() => send(input)} disabled={!input.trim() || thinking} />
-      </SafeAreaView>
-    </KeyboardAvoidingView>
+            {messages.map((m, i) => (
+              <View
+                key={i}
+                style={[
+                  styles.bubble,
+                  m.role === 'user'
+                    ? [
+                        styles.userBubble,
+                        { backgroundColor: theme.accentSoft, borderColor: theme.accent },
+                      ]
+                    : [
+                        styles.answerBubble,
+                        { backgroundColor: theme.muted, borderColor: theme.border },
+                      ],
+                ]}>
+                <AppText selectable>{m.content}</AppText>
+              </View>
+            ))}
+
+            {thinking ? <ActivityIndicator color={theme.accent} style={styles.thinking} /> : null}
+            {error ? <Notice tone="error">{error}</Notice> : null}
+            {remaining !== null ? (
+              <AppText variant="caption" tone="secondary">
+                {remaining} {remaining === 1 ? 'question' : 'questions'} left today
+                {session ? '' : '. Sign in to ask more.'}
+              </AppText>
+            ) : null}
+            <AppText variant="caption" tone="secondary">
+              Answers are AI-generated. Check them against Scripture and talk with your church community.
+            </AppText>
+          </View>
+        </ScrollView>
+
+        <SafeAreaView
+          edges={['bottom']}
+          style={[styles.composer, { borderTopColor: theme.border, backgroundColor: theme.background }]}>
+          <TextInput
+            value={input}
+            onChangeText={setInput}
+            placeholder="Ask a question about the Bible"
+            placeholderTextColor={theme.textSecondary}
+            multiline
+            maxLength={2000}
+            accessibilityLabel="Your question"
+            style={[
+              styles.input,
+              { color: theme.text, backgroundColor: theme.muted, borderColor: theme.border },
+            ]}
+          />
+          <Button title="Ask" small onPress={() => send(input)} disabled={!input.trim() || thinking} />
+        </SafeAreaView>
+      </KeyboardAvoidingView>
     </AppChrome>
   );
 }
@@ -133,31 +142,43 @@ export default function AskScreen() {
 const styles = StyleSheet.create({
   fill: { flex: 1 },
   content: { paddingBottom: Spacing.four },
-  titleBlock: { paddingHorizontal: Spacing.three, paddingTop: Spacing.three, gap: Spacing.one },
+  titleBlock: {
+    paddingHorizontal: Spacing.three,
+    paddingTop: Spacing.three,
+    gap: Spacing.one,
+  },
   thread: {
     paddingHorizontal: Spacing.three,
+    paddingTop: Spacing.three,
     gap: Spacing.three,
     width: '100%',
     maxWidth: MaxContentWidth,
     alignSelf: 'center',
   },
   suggestions: { gap: Spacing.two, alignItems: 'flex-start' },
-  bubble: { padding: Spacing.three, borderRadius: Radius.lg, maxWidth: '90%' },
+  bubble: {
+    padding: Spacing.three,
+    borderRadius: Radius.md,
+    maxWidth: '92%',
+    borderWidth: StyleSheet.hairlineWidth,
+  },
   userBubble: { alignSelf: 'flex-end', borderBottomRightRadius: Radius.sm },
-  answerBubble: { alignSelf: 'flex-start', borderWidth: StyleSheet.hairlineWidth, borderBottomLeftRadius: Radius.sm },
+  answerBubble: { alignSelf: 'flex-start', borderBottomLeftRadius: Radius.sm },
   thinking: { alignSelf: 'flex-start' },
   composer: {
     flexDirection: 'row',
     alignItems: 'flex-end',
     gap: Spacing.two,
-    padding: Spacing.three,
+    paddingHorizontal: Spacing.three,
+    paddingTop: Spacing.two,
+    paddingBottom: Spacing.two,
     borderTopWidth: StyleSheet.hairlineWidth,
   },
   input: {
     flex: 1,
     minHeight: 40,
     maxHeight: 120,
-    borderWidth: 1,
+    borderWidth: StyleSheet.hairlineWidth,
     borderRadius: Radius.md,
     paddingHorizontal: Spacing.three,
     paddingVertical: Spacing.two,

@@ -23,14 +23,22 @@ export function AppChrome({ children }: { children?: ReactNode }) {
 
   return (
     <View style={{ flex: 1, backgroundColor: theme.background }}>
-      <View style={[styles.bar, { paddingTop: insets.top + Spacing.two, borderBottomColor: theme.border }]}>
+      <View
+        style={[
+          styles.bar,
+          {
+            paddingTop: insets.top + Spacing.one,
+            borderBottomColor: theme.border,
+            backgroundColor: theme.background,
+          },
+        ]}>
         <Pressable
           onPress={openDrawer}
           hitSlop={10}
           accessibilityRole="button"
           accessibilityLabel="Open menu"
           style={styles.iconBtn}>
-          <Icon ios="line.3.horizontal" md="menu" size={22} color={theme.text} />
+          <Icon ios="line.3.horizontal" md="menu" size={20} color={theme.text} />
         </Pressable>
         <AppText variant="label" style={styles.brand}>
           BTW
@@ -61,11 +69,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: Spacing.three,
-    paddingBottom: Spacing.two,
+    paddingBottom: Spacing.one + 2,
     gap: Spacing.two,
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
-  iconBtn: { minWidth: 44, minHeight: 44, alignItems: 'center', justifyContent: 'center' },
+  iconBtn: { minWidth: 44, minHeight: 40, alignItems: 'center', justifyContent: 'center' },
   brand: { flex: 1 },
-  right: { maxWidth: 140, alignItems: 'flex-end', minHeight: 44, justifyContent: 'center' },
+  right: { maxWidth: 140, alignItems: 'flex-end', minHeight: 40, justifyContent: 'center' },
 });

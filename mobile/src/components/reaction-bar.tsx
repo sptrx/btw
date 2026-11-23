@@ -94,8 +94,10 @@ export function ReactionBar({
             hitSlop={4}
             style={[
               styles.pill,
-              { borderColor: selected ? theme.accent : theme.border },
-              selected && { backgroundColor: theme.muted },
+              {
+                borderColor: selected ? theme.accent : theme.border,
+                backgroundColor: selected ? theme.accentSoft : 'transparent',
+              },
             ]}>
             <Text style={styles.emoji}>{r.emoji}</Text>
             <AppText variant="caption" tone={selected ? 'primary' : 'secondary'}>
@@ -114,17 +116,17 @@ export function ReactionBar({
 }
 
 const styles = StyleSheet.create({
-  row: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.two },
+  row: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.one + 2, marginTop: Spacing.one },
   pill: {
-    minHeight: 36,
+    minHeight: 32,
     paddingHorizontal: Spacing.two,
     borderRadius: Radius.pill,
-    borderWidth: 1,
+    borderWidth: StyleSheet.hairlineWidth,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: Spacing.one,
   },
-  emoji: { fontSize: 16 },
+  emoji: { fontSize: 14 },
   count: { fontWeight: '600' },
 });

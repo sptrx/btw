@@ -9,7 +9,6 @@ import {
   AppText,
   Badge,
   Button,
-  Card,
   Checkbox,
   Divider,
   ErrorState,
@@ -74,10 +73,8 @@ export default function PostScreen() {
     }
   }
 
-  const share = () =>
-    Share.share({
-      message: `${post.title}\n${config.siteUrl}/channel/${post.channelSlug ?? 'browse'}/content/${post.id}`,
-    });
+  const shareUrl = `${config.siteUrl}/channel/${post.channelSlug ?? 'browse'}/content/${post.id}`;
+  const share = () => Share.share({ message: `${post.title}\n${shareUrl}` });
 
   return (
     <>
@@ -132,7 +129,7 @@ export default function PostScreen() {
           postKind="topic_content"
           counts={data.reactions}
           userReaction={data.userReaction}
-          shareUrl={`${config.siteUrl}/channel/${post.channelSlug ?? 'browse'}/content/${post.id}`}
+          shareUrl={shareUrl}
           shareTitle={post.title}
         />
         <View style={styles.rowActions}>
@@ -167,14 +164,14 @@ export default function PostScreen() {
         </AppText>
 
         {comments.map((c) => (
-          <Card key={c.id}>
+          <View key={c.id} style={[styles.comment, { borderBottomColor: theme.border }]}>
             <AppText variant="label">{c.authorName ?? 'Member'}</AppText>
             <AppText selectable>{c.body}</AppText>
             <AppText variant="caption" tone="secondary">
               {timeAgo(c.createdAt)}
             </AppText>
             {c.scriptureGuideReply ? (
-              <View style={[styles.guide, { borderColor: theme.accent }]}>
+              <View style={[styles.guide, { borderLeftColor: theme.accent, backgroundColor: theme.accentSoft }]}>
                 <AppText variant="caption" tone="primary">
                   Scripture guide
                 </AppText>
@@ -183,7 +180,7 @@ export default function PostScreen() {
                 </AppText>
               </View>
             ) : null}
-          </Card>
+          </View>
         ))}
 
         {session ? (
@@ -227,8 +224,20 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
   },
   body: { fontSize: 17, lineHeight: 27 },
-  start: { alignSelf: 'flex-start' },
   rowActions: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.two },
-  guide: { borderLeftWidth: 3, paddingLeft: Spacing.two, gap: Spacing.one, marginTop: Spacing.one },
-  composer: { gap: Spacing.three },
+  comment: {
+    gap: Spacing.one,
+    paddingBottom: Spacing.three,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  },
+  guide: {
+    borderLeftWidth: 2,
+    paddingLeft: Spacing.two,
+    paddingVertical: Spacing.two,
+    paddingRight: Spacing.two,
+    gap: Spacing.one,
+    marginTop: Spacing.one,
+    borderRadius: 4,
+  },
+  composer: { gap: Spacing.three, marginTop: Spacing.two },
 });

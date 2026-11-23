@@ -58,7 +58,7 @@ export default function NotificationsScreen() {
       {error ? <Notice tone="error">{error}</Notice> : null}
       {prefs
         ? ROWS.map((row) => (
-            <View key={row.key} style={[styles.row, { borderColor: theme.border }]}>
+            <View key={row.key} style={[styles.row, { borderBottomColor: theme.border }]}>
               <View style={styles.copy}>
                 <AppText variant="label">{row.label}</AppText>
                 <AppText variant="caption" tone="secondary">

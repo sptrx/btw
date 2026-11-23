@@ -29,7 +29,7 @@ export default function HomeScreen() {
   return (
     <View style={[styles.fill, { backgroundColor: theme.background }]}>
       <AppChrome>
-        <View style={[styles.tabs, { borderBottomColor: theme.border }]}>
+        <View style={[styles.tabs, { borderBottomColor: theme.border, backgroundColor: theme.background }]}>
           {(
             [
               { id: 'for_you', label: 'For you' },
@@ -47,8 +47,8 @@ export default function HomeScreen() {
                 accessibilityState={{ selected }}>
                 <AppText
                   variant="small"
-                  tone={selected ? 'primary' : 'secondary'}
-                  style={selected ? styles.tabSelected : undefined}>
+                  tone={selected ? 'default' : 'secondary'}
+                  style={selected ? styles.tabSelected : styles.tabIdle}>
                   {t.label}
                 </AppText>
               </Pressable>
@@ -169,15 +169,15 @@ const styles = StyleSheet.create({
   tab: {
     flex: 1,
     alignItems: 'center',
-    paddingVertical: Spacing.three,
+    paddingVertical: Spacing.two + 2,
     borderBottomWidth: 2,
     borderBottomColor: 'transparent',
   },
   tabSelected: { fontWeight: '700' },
+  tabIdle: { fontWeight: '500' },
   list: { paddingBottom: Spacing.six, flexGrow: 1 },
   item: {
     paddingHorizontal: Spacing.three,
-    paddingTop: Spacing.three,
     width: '100%',
     maxWidth: MaxContentWidth,
     alignSelf: 'center',

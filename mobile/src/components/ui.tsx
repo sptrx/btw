@@ -148,10 +148,10 @@ export function Chip({
       style={[
         styles.chip,
         selected
-          ? { backgroundColor: theme.primary, borderColor: theme.primary }
-          : { backgroundColor: theme.card, borderColor: theme.border },
+          ? { backgroundColor: theme.accentSoft, borderColor: theme.accent }
+          : { backgroundColor: 'transparent', borderColor: theme.border },
       ]}>
-      <AppText variant="small" tone={selected ? 'onPrimary' : 'default'} style={styles.chipText}>
+      <AppText variant="small" tone={selected ? 'primary' : 'secondary'} style={styles.chipText}>
         {label}
       </AppText>
     </Pressable>
@@ -161,8 +161,8 @@ export function Chip({
 export function Badge({ label }: { label: string }) {
   const theme = useTheme();
   return (
-    <View style={[styles.badge, { backgroundColor: theme.muted }]}>
-      <AppText variant="caption" tone="secondary" style={styles.badgeText}>
+    <View style={[styles.badge, { backgroundColor: theme.accentSoft }]}>
+      <AppText variant="caption" tone="primary" style={styles.badgeText}>
         {label}
       </AppText>
     </View>
@@ -309,13 +309,13 @@ export function Divider() {
 }
 
 const textStyles = StyleSheet.create<Record<TextVariant, TextStyle>>({
-  largeTitle: { fontSize: 32, lineHeight: 38, fontWeight: '700' },
-  title: { fontSize: 24, lineHeight: 30, fontWeight: '700' },
-  heading: { fontSize: 18, lineHeight: 24, fontWeight: '600' },
-  body: { fontSize: 16, lineHeight: 24 },
+  largeTitle: { fontSize: 32, lineHeight: 38, fontWeight: '700', letterSpacing: -0.4 },
+  title: { fontSize: 24, lineHeight: 30, fontWeight: '700', letterSpacing: -0.3 },
+  heading: { fontSize: 17, lineHeight: 23, fontWeight: '700', letterSpacing: -0.25 },
+  body: { fontSize: 16, lineHeight: 23 },
   small: { fontSize: 14, lineHeight: 20 },
   caption: { fontSize: 12, lineHeight: 16 },
-  label: { fontSize: 14, lineHeight: 20, fontWeight: '600' },
+  label: { fontSize: 13, lineHeight: 18, fontWeight: '700', letterSpacing: 0.4 },
 });
 
 const styles = StyleSheet.create({
@@ -340,10 +340,10 @@ const styles = StyleSheet.create({
     gap: Spacing.two,
   },
   chip: {
-    minHeight: 36,
+    minHeight: 32,
     paddingHorizontal: Spacing.three,
     borderRadius: Radius.pill,
-    borderWidth: 1,
+    borderWidth: StyleSheet.hairlineWidth,
     justifyContent: 'center',
   },
   chipText: { fontWeight: '600' },

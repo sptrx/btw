@@ -42,14 +42,19 @@ export function PrayButton({
   return (
     <Button
       small
-      variant={state.praying ? 'primary' : 'secondary'}
+      variant="secondary"
       title={state.count > 0 ? `${label} · ${state.count}` : label}
+      style={
+        state.praying
+          ? { backgroundColor: theme.accentSoft, borderColor: theme.accent }
+          : undefined
+      }
       icon={
         <Icon
           ios={state.praying ? 'hands.sparkles.fill' : 'hands.sparkles'}
           md="volunteer_activism"
           size={16}
-          color={state.praying ? theme.onPrimary : theme.accent}
+          color={theme.accent}
         />
       }
       onPress={toggle}

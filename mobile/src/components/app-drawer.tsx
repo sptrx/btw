@@ -4,7 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { openSitePage } from '@/components/disclaimer';
 import { AppText, Button, Divider, Icon } from '@/components/ui';
-import { Radius, Spacing } from '@/constants/theme';
+import { Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { useAuth } from '@/lib/auth';
 import { useDrawer } from '@/lib/drawer';
@@ -96,11 +96,46 @@ export function AppDrawer() {
   ];
 
   const moreItems: Item[] = [
-    { label: 'About', icon: { ios: 'info.circle', md: 'info' }, onPress: () => { closeDrawer(); openSitePage('/about'); } },
-    { label: 'Donate', icon: { ios: 'heart', md: 'volunteer_activism' }, onPress: () => { closeDrawer(); openSitePage('/donate'); } },
-    { label: 'Invite others', icon: { ios: 'envelope', md: 'share' }, onPress: () => { closeDrawer(); openSitePage('/invite'); } },
-    { label: 'Contact', icon: { ios: 'bubble.left', md: 'mail' }, onPress: () => { closeDrawer(); openSitePage('/contact'); } },
-    { label: 'Community guidelines', icon: { ios: 'doc.text', md: 'description' }, onPress: () => { closeDrawer(); openSitePage('/legal/community-guidelines'); } },
+    {
+      label: 'About',
+      icon: { ios: 'info.circle', md: 'info' },
+      onPress: () => {
+        closeDrawer();
+        openSitePage('/about');
+      },
+    },
+    {
+      label: 'Donate',
+      icon: { ios: 'heart', md: 'volunteer_activism' },
+      onPress: () => {
+        closeDrawer();
+        openSitePage('/donate');
+      },
+    },
+    {
+      label: 'Invite others',
+      icon: { ios: 'envelope', md: 'share' },
+      onPress: () => {
+        closeDrawer();
+        openSitePage('/invite');
+      },
+    },
+    {
+      label: 'Contact',
+      icon: { ios: 'bubble.left', md: 'mail' },
+      onPress: () => {
+        closeDrawer();
+        openSitePage('/contact');
+      },
+    },
+    {
+      label: 'Community guidelines',
+      icon: { ios: 'doc.text', md: 'description' },
+      onPress: () => {
+        closeDrawer();
+        openSitePage('/legal/community-guidelines');
+      },
+    },
   ];
 
   return (
@@ -111,21 +146,28 @@ export function AppDrawer() {
           style={[
             styles.panel,
             {
-              backgroundColor: theme.background,
-              paddingTop: insets.top + Spacing.three,
+              backgroundColor: theme.card,
+              paddingTop: insets.top + Spacing.two,
               paddingBottom: insets.bottom + Spacing.three,
               borderRightColor: theme.border,
             },
           ]}>
-          <View style={styles.brandRow}>
+          <View style={[styles.brandBlock, { borderBottomColor: theme.border }]}>
+            <View style={styles.brandRow}>
+              <AppText variant="label">BTW</AppText>
+              <Pressable
+                onPress={closeDrawer}
+                hitSlop={12}
+                accessibilityRole="button"
+                accessibilityLabel="Close">
+                <Icon ios="xmark" md="close" color={theme.textSecondary} />
+              </Pressable>
+            </View>
             <AppText variant="heading">Believe The Works</AppText>
-            <Pressable onPress={closeDrawer} hitSlop={12} accessibilityRole="button" accessibilityLabel="Close">
-              <Icon ios="xmark" md="close" color={theme.textSecondary} />
-            </Pressable>
+            <AppText variant="small" tone="secondary" numberOfLines={1}>
+              {session ? name : 'Welcome — sign in to personalize'}
+            </AppText>
           </View>
-          <AppText variant="small" tone="secondary" numberOfLines={1}>
-            {session ? name : 'Welcome — sign in to personalize'}
-          </AppText>
 
           <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
             <Section title="You" items={accountItems} />
@@ -164,7 +206,10 @@ function Section({ title, items }: { title: string; items: Item[] }) {
           onPress={item.onPress}
           style={({ pressed }) => [
             styles.item,
-            { backgroundColor: pressed ? theme.muted : 'transparent' },
+            {
+              borderBottomColor: theme.border,
+              backgroundColor: pressed ? theme.accentSoft : 'transparent',
+            },
           ]}
           accessibilityRole="button">
           <Icon ios={item.icon.ios} md={item.icon.md} size={18} color={theme.accent} />
@@ -177,7 +222,7 @@ function Section({ title, items }: { title: string; items: Item[] }) {
 
 const styles = StyleSheet.create({
   overlay: { flex: 1, flexDirection: 'row' },
-  backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.35)' },
+  backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.45)' },
   panel: {
     width: '82%',
     maxWidth: 340,
@@ -185,18 +230,27 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.three,
     gap: Spacing.two,
   },
+  brandBlock: {
+    gap: Spacing.one,
+    paddingBottom: Spacing.three,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  },
   brandRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  scroll: { flex: 1, marginTop: Spacing.three },
+  scroll: { flex: 1, marginTop: Spacing.two },
   scrollContent: { gap: Spacing.three, paddingBottom: Spacing.four },
-  section: { gap: Spacing.one },
-  sectionTitle: { textTransform: 'uppercase', letterSpacing: 0.6, marginBottom: Spacing.one },
+  section: { gap: 0 },
+  sectionTitle: {
+    letterSpacing: 0.5,
+    marginBottom: Spacing.one,
+    marginTop: Spacing.one,
+  },
   item: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.three,
-    minHeight: 44,
-    paddingHorizontal: Spacing.two,
-    borderRadius: Radius.md,
+    minHeight: 48,
+    paddingVertical: Spacing.two,
+    borderBottomWidth: StyleSheet.hairlineWidth,
   },
   itemLabel: { flex: 1 },
 });

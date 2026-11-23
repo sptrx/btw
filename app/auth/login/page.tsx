@@ -37,7 +37,7 @@ function LoginForm() {
       const supabase = createClient();
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
-      window.location.href = safeNextPath(searchParams.get("next"), "/channel/browse");
+      window.location.href = safeNextPath(searchParams.get("next"), "/");
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Failed to sign in");
     } finally {

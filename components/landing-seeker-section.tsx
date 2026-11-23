@@ -12,10 +12,10 @@ type Props = {
 export function LandingSeekerSection({ displayFontClassName }: Props) {
   return (
     <section
-      className="relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] w-screen max-w-none border-y border-amber-200/50 bg-gradient-to-b from-amber-50/90 via-amber-50/40 to-background dark:border-amber-900/40 dark:from-amber-950/35 dark:via-amber-950/15 dark:to-background"
+      className="rounded-xl border border-amber-200/50 bg-gradient-to-b from-amber-50/90 via-amber-50/40 to-background dark:border-amber-900/40 dark:from-amber-950/35 dark:via-amber-950/15 dark:to-background"
       aria-labelledby="landing-seeker-heading"
     >
-      <div className="container mx-auto max-w-6xl px-4 py-12 sm:px-5 sm:py-14 md:py-16">
+      <div className="px-4 py-8 sm:px-5 sm:py-10">
         <div className="mx-auto max-w-3xl text-center">
           <p className="inline-flex items-center gap-1.5 rounded-full border border-amber-300/50 bg-amber-100/60 px-3 py-1 text-xs font-medium text-amber-900 dark:border-amber-700/50 dark:bg-amber-950/50 dark:text-amber-100">
             <Sparkles className="size-3.5" aria-hidden />
@@ -45,7 +45,7 @@ export function LandingSeekerSection({ displayFontClassName }: Props) {
               <p className="text-center text-xs text-muted-foreground">{BIBLE_QA_NAV_DESCRIPTION}</p>
             </div>
             <Button asChild size="lg" variant="outline" className="rounded-full min-h-11">
-              <Link href="/feed?filter=testimonies">
+              <Link href="/?filter=testimonies">
                 <BookOpen className="mr-2 size-4" aria-hidden />
                 Read testimonies
               </Link>

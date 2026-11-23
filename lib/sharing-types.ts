@@ -185,7 +185,7 @@ export const FOR_YOU_CATEGORY_FILTERS: { id: SharingFeedFilter; label: string }[
 ];
 
 export function browseTypeHref(type: SharingType): string {
-  return `/feed?filter=${type === "testimony" ? "testimonies" : type === "revelation" ? "revelations" : type === "prophecy" ? "prophecies" : type === "question" ? "questions" : type === "devotional" ? "devotionals" : type === "praise_report" ? "praise" : type === "prayer_request" ? "prayer" : type === "discussion" ? "discussions" : "all"}`;
+  return `/?filter=${type === "testimony" ? "testimonies" : type === "revelation" ? "revelations" : type === "prophecy" ? "prophecies" : type === "question" ? "questions" : type === "devotional" ? "devotionals" : type === "praise_report" ? "praise" : type === "prayer_request" ? "prayer" : type === "discussion" ? "discussions" : "all"}`;
 }
 
 /** Map sharing type to default media `type` on insert. */

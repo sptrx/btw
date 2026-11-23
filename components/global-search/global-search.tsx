@@ -208,11 +208,14 @@ function hitDomId(h: Hit, idx: number): string {
 export function GlobalSearch({
   className,
   showTrigger = true,
+  variant = "icon",
   open: openProp,
   onOpenChange,
 }: {
   className?: string;
   showTrigger?: boolean;
+  /** `bar` is the header field. It opens the same search overlay as the icon. */
+  variant?: "icon" | "bar";
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
 }) {
@@ -388,17 +391,33 @@ export function GlobalSearch({
   return (
     <>
       {showTrigger ? (
-        <Button
-          ref={triggerRef}
-          type="button"
-          variant="ghost"
-          size="icon"
-          className={cn("size-11 touch-manipulation", className)}
-          aria-label="Search"
-          onClick={() => setOpen(true)}
-        >
-          <Search className="h-4 w-4" aria-hidden />
-        </Button>
+        variant === "bar" ? (
+          <button
+            ref={triggerRef}
+            type="button"
+            className={cn(
+              "flex h-10 w-full min-w-0 items-center gap-2 rounded-full border border-border/70 bg-background/90 px-3.5 text-left text-sm text-muted-foreground shadow-sm transition-colors hover:bg-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+              className
+            )}
+            aria-label="Search"
+            onClick={() => setOpen(true)}
+          >
+            <Search className="h-4 w-4 shrink-0" aria-hidden />
+            <span className="truncate">Search</span>
+          </button>
+        ) : (
+          <Button
+            ref={triggerRef}
+            type="button"
+            variant="ghost"
+            size="icon"
+            className={cn("size-11 touch-manipulation", className)}
+            aria-label="Search"
+            onClick={() => setOpen(true)}
+          >
+            <Search className="h-4 w-4" aria-hidden />
+          </Button>
+        )
       ) : null}
 
       {open && (

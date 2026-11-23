@@ -1235,6 +1235,7 @@ export async function createContent(channelId: string, pageId: string, formData:
 
   revalidatePath(`/channel/${channel.slug}`);
   revalidatePath("/");
+  revalidatePath("/");
   revalidatePath("/feed");
   if (moderationStatus === "pending_review") {
     return { success: true, pendingReview: true, message: PENDING_REVIEW_MESSAGE };

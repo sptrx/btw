@@ -16,7 +16,7 @@ const STATIC_PATHS = [
   "/invite",
   "/contact",
   "/donate",
-  "/feed",
+  "/bible",
   "/channel",
   "/prayer",
   "/legal/terms",
@@ -28,7 +28,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base = siteUrl();
   const entries: MetadataRoute.Sitemap = STATIC_PATHS.map((path) => ({
     url: `${base}${path === "/" ? "" : path}`,
-    changeFrequency: path === "/" || path === "/feed" ? "daily" : "weekly",
+    changeFrequency: path === "/" ? "daily" : "weekly",
     priority: path === "/" ? 1 : 0.6,
   }));
 

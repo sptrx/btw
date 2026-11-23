@@ -5,7 +5,7 @@
  */
 export function safeNextPath(
   raw: string | null | undefined,
-  fallback = "/channel/browse"
+  fallback = "/"
 ): string {
   if (!raw) return fallback;
   const value = raw.trim();

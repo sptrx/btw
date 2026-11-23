@@ -19,7 +19,7 @@ export function LandingFeatured({ items, displayFontClassName }: Props) {
 
   return (
     <section
-      className="container mx-auto max-w-6xl px-4 sm:px-5 py-10 sm:py-12"
+      className="py-2"
       aria-labelledby="landing-featured-heading"
     >
       <div className="mb-5 flex items-center gap-2">

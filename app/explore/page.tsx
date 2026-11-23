@@ -25,7 +25,7 @@ export default async function ExplorePage({ searchParams }: Props) {
   const testimonies = await getExploreTestimonies(3);
 
   return (
-    <div className="relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] w-screen max-w-none">
+    <div className="min-w-0">
       {/* Hero */}
       <section className="border-b border-border/60 bg-gradient-to-b from-amber-50/80 to-background dark:from-amber-950/20 dark:to-background">
         <div className="container mx-auto max-w-6xl px-4 py-14 sm:px-5 sm:py-16 md:py-20">
@@ -50,7 +50,7 @@ export default async function ExplorePage({ searchParams }: Props) {
               <a href="#ask">Ask a Bible question</a>
             </Button>
             <Button asChild size="lg" variant="outline" className="rounded-full">
-              <Link href="/feed?filter=testimonies">Read testimonies</Link>
+              <Link href="/?filter=testimonies">Read testimonies</Link>
             </Button>
           </div>
         </div>
@@ -93,7 +93,7 @@ export default async function ExplorePage({ searchParams }: Props) {
               </p>
             </div>
             <Link
-              href="/feed?filter=testimonies"
+              href="/?filter=testimonies"
               className="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:underline shrink-0"
             >
               See all testimonies
@@ -111,7 +111,7 @@ export default async function ExplorePage({ searchParams }: Props) {
           ) : (
             <p className="mt-6 btw-empty rounded-xl border border-dashed border-border/80 px-6 py-10 text-center">
               Testimonies will appear here as the community shares.{" "}
-              <Link href="/feed?filter=testimonies" className="text-primary hover:underline">
+              <Link href="/?filter=testimonies" className="text-primary hover:underline">
                 Browse the feed
               </Link>
             </p>

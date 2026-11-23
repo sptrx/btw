@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Inter, Playfair_Display } from "next/font/google";
 import Script from "next/script";
 import Header from "@/components/header";
+import { SiteShell } from "@/components/site-shell";
 import { SiteFooter } from "@/components/site-footer";
 import { ThemeProvider } from "@/components/theme-provider";
 import { AuthListener } from "@/components/auth-listener";
@@ -114,13 +115,7 @@ export default function RootLayout({
           <SkipLink />
           <AuthListener />
           <Header />
-          <main
-            id="main-content"
-            tabIndex={-1}
-            className="btw-main mt-6 sm:mt-10 container mx-auto max-w-6xl px-4 sm:px-5 outline-none focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded-sm"
-          >
-            {children}
-          </main>
+          <SiteShell>{children}</SiteShell>
           <SiteFooter />
         </ThemeProvider>
       </body>

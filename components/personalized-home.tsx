@@ -123,10 +123,10 @@ export function PersonalizedHome({ data, displayFontClassName }: Props) {
 
       <p>
         <Link
-          href="/feed"
+          href="/"
           className="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:underline"
         >
-          Open the faith feed
+          Back to home
           <ArrowRight className="size-4" aria-hidden />
         </Link>
       </p>

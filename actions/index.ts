@@ -46,6 +46,7 @@ export async function moderate(text: string) {
       text: text.trim(),
       user_id: user.id,
     });
+    revalidatePath("/");
     revalidatePath("/feed");
     return { success: true };
   } catch (e) {
@@ -115,12 +116,13 @@ export async function deletePost(postId: string) {
 
   const { data: post } = await supabase.from("posts").select("user_id").eq("id", postId).single();
   if (!post || post.user_id !== user.id) {
-    redirect("/feed");
+    redirect("/");
   }
 
   await supabase.from("posts").delete().eq("id", postId);
+  revalidatePath("/");
   revalidatePath("/feed");
-  redirect("/feed");
+  redirect("/");
 }
 
 export async function updatePost(
@@ -138,7 +140,7 @@ export async function updatePost(
 
   const { data: post } = await supabase.from("posts").select("user_id").eq("id", postId).single();
   if (!post || post.user_id !== user.id) {
-    redirect("/feed");
+    redirect("/");
   }
 
   const result = await moderateContent(newPostText);
@@ -414,6 +416,7 @@ export async function updateProfile(
   revalidatePath(`/profile/${user.id}`);
   revalidatePath(path);
   revalidatePath("/dashboard/settings");
+  revalidatePath("/");
   revalidatePath("/feed");
   revalidatePath("/", "layout");
   redirect(path);

@@ -34,6 +34,6 @@ describe("safeNextPath", () => {
   });
 
   it("uses the default fallback", () => {
-    expect(safeNextPath("//evil.com")).toBe("/channel/browse");
+    expect(safeNextPath("//evil.com")).toBe("/");
   });
 });

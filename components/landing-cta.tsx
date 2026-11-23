@@ -11,10 +11,10 @@ type Props = {
 export function LandingCta({ displayFontClassName, isAuthenticated = false }: Props) {
   return (
     <section
-      className="relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] w-screen max-w-none bg-primary text-primary-foreground py-14 sm:py-16 md:py-20"
+      className="rounded-xl bg-primary px-4 py-8 text-primary-foreground sm:px-5 sm:py-10"
       aria-labelledby="landing-cta-heading"
     >
-      <div className="container mx-auto max-w-6xl px-4 sm:px-5 flex flex-col md:flex-row md:items-center md:justify-between gap-8">
+      <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
         <div className="max-w-xl">
           <p className="mb-2 text-[10px] font-medium uppercase tracking-[0.18em] text-primary-foreground/90 sm:text-xs">
             Take the next step

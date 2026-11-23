@@ -15,14 +15,13 @@ import {
   UserRound,
   LogOut,
   Plus,
-  Search,
   Home,
   Hash,
   BookOpen,
   Sun,
   Moon,
 } from "lucide-react";
-import { useState, useEffect, useCallback, type ReactNode } from "react";
+import { useState, useEffect, useCallback, useRef, type ReactNode } from "react";
 import { DropdownMenu } from "radix-ui";
 import { useTheme } from "next-themes";
 import { signOut } from "@/actions";
@@ -30,10 +29,7 @@ import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { GlobalSearch } from "@/components/global-search/global-search";
 import { NotificationBell } from "@/components/notification-bell";
-import {
-  BIBLE_QA_NAV_DESCRIPTION,
-  type BibleAiNavLink,
-} from "@/lib/bible-ai-config";
+import { type BibleAiNavLink } from "@/lib/bible-ai-config";
 import { cn } from "@/lib/utils";
 
 import { UserAvatar } from "@/components/user-avatar";
@@ -47,33 +43,9 @@ type Props = {
   profileDisplayName?: string | null;
 };
 
-/** Signed-in users land on the faith feed; guests see the marketing home at `/`. */
-function homeHref(isLoggedIn: boolean) {
-  return isLoggedIn ? "/feed" : "/";
-}
-
-function isBibleQaNavLink(link: { label: string }): link is BibleAiNavLink {
-  return link.label === "Bible Q&A";
-}
-
-function bibleQaNavLabel(link: BibleAiNavLink) {
-  return (
-    <>
-      <span>{link.label}</span>
-      <span className="text-[10px] font-normal leading-none text-muted-foreground/90">
-        {link.description}
-      </span>
-    </>
-  );
-}
-
-type NavLink = ReturnType<typeof buildNavLinks>[number];
-
-function primaryNavLinkLabel(link: NavLink) {
-  if (isBibleQaNavLink(link)) {
-    return bibleQaNavLabel(link);
-  }
-  return link.label;
+/** Home is the feed-first page for guests and signed-in members. */
+function homeHref(_isLoggedIn: boolean) {
+  return "/";
 }
 
 function buildNavLinks(
@@ -85,6 +57,7 @@ function buildNavLinks(
     { href: "/explore", label: "Explore" as const },
     { href: "/channel/browse", label: "Channels" as const },
     { href: "/prayer", label: "Prayer Wall" as const },
+    { href: "/bible", label: "Bible" as const },
     ...(bibleAiNavLink ? [bibleAiNavLink] : []),
   ] as const;
 }
@@ -107,9 +80,10 @@ function headerDisplayName(user: User): string {
 /** Whether a primary nav link points at the current section. */
 function navActive(href: string, pathname: string, isLoggedIn: boolean): boolean {
   if (href === homeHref(isLoggedIn)) {
-    return isLoggedIn ? pathname === "/feed" : pathname === "/";
+    return pathname === "/";
   }
-  if (href === "/explore") return pathname === "/explore" || pathname.startsWith("/ask");
+  if (href === "/explore") return pathname === "/explore";
+  if (href === "/bible") return pathname === "/bible" || pathname.startsWith("/bible/");
   if (href === "/channel/browse") return pathname.startsWith("/channel");
   if (href === "/prayer") return pathname === "/prayer" || pathname.startsWith("/prayer/");
   return pathname === href;
@@ -121,18 +95,20 @@ const dropdownItemClass =
   "flex w-full cursor-pointer items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm text-foreground no-underline outline-none transition-colors focus:bg-accent focus:text-accent-foreground data-[highlighted]:bg-accent data-[highlighted]:text-accent-foreground";
 
 const mobileMenuItemClass =
-  "h-11 w-full justify-start gap-3 whitespace-normal rounded-lg px-3 font-medium";
+  "h-9 w-full justify-start gap-2 rounded-lg px-2.5 text-sm font-medium";
 
 function MobileMenuSection({
   title,
   children,
+  className,
 }: {
   title: string;
   children: ReactNode;
+  className?: string;
 }) {
   return (
-    <section className="space-y-1">
-      <p className={cn("px-3 btw-overline font-semibold")}>
+    <section className={cn("space-y-0.5", className)}>
+      <p className={cn("px-2.5 pt-1.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground")}>
         {title}
       </p>
       <div className="space-y-0.5">{children}</div>
@@ -162,11 +138,6 @@ export function HeaderContent({
 
   const closeMobile = useCallback(() => setMobileOpen(false), []);
 
-  const openMobileSearch = useCallback(() => {
-    closeMobile();
-    setSearchOpen(true);
-  }, [closeMobile]);
-
   useEffect(() => {
     setThemeMounted(true);
   }, []);
@@ -184,24 +155,26 @@ export function HeaderContent({
     return () => window.removeEventListener("keydown", onKey);
   }, [mobileOpen, closeMobile]);
 
+  const menuRootRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     if (!mobileOpen) return;
-    const prevOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = prevOverflow;
+    const onPointer = (event: MouseEvent) => {
+      const root = menuRootRef.current;
+      if (root && !root.contains(event.target as Node)) closeMobile();
     };
-  }, [mobileOpen]);
+    document.addEventListener("mousedown", onPointer);
+    return () => document.removeEventListener("mousedown", onPointer);
+  }, [mobileOpen, closeMobile]);
 
   return (
     <header
-      className="sticky top-0 z-50 w-full overflow-x-clip border-b border-header-border bg-[oklch(0.72_0.04_108)]/95 pt-[env(safe-area-inset-top)] shadow-[0_1px_0_0_var(--header-border)] backdrop-blur-sm transition-[background,box-shadow,border-color] duration-300 dark:border-border/50 dark:bg-neutral-900/90 dark:shadow-none dark:backdrop-blur-md"
+      className="sticky top-0 z-50 w-full border-b border-header-border bg-[oklch(0.72_0.04_108)]/95 pt-[env(safe-area-inset-top)] shadow-[0_1px_0_0_var(--header-border)] backdrop-blur-sm transition-[background,box-shadow,border-color] duration-300 dark:border-border/50 dark:bg-neutral-900/90 dark:shadow-none dark:backdrop-blur-md"
       role="banner"
     >
-      <div className="container mx-auto max-w-6xl px-4 sm:px-5">
-        {/* Top bar: flex on mobile; 3-column grid on desktop so nav stays visually centered */}
-        <div className="flex min-h-[var(--header-bar-height)] items-center gap-2 py-2.5 sm:gap-3 sm:py-3 min-[1100px]:grid min-[1100px]:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] min-[1100px]:items-center min-[1100px]:gap-4">
-          <div className="min-w-0 overflow-hidden justify-self-start min-[1100px]:col-start-1">
+      <div className="mx-auto w-full max-w-[1240px] px-3 sm:px-4 lg:px-5">
+        <div className="flex min-h-[var(--header-bar-height)] items-center gap-2 py-2 sm:gap-3">
+          <div className="min-w-0 shrink-0 overflow-hidden">
             <BtwLogo
               href={primaryHomeHref}
               priority
@@ -210,56 +183,19 @@ export function HeaderContent({
             />
           </div>
 
-        <nav
-          className="hidden min-[1100px]:col-start-2 min-[1100px]:flex min-[1100px]:items-center min-[1100px]:justify-self-center min-[1100px]:gap-0.5 min-[1100px]:rounded-full min-[1100px]:border min-[1100px]:border-border/60 min-[1100px]:bg-muted/50 min-[1100px]:p-1 dark:min-[1100px]:border-transparent dark:min-[1100px]:bg-transparent"
-          aria-label="Primary"
-        >
-          {navLinks.map((link) => {
-            const external = "external" in link && link.external;
-            const active = !external && navActive(link.href, pathname, isLoggedIn);
-            const bibleQa = isBibleQaNavLink(link);
-            const tooltip = bibleQa ? BIBLE_QA_NAV_DESCRIPTION : undefined;
-            return (
-              <Button
-                key={`${link.label}-${link.href}`}
-                variant="ghost"
-                size="sm"
-                asChild
-                aria-current={active ? "page" : undefined}
-                className={cn(
-                  "rounded-full font-medium transition-colors",
-                  bibleQa && "h-auto flex-col gap-0 px-3 py-1.5 leading-tight",
-                  active
-                    ? "bg-primary/10 text-primary hover:bg-primary/10 hover:text-primary"
-                    : "text-muted-foreground"
-                )}
-              >
-                {external ? (
-                  <a
-                    href={link.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    title={tooltip}
-                  >
-                    {primaryNavLinkLabel(link)}
-                  </a>
-                ) : (
-                  <Link href={link.href} title={tooltip}>
-                    {primaryNavLinkLabel(link)}
-                  </Link>
-                )}
-              </Button>
-            );
-          })}
-        </nav>
+        <div className="min-w-0 flex-1 px-1 sm:px-2">
+          <GlobalSearch
+            variant="bar"
+            className="mx-auto max-w-xl"
+            open={searchOpen}
+            onOpenChange={setSearchOpen}
+          />
+        </div>
 
-        <div className="ml-auto flex shrink-0 items-center justify-end gap-1 sm:gap-1.5 min-[1100px]:col-start-3 min-[1100px]:ml-0 min-[1100px]:gap-2 min-[1100px]:justify-self-end">
-          <div className="hidden min-[1100px]:block">
-            <GlobalSearch />
-          </div>
+        <div className="ml-auto flex shrink-0 items-center justify-end gap-1 sm:gap-1.5">
           {user ? <NotificationBell className="shrink-0" /> : null}
-          <ThemeToggle className="hidden min-[1100px]:inline-flex" />
-          <div className="hidden min-w-0 min-[1100px]:flex min-[1100px]:items-center min-[1100px]:gap-2">
+          <ThemeToggle className="hidden lg:inline-flex" />
+          <div className="hidden min-w-0 items-center gap-2 md:flex">
             {user ? (
               <>
                 <DropdownMenu.Root>
@@ -357,11 +293,11 @@ export function HeaderContent({
             )}
           </div>
 
-          {/* Mobile menu button — min 44×44 touch target */}
+          <div className="relative" ref={menuRootRef}>
           <Button
             variant="ghost"
             size="icon"
-            className="size-11 shrink-0 touch-manipulation min-[1100px]:hidden"
+            className="size-11 shrink-0 touch-manipulation"
             onClick={() => setMobileOpen((o) => !o)}
             aria-expanded={mobileOpen}
             aria-controls={MOBILE_NAV_ID}
@@ -369,27 +305,15 @@ export function HeaderContent({
           >
             {mobileOpen ? <X className="h-5 w-5" aria-hidden /> : <Menu className="h-5 w-5" aria-hidden />}
           </Button>
-        </div>
-        </div>
-
-        <GlobalSearch open={searchOpen} onOpenChange={setSearchOpen} showTrigger={false} />
-
-        <div
-          id={MOBILE_NAV_ID}
-          className={cn(
-            "min-[1100px]:hidden",
-            mobileOpen
-              ? "border-t border-header-border pb-3 pt-2 dark:border-border/40"
-              : "hidden"
-          )}
-        >
+          {mobileOpen ? (
           <nav
-            className="space-y-4 rounded-2xl border border-border/70 bg-card p-3 shadow-sm pb-[max(0.75rem,env(safe-area-inset-bottom))] dark:bg-card/95"
-            aria-label="Primary mobile"
+            id={MOBILE_NAV_ID}
+            className="absolute right-0 top-[calc(100%+0.35rem)] z-50 max-h-[min(20rem,70vh)] w-60 overflow-y-auto rounded-xl border border-border bg-popover p-1 text-popover-foreground shadow-lg"
+            aria-label="Primary"
           >
           {user && userLabel !== null ? (
-            <div className="flex items-center gap-3 rounded-xl bg-muted/40 px-3 py-2.5">
-              <UserAvatar name={userLabel} avatarUrl={avatarUrl} size="md" />
+            <div className="mb-1 flex items-center gap-2 rounded-lg bg-muted/40 px-2 py-2 md:hidden">
+              <UserAvatar name={userLabel} avatarUrl={avatarUrl} size="sm" />
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-medium text-foreground" title={userLabel}>
                   {userLabel}
@@ -405,18 +329,9 @@ export function HeaderContent({
             {navLinks.map((link) => {
               const external = "external" in link && link.external;
               const active = !external && navActive(link.href, pathname, isLoggedIn);
-              const bibleQa = isBibleQaNavLink(link);
-              const subtitle = bibleQa ? link.mobileDescription : undefined;
               const Icon =
                 link.label === "Home" ? Home : link.label === "Channels" ? Hash : BookOpen;
-              const labelBlock = (
-                <span className="flex min-w-0 flex-1 flex-col items-start gap-0.5 text-left">
-                  <span>{link.label}</span>
-                  {subtitle ? (
-                    <span className="text-xs font-normal text-muted-foreground">{subtitle}</span>
-                  ) : null}
-                </span>
-              );
+              const labelBlock = <span className="truncate">{link.label}</span>;
               return (
                 <Button
                   key={`${link.label}-${link.href}`}
@@ -446,16 +361,7 @@ export function HeaderContent({
             })}
           </MobileMenuSection>
 
-          <MobileMenuSection title="Tools">
-            <Button
-              variant="ghost"
-              type="button"
-              className={mobileMenuItemClass}
-              onClick={openMobileSearch}
-            >
-              <Search className="size-4 shrink-0 text-muted-foreground" aria-hidden />
-              Search
-            </Button>
+          <MobileMenuSection title="Tools" className="lg:hidden">
             <Button
               variant="ghost"
               type="button"
@@ -475,7 +381,7 @@ export function HeaderContent({
           </MobileMenuSection>
 
           {user ? (
-            <MobileMenuSection title="Your account">
+            <MobileMenuSection title="Your account" className="md:hidden">
               <Button variant="ghost" className={mobileMenuItemClass} asChild onClick={closeMobile}>
                 <Link href="/dashboard">
                   <LayoutDashboard className="size-4 shrink-0 text-muted-foreground" aria-hidden />
@@ -510,7 +416,7 @@ export function HeaderContent({
                   Profile
                 </Link>
               </Button>
-              <Button className="mt-1 h-11 w-full justify-center rounded-lg" asChild onClick={closeMobile}>
+              <Button className="mt-1 h-9 w-full justify-center rounded-lg text-sm" asChild onClick={closeMobile}>
                 <Link href="/channel/new">Create channel</Link>
               </Button>
               <form action={signOut} onSubmit={closeMobile} className="pt-1">
@@ -525,16 +431,19 @@ export function HeaderContent({
               </form>
             </MobileMenuSection>
           ) : (
-            <MobileMenuSection title="Join">
+            <MobileMenuSection title="Join" className="md:hidden">
               <Button variant="ghost" className={mobileMenuItemClass} asChild onClick={closeMobile}>
                 <Link href="/auth/login">Sign in</Link>
               </Button>
-              <Button className="h-11 w-full justify-center rounded-lg" asChild onClick={closeMobile}>
+              <Button className="h-9 w-full justify-center rounded-lg text-sm" asChild onClick={closeMobile}>
                 <Link href="/auth/signup">Sign up</Link>
               </Button>
             </MobileMenuSection>
           )}
           </nav>
+          ) : null}
+          </div>
+        </div>
         </div>
       </div>
     </header>

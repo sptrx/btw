@@ -80,6 +80,7 @@ export async function middleware(request: NextRequest) {
     path === "/contact" ||
     path === "/donate" ||
     path === "/invite" ||
+    path === "/bible" ||
     isMapPage;
   const isSeoFile = path === "/robots.txt" || path === "/sitemap.xml";
   const isPwaFile = path === "/manifest.webmanifest" || path === "/sw.js";
@@ -114,7 +115,7 @@ export async function middleware(request: NextRequest) {
     !request.nextUrl.pathname.startsWith("/auth/confirmed") &&
     !request.nextUrl.pathname.startsWith("/auth/email-changed")
   ) {
-    return NextResponse.redirect(new URL("/channel/browse", request.url));
+    return NextResponse.redirect(new URL("/", request.url));
   }
 
   return response;

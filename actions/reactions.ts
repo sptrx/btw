@@ -179,6 +179,7 @@ export async function clearPostReaction(
 }
 
 function revalidateFeedPaths(postKind: FeedPostKind, postId: string) {
+  revalidatePath("/");
   revalidatePath("/feed");
   revalidatePath("/");
   if (postKind === "topic_content") {

@@ -43,7 +43,7 @@ export function PostReactions({
   const [pulseType, setPulseType] = useState<PostReactionType | null>(null);
   const [pending, startTransition] = useTransition();
 
-  const loginHref = `/auth/login?next=${encodeURIComponent(loginNext ?? "/feed")}`;
+  const loginHref = `/auth/login?next=${encodeURIComponent(loginNext ?? "/")}`;
 
   const triggerPulse = useCallback((type: PostReactionType) => {
     setPulseType(null);

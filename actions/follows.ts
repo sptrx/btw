@@ -103,6 +103,7 @@ export async function followUser(
     .eq("id", followingId)
     .maybeSingle();
 
+  revalidatePath("/");
   revalidatePath("/feed");
   if (target?.username) revalidatePath(`/u/${target.username}`);
   revalidatePath(profilePath({ id: followingId, username: target?.username }));
@@ -132,6 +133,7 @@ export async function unfollowUser(
     .eq("id", followingId)
     .maybeSingle();
 
+  revalidatePath("/");
   revalidatePath("/feed");
   if (target?.username) revalidatePath(`/u/${target.username}`);
   return { success: true };

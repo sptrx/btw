@@ -22,7 +22,7 @@ export function FollowUserButton({
   displayName,
   initialFollowing,
   isAuthenticated,
-  loginNext = "/feed",
+  loginNext = "/",
   variant = "button",
   className,
 }: Props) {

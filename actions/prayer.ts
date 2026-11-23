@@ -472,6 +472,7 @@ export async function createPrayerRequest(formData: FormData) {
 
   revalidatePath("/prayer");
   revalidatePath("/");
+  revalidatePath("/");
   revalidatePath("/feed");
 
   if (moderationStatus === "pending_review") {

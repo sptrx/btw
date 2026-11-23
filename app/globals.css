@@ -40,13 +40,7 @@ body {
 
 @media (min-width: 640px) {
   :root {
-    --header-bar-height: 4.5rem; /* logo h-12 + py-3 */
-  }
-}
-
-@media (min-width: 1100px) {
-  :root {
-    --header-bar-height: 4.75rem; /* logo 3.25rem + py-3 */
+    --header-bar-height: 3.75rem;
   }
 }
 

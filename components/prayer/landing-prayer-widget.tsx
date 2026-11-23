@@ -16,10 +16,10 @@ export function LandingPrayerWidget({ requests, displayFontClassName }: Props) {
 
   return (
     <section
-      className="py-10 sm:py-12 md:py-14 border-y border-border/60 bg-background"
+      className="rounded-xl border border-border/60 bg-card px-4 py-6 sm:px-5"
       aria-labelledby="landing-prayer-heading"
     >
-      <div className="container mx-auto max-w-6xl px-4 sm:px-5">
+      <div>
         <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between mb-6">
           <div className="space-y-1">
             <p className="btw-overline text-primary">Prayer Wall</p>

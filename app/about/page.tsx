@@ -49,7 +49,7 @@ export default function AboutPage() {
           <Link href="/ask" className="text-primary hover:underline">
             Ask a Bible question
           </Link>
-          <Link href="/feed?filter=testimonies" className="text-primary hover:underline">
+          <Link href="/?filter=testimonies" className="text-primary hover:underline">
             Read testimonies
           </Link>
         </p>

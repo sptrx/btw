@@ -43,7 +43,6 @@ export default async function ChannelSlugLayout({ children, params }: Props) {
             ? {
                 display_name: channel.profiles.display_name,
                 username: (channel.profiles as { username?: string }).username,
-                country_code: (channel.profiles as { country_code?: string }).country_code,
               }
             : null,
         }}

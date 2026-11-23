@@ -16,7 +16,6 @@ const STATIC_PATHS = [
   "/invite",
   "/contact",
   "/donate",
-  "/map",
   "/feed",
   "/channel",
   "/prayer",

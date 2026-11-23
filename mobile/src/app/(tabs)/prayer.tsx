@@ -124,7 +124,6 @@ function PrayerCard({ request }: { request: PrayerRequest }) {
         {[
           request.authorDisplayName ?? 'Community member',
           timeAgo(request.createdAt),
-          request.countryFlag ? `${request.countryFlag} ${request.countryName ?? ''}`.trim() : null,
         ]
           .filter(Boolean)
           .join(' · ')}

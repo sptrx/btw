@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ExternalLink, MapPin, Church, Calendar } from "lucide-react";
+import { ExternalLink, Church, Calendar } from "lucide-react";
 import type { ProfilePublicFields } from "@/lib/profile-fields";
 import { websiteLinkLabel } from "@/lib/profile-fields";
 import { UserAvatar } from "@/components/user-avatar";
@@ -92,20 +92,13 @@ export function ProfileHeader({
             </div>
           </dl>
 
-          {(profile.city || profile.ministry_name || joinLabel) && (
+          {(profile.ministry_name || joinLabel) && (
             <dl className="flex flex-col gap-1.5 text-sm text-muted-foreground">
               {joinLabel ? (
                 <div className="flex items-center gap-2">
                   <dt className="sr-only">Joined</dt>
                   <Calendar className="size-4 shrink-0 text-muted-foreground/80" aria-hidden />
                   <dd>Joined {joinLabel}</dd>
-                </div>
-              ) : null}
-              {profile.city ? (
-                <div className="flex items-center gap-2">
-                  <dt className="sr-only">Location</dt>
-                  <MapPin className="size-4 shrink-0 text-muted-foreground/80" aria-hidden />
-                  <dd>{profile.city}</dd>
                 </div>
               ) : null}
               {profile.ministry_name ? (

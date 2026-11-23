@@ -19,8 +19,6 @@ export default function EditProfileScreen() {
     username: p?.username ?? '',
     bio: p?.bio ?? '',
     ministryName: p?.ministry_name ?? '',
-    city: p?.city ?? '',
-    countryCode: p?.country_code ?? '',
     websiteUrl: p?.website_url ?? '',
     profilePrivate: Boolean(p?.profile_private),
   });
@@ -34,7 +32,7 @@ export default function EditProfileScreen() {
     setSaving(true);
     setError(null);
     try {
-      await api('profile.update', { ...form, countryCode: form.countryCode.trim().toUpperCase() });
+      await api('profile.update', form);
       await refreshMe();
       router.back();
     } catch (e) {
@@ -62,15 +60,6 @@ export default function EditProfileScreen() {
       />
       <TextField label="Bio" value={form.bio} onChangeText={set('bio')} multiline maxLength={500} />
       <TextField label="Ministry or church" value={form.ministryName} onChangeText={set('ministryName')} maxLength={120} />
-      <TextField label="City" value={form.city} onChangeText={set('city')} maxLength={80} />
-      <TextField
-        label="Country code"
-        value={form.countryCode}
-        onChangeText={set('countryCode')}
-        autoCapitalize="characters"
-        maxLength={2}
-        hint="Two letters, e.g. US, GB, NG"
-      />
       <TextField
         label="Website or social link"
         value={form.websiteUrl}

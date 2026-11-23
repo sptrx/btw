@@ -93,14 +93,6 @@ export function AppDrawer() {
         openSitePage('/explore');
       },
     },
-    {
-      label: 'World map',
-      icon: { ios: 'globe', md: 'public' },
-      onPress: () => {
-        closeDrawer();
-        openSitePage('/map');
-      },
-    },
   ];
 
   const moreItems: Item[] = [

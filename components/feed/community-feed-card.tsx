@@ -10,7 +10,6 @@ import { SharingTypeBadge } from "@/components/sharing-type-badge";
 import { TopicTagPill } from "@/components/tags/topic-tag-pill";
 import { cn } from "@/lib/utils";
 import { FollowUserButton } from "@/components/follow-user-button";
-import { CountryBadge } from "@/components/geo/country-badge";
 import { profilePath } from "@/lib/profile-url";
 import { postPoster } from "@/lib/post-card";
 import { totalReactions } from "@/lib/post-reactions";
@@ -185,10 +184,6 @@ export function CommunityFeedCard({ item, displayFontClassName, isAuthenticated 
             </span>
             <RelativeDate date={item.createdAt} className="tabular-nums shrink-0" />
           </div>
-
-          {item.countryCode ? (
-            <CountryBadge countryCode={item.countryCode} className="mt-1" />
-          ) : null}
 
           {item.scriptureReference ? (
             <p className="mt-1 text-xs font-medium text-muted-foreground">

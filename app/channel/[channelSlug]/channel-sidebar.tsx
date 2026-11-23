@@ -15,7 +15,6 @@ import { cn } from "@/lib/utils";
 import AddPageLink from "./add-page-link";
 import { WalkWithChannelButton } from "@/components/walk-with-channel-button";
 import { FollowUserButton } from "@/components/follow-user-button";
-import { CountryBadge } from "@/components/geo/country-badge";
 import { profilePath } from "@/lib/profile-url";
 
 export type ChannelSidebarPage = {
@@ -35,7 +34,6 @@ type ChannelSidebarChannel = {
   profiles: {
     display_name?: string | null;
     username?: string | null;
-    country_code?: string | null;
   } | null;
 };
 
@@ -140,9 +138,6 @@ export default function ChannelSidebar({
             </>
           ) : null}
         </p>
-        {author?.country_code ? (
-          <CountryBadge countryCode={author.country_code} className="mt-2" />
-        ) : null}
         {channel.description && (
           <p className="mt-3 text-sm text-muted-foreground line-clamp-6">{channel.description}</p>
         )}

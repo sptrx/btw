@@ -108,7 +108,6 @@ export function AuthCallbackClient() {
           return;
         }
         window.history.replaceState(null, "", window.location.pathname + window.location.search);
-        void fetch("/api/geo/home-country", { method: "POST", credentials: "include" });
         redirectTo(next);
         return;
       }
@@ -125,7 +124,6 @@ export function AuthCallbackClient() {
         url.searchParams.delete("token_hash");
         url.searchParams.delete("type");
         window.history.replaceState(null, "", url.pathname + url.search + url.hash);
-        void fetch("/api/geo/home-country", { method: "POST", credentials: "include" });
         redirectTo(next);
         return;
       }
@@ -143,7 +141,6 @@ export function AuthCallbackClient() {
 
         let firstErr = (await first.auth.exchangeCodeForSession(code)).error;
         if (!firstErr) {
-          void fetch("/api/geo/home-country", { method: "POST", credentials: "include" });
           redirectTo(next);
           return;
         }
@@ -151,7 +148,6 @@ export function AuthCallbackClient() {
 
         if (cancelled) return;
         if (!secondErr) {
-          void fetch("/api/geo/home-country", { method: "POST", credentials: "include" });
           redirectTo(next);
           return;
         }

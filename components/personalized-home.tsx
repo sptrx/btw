@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import type { PersonalizedHomeData } from "@/actions/personalized-home";
-import { CountryBadge } from "@/components/geo/country-badge";
 import { RelativeDate } from "@/components/relative-date";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -94,19 +93,8 @@ export function PersonalizedHome({ data, displayFontClassName }: Props) {
         <div className="mb-3 flex flex-wrap items-end justify-between gap-3">
           <div>
             <h2 id="nearby-prayer-heading" className="btw-section-title">
-              {data.prayersAreNearby && data.placeLabel
-                ? `Prayer near ${data.placeLabel}`
-                : "Prayer requests"}
+              Prayer requests
             </h2>
-            {!data.countryCode ? (
-              <p className="mt-1 text-sm text-muted-foreground">
-                Add your country in{" "}
-                <Link href="/dashboard/settings" className="font-medium text-primary hover:underline">
-                  settings
-                </Link>{" "}
-                to see requests near you.
-              </p>
-            ) : null}
           </div>
           <Button asChild variant="outline" className="rounded-full">
             <Link href="/prayer">
@@ -125,7 +113,6 @@ export function PersonalizedHome({ data, displayFontClassName }: Props) {
                   <span className="font-medium text-foreground">{prayer.title}</span>
                   <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
                     <RelativeDate date={prayer.createdAt} />
-                    {prayer.countryCode ? <CountryBadge countryCode={prayer.countryCode} /> : null}
                   </div>
                 </Link>
               </li>

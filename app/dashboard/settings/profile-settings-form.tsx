@@ -2,7 +2,6 @@
 
 import { useActionState, useState } from "react";
 import { updateProfile } from "@/actions";
-import { CountryPicker } from "@/components/geo/country-picker";
 import { ProfileAvatarField } from "@/components/profile-avatar-field";
 import { ProfilePrivacyToggle } from "@/components/profile-privacy-toggle";
 
@@ -10,12 +9,10 @@ type Props = {
   displayName: string;
   username: string;
   bio: string;
-  city: string;
   ministryName: string;
   websiteUrl: string;
   avatarUrl: string;
   profilePrivate: boolean;
-  countryCode: string | null;
 };
 
 const inputClassName =
@@ -25,19 +22,15 @@ export default function ProfileSettingsForm({
   displayName,
   username,
   bio,
-  city,
   ministryName,
   websiteUrl,
   avatarUrl,
   profilePrivate,
-  countryCode: initialCountryCode,
 }: Props) {
   const [name, setName] = useState(displayName);
   const [bioText, setBioText] = useState(bio);
-  const [cityText, setCityText] = useState(city);
   const [ministryText, setMinistryText] = useState(ministryName);
   const [websiteText, setWebsiteText] = useState(websiteUrl);
-  const [homeCountry, setHomeCountry] = useState<string | null>(initialCountryCode);
 
   const [state, formAction, pending] = useActionState(updateProfile, null);
 
@@ -91,29 +84,6 @@ export default function ProfileSettingsForm({
           value={bioText}
           onChange={(e) => setBioText(e.target.value)}
           placeholder="A short introduction about you and your faith journey"
-          className={inputClassName}
-        />
-      </div>
-
-      <CountryPicker
-        value={homeCountry}
-        onChange={setHomeCountry}
-        label="Home country"
-        hint="Your home country (optional). We may suggest this from your connection on sign-up, you can change it anytime. Country level only."
-        id="profile-home-country"
-      />
-
-      <div>
-        <label htmlFor="city" className="mb-1 block text-sm font-medium text-foreground">
-          City or region <span className="font-normal text-muted-foreground">(optional)</span>
-        </label>
-        <input
-          id="city"
-          name="city"
-          type="text"
-          value={cityText}
-          onChange={(e) => setCityText(e.target.value)}
-          placeholder="e.g. Portland, OR"
           className={inputClassName}
         />
       </div>

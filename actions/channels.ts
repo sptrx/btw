@@ -29,7 +29,6 @@ import {
   sharingTypeLabel,
   type SharingType,
 } from "@/lib/sharing-types";
-import { isMissingGeoColumn, resolveContentGeo } from "@/lib/geo/resolve-content-country";
 import { isSiteModerator } from "@/lib/site-roles";
 import type { ProfileNameSnippet } from "@/lib/profile-fields";
 
@@ -179,8 +178,6 @@ export type FetchChannelsOptions = {
   search?: string | null;
   /** When set, restrict to channels tagged with this `topic_tags.slug`. */
   topicSlug?: string | null;
-  /** Filter by channel owner home country region. */
-  regionId?: import("@/lib/geo").GeoRegionId | null;
 };
 
 /** Shape returned to the browse page (counts already unwrapped from PostgREST arrays). */
@@ -333,12 +330,6 @@ export async function fetchChannels(options?: FetchChannelsOptions): Promise<Cha
       )
     : rows;
 
-  const regionId = options?.regionId ?? null;
-  const { countryCodesInRegion } = await import("@/lib/geo");
-  const regionCodes = regionId
-    ? new Set(countryCodesInRegion(regionId))
-    : null;
-
   const withProfiles: ChannelListItem[] = await Promise.all(
     filtered.map(async (c) => {
       const profile = await getProfile(c.author_id);
@@ -359,19 +350,12 @@ export async function fetchChannels(options?: FetchChannelsOptions): Promise<Cha
         profiles: profile
           ? {
               display_name: profile.display_name,
-              country_code: profile.country_code,
             }
           : null,
       };
     })
   );
 
-  if (regionCodes) {
-    return withProfiles.filter((c) => {
-      const code = c.profiles?.country_code?.toUpperCase();
-      return code && regionCodes.has(code);
-    });
-  }
   return withProfiles;
 }
 
@@ -572,7 +556,6 @@ export async function getChannelBySlug(slug: string) {
           display_name: profile.display_name,
           avatar_url: profile.avatar_url,
           username: profile.username,
-          country_code: profile.country_code,
         }
       : null,
   };
@@ -1198,9 +1181,6 @@ export async function createContent(channelId: string, pageId: string, formData:
     } catch {}
   }
 
-  const authorProfile = await getProfile(user.id);
-  const geo = resolveContentGeo(formData, authorProfile?.country_code);
-
   const insertPayload: Record<string, unknown> = {
     topic_id: channelId,
     page_id: pageId || null,
@@ -1212,8 +1192,6 @@ export async function createContent(channelId: string, pageId: string, formData:
     media_urls: mediaUrls,
     moderation_status: moderationStatus,
     scripture_reference: scriptureRef,
-    country_code: geo.country_code,
-    region: geo.region,
   };
 
   let { data: inserted, error: insertErr } = await supabase
@@ -1241,16 +1219,6 @@ export async function createContent(channelId: string, pageId: string, formData:
       .single());
   }
 
-  if (insertErr && isMissingGeoColumn(insertErr)) {
-    delete insertPayload.country_code;
-    delete insertPayload.region;
-    ({ data: inserted, error: insertErr } = await supabase
-      .from("topic_content")
-      .insert(insertPayload)
-      .select("id")
-      .single());
-  }
-
   if (insertErr) {
     console.error("[createContent] insert", insertErr);
     return { error: insertErr.message };
@@ -1267,7 +1235,6 @@ export async function createContent(channelId: string, pageId: string, formData:
 
   revalidatePath(`/channel/${channel.slug}`);
   revalidatePath("/");
-  revalidatePath("/map");
   revalidatePath("/feed");
   if (moderationStatus === "pending_review") {
     return { success: true, pendingReview: true, message: PENDING_REVIEW_MESSAGE };

@@ -1,7 +1,6 @@
 import { getLandingFeatured, getLandingFeed } from "@/actions/landing";
 import { getPersonalizedHome } from "@/actions/personalized-home";
 import { getCurrentUser } from "@/actions";
-import { getMapSummary, getRecentGeoPosts } from "@/actions/map";
 import { getHomepagePrayerRequests } from "@/actions/prayer";
 import { LandingHome } from "@/components/landing-home";
 import { PersonalizedHome } from "@/components/personalized-home";
@@ -14,12 +13,10 @@ export default async function Home() {
     return <PersonalizedHome data={home} displayFontClassName={btwDisplayFont} />;
   }
 
-  const [feed, featured, prayerRequests, mapSummary, geoPosts] = await Promise.all([
+  const [feed, featured, prayerRequests] = await Promise.all([
     getLandingFeed(28),
     getLandingFeatured(3),
     getHomepagePrayerRequests(3),
-    getMapSummary(),
-    getRecentGeoPosts(10),
   ]);
   return (
     <LandingHome
@@ -28,8 +25,6 @@ export default async function Home() {
       featured={featured}
       isAuthenticated={false}
       prayerRequests={prayerRequests}
-      mapSummary={mapSummary}
-      geoPosts={geoPosts}
     />
   );
 }

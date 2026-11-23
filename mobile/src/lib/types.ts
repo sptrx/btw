@@ -45,8 +45,6 @@ export type FeedItem = {
   authorId?: string;
   reactions: ReactionCounts;
   userReaction: ReactionType | null;
-  countryFlag?: string;
-  countryName?: string | null;
 };
 
 export type FeedCursor = { createdAt: string; id: string; postKind: PostKind };
@@ -58,8 +56,6 @@ export type Profile = {
   display_name: string | null;
   avatar_url: string | null;
   bio: string | null;
-  city: string | null;
-  country_code: string | null;
   ministry_name: string | null;
   website_url: string | null;
   role?: string | null;
@@ -158,8 +154,6 @@ export type PrayerRequest = {
   prayerCount: number;
   userIsPraying: boolean;
   isOwner: boolean;
-  countryFlag?: string;
-  countryName?: string | null;
 };
 
 export type PraiseReport = {

@@ -1,15 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, Globe2, MessageCircleQuestion, Sparkles } from "lucide-react";
+import { ArrowRight, MessageCircleQuestion, Sparkles } from "lucide-react";
 import { getExploreTestimonies } from "@/actions/explore";
 import { AnonymousBibleAskForm } from "@/components/anonymous-bible-ask-form";
 import { TestimonyPreviewCard } from "@/components/explore/testimony-preview-card";
 import { Button } from "@/components/ui/button";
 import { btwDisplayFont } from "@/lib/btw-ui";
-import {
-  OUTREACH_COMMON_QUESTIONS,
-  OUTREACH_REGION_CARDS,
-} from "@/lib/outreach-content";
+import { OUTREACH_COMMON_QUESTIONS } from "@/lib/outreach-content";
 import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = {
@@ -169,35 +166,6 @@ export default async function ExplorePage({ searchParams }: Props) {
               </div>
             </div>
           </div>
-        </section>
-
-        {/* Regions */}
-        <section aria-labelledby="explore-regions-heading">
-          <h2 id="explore-regions-heading" className="btw-section-title">
-            Hear from people around the world
-          </h2>
-          <p className="mt-2 max-w-xl text-sm text-muted-foreground sm:text-base">
-            Browse testimonies from different regions, or explore the{" "}
-            <Link href="/map" className="font-medium text-primary hover:underline">
-              world map
-            </Link>
-            . Use the region links below to filter testimonies on the community feed.
-          </p>
-          <ul className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {OUTREACH_REGION_CARDS.map((region) => (
-              <li key={region.id}>
-                <Link
-                  href={region.href}
-                  className="flex h-full flex-col rounded-2xl border border-border/70 bg-card p-5 transition-colors hover:border-primary/35 hover:bg-muted/20"
-                >
-                  <Globe2 className="size-5 text-primary/80" aria-hidden />
-                  <h3 className="mt-3 font-medium">{region.label}</h3>
-                  <p className="mt-1 flex-1 text-sm text-muted-foreground">{region.description}</p>
-                  <span className="mt-4 text-sm font-medium text-primary">Browse stories →</span>
-                </Link>
-              </li>
-            ))}
-          </ul>
         </section>
 
         {/* Sign up CTA */}

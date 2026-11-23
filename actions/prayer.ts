@@ -10,23 +10,13 @@ import {
 } from "@/lib/moderation";
 import { PENDING_REVIEW_MESSAGE } from "@/lib/moderation-messages";
 import {
-  getProfile,
   hasAcceptedContentDisclaimer,
   recordContentDisclaimerAcceptance,
 } from "@/actions";
 import type { ProfileNameSnippet } from "@/lib/profile-fields";
 import { getFollowedUserIds } from "@/actions/follows";
 import { ANONYMOUS_LABEL } from "@/lib/prayer-display";
-import {
-  countryCodesInRegion,
-  countryFlagEmoji,
-  countryName,
-  isGeoRegionId,
-  normalizeCountryCode,
-} from "@/lib/geo";
-import type { GeoRegionId } from "@/lib/geo";
-import { isMissingGeoColumn, resolveContentGeo } from "@/lib/geo/resolve-content-country";
-import { visiblePrayerCountryCode } from "@/lib/prayer-geo";
+import { isMissingGeoColumn } from "@/lib/geo/resolve-content-country";
 
 export type PrayerRequestStatus = "active" | "answered" | "closed";
 export type PrayerWallFilter = "all" | "unanswered" | "answered" | "mine";
@@ -46,14 +36,6 @@ export type PrayerRequestListItem = {
   prayerCount: number;
   userIsPraying: boolean;
   isOwner: boolean;
-  countryCode?: string | null;
-  countryName?: string | null;
-  countryFlag?: string;
-};
-
-export type PrayerWallGeoFilter = {
-  regionId?: GeoRegionId | null;
-  countryCode?: string | null;
 };
 
 export type PrayerRequestDetail = PrayerRequestListItem;
@@ -149,12 +131,6 @@ function mapRequestRow(
   followedUserIds: Set<string>
 ): PrayerRequestListItem {
   const anonymous = row.is_anonymous && viewerId !== row.user_id;
-  const visibleCountry = visiblePrayerCountryCode(
-    row.country_code,
-    row.is_anonymous,
-    row.user_id,
-    viewerId
-  );
   return {
     id: row.id,
     title: row.title,
@@ -170,9 +146,6 @@ function mapRequestRow(
     prayerCount,
     userIsPraying,
     isOwner: viewerId === row.user_id,
-    countryCode: visibleCountry,
-    countryName: visibleCountry ? countryName(visibleCountry) : null,
-    countryFlag: visibleCountry ? countryFlagEmoji(visibleCountry) : undefined,
   };
 }
 
@@ -191,26 +164,9 @@ type PrayerRequestRow = {
   country_code?: string | null;
 };
 
-function applyPrayerGeoFilter(
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  query: any,
-  geo: PrayerWallGeoFilter,
-  withGeo: boolean
-) {
-  if (!withGeo) return query;
-  const country = normalizeCountryCode(geo.countryCode);
-  if (country) return query.eq("country_code", country);
-  if (geo.regionId && isGeoRegionId(geo.regionId)) {
-    const codes = countryCodesInRegion(geo.regionId);
-    if (codes.length > 0) return query.in("country_code", codes);
-  }
-  return query;
-}
-
 export async function getPrayerWallFeed(
   filter: PrayerWallFilter = "all",
-  limit = 40,
-  geo: PrayerWallGeoFilter = {}
+  limit = 40
 ): Promise<PrayerRequestListItem[]> {
   const supabase = await createClient();
   const {
@@ -224,7 +180,6 @@ export async function getPrayerWallFeed(
       .select(withGeo ? PRAYER_SELECT : "id, user_id, title, body, is_anonymous, status, created_at, updated_at")
       .order("created_at", { ascending: false })
       .limit(limit);
-    query = applyPrayerGeoFilter(query, geo, withGeo);
     return query;
   };
 
@@ -486,9 +441,6 @@ export async function createPrayerRequest(formData: FormData) {
     await recordContentDisclaimerAcceptance(user.id);
   }
 
-  const authorProfile = await getProfile(user.id);
-  const geoFields = resolveContentGeo(formData, authorProfile?.country_code);
-
   const insertPayload: Record<string, unknown> = {
     user_id: user.id,
     title,
@@ -496,8 +448,6 @@ export async function createPrayerRequest(formData: FormData) {
     is_anonymous: isAnonymous,
     status: "active",
     moderation_status: moderationStatus,
-    country_code: geoFields.country_code,
-    region: geoFields.region,
   };
 
   let { data: inserted, error: insertErr } = await supabase
@@ -515,16 +465,6 @@ export async function createPrayerRequest(formData: FormData) {
       .single());
   }
 
-  if (insertErr && isMissingGeoColumn(insertErr)) {
-    delete insertPayload.country_code;
-    delete insertPayload.region;
-    ({ data: inserted, error: insertErr } = await supabase
-      .from("prayer_request")
-      .insert(insertPayload)
-      .select("id")
-      .single());
-  }
-
   if (insertErr) {
     console.error("[createPrayerRequest]", insertErr);
     return { error: insertErr.message };
@@ -532,7 +472,6 @@ export async function createPrayerRequest(formData: FormData) {
 
   revalidatePath("/prayer");
   revalidatePath("/");
-  revalidatePath("/map");
   revalidatePath("/feed");
 
   if (moderationStatus === "pending_review") {

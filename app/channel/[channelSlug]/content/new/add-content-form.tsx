@@ -12,7 +12,6 @@ import {
 } from "@/components/content-submission-disclaimer";
 import { ContentMissionHint } from "@/components/content-mission-hint";
 import { PendingReviewNotice } from "@/components/pending-review-notice";
-import { CountryPicker } from "@/components/geo/country-picker";
 import { TopicTagPicker } from "@/components/tags/topic-tag-picker";
 import { SharingTypeSelector } from "@/components/sharing-type-selector";
 import { PostPromptPicker } from "@/components/post-prompt-picker";
@@ -39,7 +38,6 @@ type Props = {
   defaultPageId: string | null;
   allTags: Tag[];
   hasAlreadyAcceptedDisclaimer?: boolean;
-  defaultCountryCode?: string | null;
 };
 
 export default function AddContentForm({
@@ -49,7 +47,6 @@ export default function AddContentForm({
   defaultPageId,
   allTags,
   hasAlreadyAcceptedDisclaimer = false,
-  defaultCountryCode = null,
 }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [pendingReviewMessage, setPendingReviewMessage] = useState<string | null>(null);
@@ -61,7 +58,6 @@ export default function AddContentForm({
   const [scriptureReference, setScriptureReference] = useState("");
   const [mediaUrls, setMediaUrls] = useState<MediaItem[]>([]);
   const [tagIds, setTagIds] = useState<string[]>([]);
-  const [countryCode, setCountryCode] = useState<string | null>(defaultCountryCode);
   const [acceptedDisclaimer, setAcceptedDisclaimer] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const router = useRouter();
@@ -318,12 +314,6 @@ export default function AddContentForm({
               </div>
             </div>
           ) : null}
-
-          <CountryPicker
-            value={countryCode}
-            onChange={setCountryCode}
-            hint="Share where you're from (optional), country only, never city or precise location. Leave blank to use your profile home country if set."
-          />
 
           <div>
             <span className="block text-sm font-medium mb-2">Topics</span>

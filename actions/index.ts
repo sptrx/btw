@@ -176,7 +176,6 @@ export async function signOut() {
 }
 
 import { normalizeOptionalText, normalizeWebsiteUrl } from "@/lib/profile-fields";
-import { isValidCountryCode, normalizeCountryCode } from "@/lib/geo";
 import { isValidUsername, normalizeUsernameInput } from "@/lib/profile-username";
 import { profilePath } from "@/lib/profile-url";
 
@@ -356,8 +355,6 @@ export async function updateProfile(
 
   const displayName = normalizeOptionalText(formData.get("display_name"), 80);
   const bio = normalizeOptionalText(formData.get("bio"), 500);
-  const city = normalizeOptionalText(formData.get("city"), 80);
-  const countryRaw = (formData.get("country_code") as string | null)?.trim() ?? "";
   const ministryName = normalizeOptionalText(formData.get("ministry_name"), 120);
   const avatarRaw = normalizeOptionalText(formData.get("avatar_url"), 2048);
   const usernameRaw = normalizeUsernameInput(String(formData.get("username") ?? ""));
@@ -383,19 +380,9 @@ export async function updateProfile(
     return { error: "Avatar URL must start with http:// or https://." };
   }
 
-  let countryCode: string | null = null;
-  if (countryRaw) {
-    countryCode = normalizeCountryCode(countryRaw);
-    if (!countryCode || !isValidCountryCode(countryCode)) {
-      return { error: "Please choose a valid country from the list." };
-    }
-  }
-
   const updatePayload: Record<string, unknown> = {
     display_name: displayName,
     bio,
-    city,
-    country_code: countryCode,
     ministry_name: ministryName,
     website_url: websiteUrl,
     avatar_url: avatarRaw,
@@ -427,7 +414,6 @@ export async function updateProfile(
   revalidatePath(`/profile/${user.id}`);
   revalidatePath(path);
   revalidatePath("/dashboard/settings");
-  revalidatePath("/map");
   revalidatePath("/feed");
   revalidatePath("/", "layout");
   redirect(path);

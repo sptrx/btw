@@ -14,16 +14,7 @@ import {
 } from "@/lib/sharing-types";
 import { isMissingSharingTypeColumn } from "@/lib/moderation";
 import { getFollowedUserIds } from "@/actions/follows";
-import {
-  countryCodesInRegion,
-  countryFlagEmoji,
-  countryName,
-  isGeoRegionId,
-  normalizeCountryCode,
-} from "@/lib/geo";
-import type { GeoRegionId } from "@/lib/geo";
 import { isMissingGeoColumn } from "@/lib/geo/resolve-content-country";
-import { visiblePrayerCountryCode } from "@/lib/prayer-geo";
 import { readingMinutes } from "@/lib/post-card";
 
 export type CommunityFeedFilter = SharingFeedFilter;
@@ -60,9 +51,6 @@ export type CommunityFeedItem = {
   tags?: { id: string; slug: string; label: string }[];
   reactions: ReactionCounts;
   userReaction: import("@/lib/post-reactions").PostReactionType | null;
-  countryCode?: string | null;
-  countryName?: string | null;
-  countryFlag?: string;
 };
 
 export type CommunityFeedCursor = {
@@ -191,19 +179,13 @@ type RawContentRow = {
   tags?: { tag: { id: string; slug: string; label: string } | null }[] | null;
 };
 
-export type CommunityFeedGeoFilter = {
-  regionId?: GeoRegionId | null;
-  countryCode?: string | null;
-};
-
 async function fetchTopicContentSlice(
   filter: CommunityFeedFilter,
   limit: number,
   cursor: CommunityFeedCursor | null,
   testimonyContentIds: Set<string> | null,
   revelationContentIds: Set<string> | null,
-  followedAuthorIds: string[] | null,
-  geo: CommunityFeedGeoFilter = {}
+  followedAuthorIds: string[] | null
 ): Promise<RawContentRow[]> {
   if (filter === "prayer") return [];
   if (filter === "following" && (!followedAuthorIds || followedAuthorIds.length === 0)) {
@@ -227,12 +209,6 @@ async function fetchTopicContentSlice(
     "id, type, sharing_type, scripture_reference, title, body, media_urls, created_at, topic_id, page_id, author_id, country_code, " +
     "comments:topic_content_comments(count), tags:post_tags(tag:topic_tags(id, slug, label))";
 
-  const countryCode = normalizeCountryCode(geo.countryCode);
-  const regionCodes =
-    geo.regionId && isGeoRegionId(geo.regionId)
-      ? countryCodesInRegion(geo.regionId)
-      : null;
-
   const run = (withModeration: boolean, withSharingCol: boolean, withGeo: boolean) => {
     const cols = withSharingCol
       ? withGeo
@@ -245,11 +221,6 @@ async function fetchTopicContentSlice(
     if (withModeration) q = q.or(approvedModerationOrFilter());
     if (followedAuthorIds?.length) {
       q = q.in("author_id", followedAuthorIds);
-    }
-    if (withGeo && countryCode) {
-      q = q.eq("country_code", countryCode);
-    } else if (withGeo && regionCodes?.length) {
-      q = q.in("country_code", regionCodes);
     }
 
     if (filter === "discussions") {
@@ -325,8 +296,7 @@ async function fetchPrayerSlice(
   filter: CommunityFeedFilter,
   limit: number,
   cursor: CommunityFeedCursor | null,
-  followedAuthorIds: string[] | null,
-  geo: CommunityFeedGeoFilter = {}
+  followedAuthorIds: string[] | null
 ): Promise<PrayerFeedRow[]> {
   if (filter !== "all" && filter !== "prayer" && filter !== "following") return [];
   if (filter === "following" && (!followedAuthorIds || followedAuthorIds.length === 0)) {
@@ -334,11 +304,6 @@ async function fetchPrayerSlice(
   }
 
   const supabase = await createClient();
-  const countryCode = normalizeCountryCode(geo.countryCode);
-  const regionCodes =
-    geo.regionId && isGeoRegionId(geo.regionId)
-      ? countryCodesInRegion(geo.regionId)
-      : null;
 
   const run = (withGeo: boolean) => {
     let q = supabase
@@ -353,9 +318,6 @@ async function fetchPrayerSlice(
       .order("created_at", { ascending: false })
       .order("id", { ascending: false })
       .limit(limit);
-
-    if (withGeo && countryCode) q = q.eq("country_code", countryCode);
-    else if (withGeo && regionCodes?.length) q = q.in("country_code", regionCodes);
 
     if (followedAuthorIds?.length) {
       q = q.in("user_id", followedAuthorIds);
@@ -519,8 +481,7 @@ function scoreForYouItem(
 export async function getCommunityFeedPage(
   filter: CommunityFeedFilter = "all",
   limit = 20,
-  cursor: CommunityFeedCursor | null = null,
-  geo: CommunityFeedGeoFilter = {}
+  cursor: CommunityFeedCursor | null = null
 ): Promise<CommunityFeedPage> {
   const supabase = await createClient();
   const {
@@ -529,7 +490,7 @@ export async function getCommunityFeedPage(
   const followedTopicIds = await getFollowedTopicIds(user?.id ?? null);
   const followedUserIds = await getFollowedUserIds(user?.id ?? null);
 
-  // "for_you" fetches the broad pool (or a category passed as geo.category via filter remap).
+  // "for_you" fetches the broad pool and ranks it. A category chip passes that category as `filter`.
   // Callers that want a category under For you should pass that category as `filter` and
   // set options.forYou — mobile API does that via getForYouFeedPage.
   const contentFilter: CommunityFeedFilter = filter === "for_you" ? "all" : filter;
@@ -565,10 +526,9 @@ export async function getCommunityFeedPage(
       cursor,
       contentFilter === "testimonies" ? testimonyContentIds : null,
       contentFilter === "revelations" ? revelationContentIds : null,
-      followedAuthorIds,
-      geo
+      followedAuthorIds
     ),
-    fetchPrayerSlice(contentFilter, fetchLimit, cursor, followedAuthorIds, geo),
+    fetchPrayerSlice(contentFilter, fetchLimit, cursor, followedAuthorIds),
     fetchPraiseSlice(contentFilter, fetchLimit, cursor, followedAuthorIds),
   ]);
 
@@ -638,7 +598,6 @@ export async function getCommunityFeedPage(
     const authorId = r.author_id;
     const authorProfile = authorId ? profileById.get(authorId) : undefined;
 
-    const postCountry = normalizeCountryCode(r.country_code);
     items.push({
       id: r.id,
       postKind: "topic_content",
@@ -666,9 +625,6 @@ export async function getCommunityFeedPage(
       tags,
       reactions: emptyReactionCounts(),
       userReaction: null,
-      countryCode: postCountry,
-      countryName: postCountry ? countryName(postCountry) : null,
-      countryFlag: postCountry ? countryFlagEmoji(postCountry) : undefined,
     });
   }
 
@@ -676,12 +632,6 @@ export async function getCommunityFeedPage(
   for (const r of prayerRows) {
     const profile = profileById.get(r.user_id);
     const anonymous = r.is_anonymous && viewerId !== r.user_id;
-    const visibleCountry = visiblePrayerCountryCode(
-      r.country_code,
-      r.is_anonymous,
-      r.user_id,
-      viewerId
-    );
     items.push({
       id: r.id,
       postKind: "prayer_request",
@@ -701,9 +651,6 @@ export async function getCommunityFeedPage(
       viewerFollowsAuthor: anonymous ? false : followedUserIds.has(r.user_id),
       reactions: emptyReactionCounts(),
       userReaction: null,
-      countryCode: visibleCountry,
-      countryName: visibleCountry ? countryName(visibleCountry) : null,
-      countryFlag: visibleCountry ? countryFlagEmoji(visibleCountry) : undefined,
     });
   }
 
@@ -775,19 +722,18 @@ export async function getCommunityFeedPage(
 export async function getForYouFeedPage(
   category: CommunityFeedFilter = "all",
   limit = 20,
-  cursor: CommunityFeedCursor | null = null,
-  geo: CommunityFeedGeoFilter = {}
+  cursor: CommunityFeedCursor | null = null
 ): Promise<CommunityFeedPage> {
   const categoryFilter =
     category === "following" || category === "for_you" ? "all" : category;
   if (categoryFilter === "all") {
-    return getCommunityFeedPage("for_you", limit, cursor, geo);
+    return getCommunityFeedPage("for_you", limit, cursor);
   }
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  const page = await getCommunityFeedPage(categoryFilter, Math.min(limit * 3, 30), cursor, geo);
+  const page = await getCommunityFeedPage(categoryFilter, Math.min(limit * 3, 30), cursor);
   const boosts = await preferenceBoosts(user?.id ?? null);
   const now = Date.now();
   const ranked = [...page.items].sort(

@@ -31,12 +31,10 @@ export default async function Settings() {
           displayName={profile?.display_name ?? ""}
           username={profile?.username ?? ""}
           bio={profile?.bio ?? ""}
-          city={profile?.city ?? ""}
           ministryName={profile?.ministry_name ?? ""}
           websiteUrl={profile?.website_url ?? ""}
           avatarUrl={profile?.avatar_url ?? ""}
           profilePrivate={profile?.profile_private ?? false}
-          countryCode={profile?.country_code ?? null}
         />
       </section>
 

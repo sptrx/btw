@@ -517,8 +517,6 @@ export const mobileHandlers: Record<string, Handler> = {
           display_name: field("displayName", current?.display_name),
           username: field("username", current?.username),
           bio: field("bio", current?.bio),
-          city: field("city", current?.city),
-          country_code: field("countryCode", current?.country_code),
           ministry_name: field("ministryName", current?.ministry_name),
           website_url: field("websiteUrl", current?.website_url),
           avatar_url: field("avatarUrl", current?.avatar_url),

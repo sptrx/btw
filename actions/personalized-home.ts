@@ -3,7 +3,6 @@
 import { getProfile } from "@/actions";
 import { getPrayerWallFeed, type PrayerRequestListItem } from "@/actions/prayer";
 import { todaysVerse, type DailyVerse } from "@/lib/daily-verse";
-import { countryName, normalizeCountryCode } from "@/lib/geo";
 import { createClient } from "@/utils/supabase/server";
 
 export type FollowedChannelCard = {
@@ -15,12 +14,9 @@ export type FollowedChannelCard = {
 
 export type PersonalizedHomeData = {
   displayName: string;
-  countryCode: string | null;
-  placeLabel: string | null;
   verse: DailyVerse;
   channels: FollowedChannelCard[];
   prayers: PrayerRequestListItem[];
-  prayersAreNearby: boolean;
 };
 
 type TopicEmbed = {
@@ -34,9 +30,6 @@ type TopicEmbed = {
 export async function getPersonalizedHome(userId: string): Promise<PersonalizedHomeData> {
   const supabase = await createClient();
   const profile = await getProfile(userId);
-  const countryCode = normalizeCountryCode(profile?.country_code);
-  const city = profile?.city?.trim() || null;
-  const placeLabel = city || (countryCode ? countryName(countryCode) : null);
   const displayName =
     profile?.display_name?.trim() || profile?.username?.trim() || "friend";
 
@@ -64,23 +57,12 @@ export async function getPersonalizedHome(userId: string): Promise<PersonalizedH
     console.warn("[home] followed channels:", membership.error.message);
   }
 
-  let prayers: PrayerRequestListItem[] = [];
-  let prayersAreNearby = false;
-  if (countryCode) {
-    prayers = await getPrayerWallFeed("unanswered", 3, { countryCode });
-    prayersAreNearby = prayers.length > 0;
-  }
-  if (prayers.length === 0) {
-    prayers = await getPrayerWallFeed("unanswered", 3);
-  }
+  const prayers = await getPrayerWallFeed("unanswered", 3);
 
   return {
     displayName,
-    countryCode,
-    placeLabel,
     verse: todaysVerse(),
     channels,
     prayers,
-    prayersAreNearby,
   };
 }

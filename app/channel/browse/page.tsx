@@ -1,14 +1,11 @@
 import { Metadata } from "next";
-import { Suspense } from "react";
 import Link from "next/link";
 import { fetchChannels } from "@/actions/channels";
 import { getAllTopicTags } from "@/actions/tags";
 import { ChannelCardGrid } from "@/components/channel-card-grid";
 import { BrowseBySharingType } from "@/components/browse-by-sharing-type";
-import { RegionFilter } from "@/components/geo/region-filter";
 import { BrowseTopicFilter } from "@/components/tags/browse-topic-filter";
 import { Button } from "@/components/ui/button";
-import { isGeoRegionId } from "@/lib/geo";
 
 export const metadata: Metadata = {
   title: "Browse channels",
@@ -16,20 +13,17 @@ export const metadata: Metadata = {
 };
 
 type Props = {
-  searchParams: Promise<{ q?: string; topic?: string; region?: string }>;
+  searchParams: Promise<{ q?: string; topic?: string }>;
 };
 
 export default async function BrowseChannelsPage({ searchParams }: Props) {
   const sp = await searchParams;
   const q = typeof sp.q === "string" ? sp.q : "";
   const topic = typeof sp.topic === "string" ? sp.topic.trim() : "";
-  const regionParam = typeof sp.region === "string" ? sp.region.trim() : "";
-
   const [channels, allTags] = await Promise.all([
     fetchChannels({
       search: q || undefined,
       topicSlug: topic || undefined,
-      regionId: isGeoRegionId(regionParam) ? regionParam : null,
     }),
     getAllTopicTags(),
   ]);
@@ -73,10 +67,6 @@ export default async function BrowseChannelsPage({ searchParams }: Props) {
       </form>
 
       <BrowseBySharingType />
-
-      <Suspense fallback={null}>
-        <RegionFilter basePath="/channel/browse" preserveParams={["q", "topic"]} className="mb-6" />
-      </Suspense>
 
       <BrowseTopicFilter tags={allTags} />
 

@@ -2,7 +2,7 @@ import { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { getChannelBySlug, getChannelPages, isChannelAuthor } from "@/actions/channels";
 import { getAllTopicTags } from "@/actions/tags";
-import { getCurrentUser, getProfile, hasAcceptedContentDisclaimer } from "@/actions";
+import { getCurrentUser, hasAcceptedContentDisclaimer } from "@/actions";
 import AddContentForm from "./add-content-form";
 
 type Props = {
@@ -30,11 +30,10 @@ export default async function NewContentPage({ params, searchParams }: Props) {
   const author = await isChannelAuthor(channel.id);
   if (!author) redirect(`/channel/${channelSlug}`);
 
-  const [pages, allTags, hasAlreadyAcceptedDisclaimer, profile] = await Promise.all([
+  const [pages, allTags, hasAlreadyAcceptedDisclaimer] = await Promise.all([
     getChannelPages(channel.id),
     getAllTopicTags(),
     hasAcceptedContentDisclaimer(user.id),
-    getProfile(user.id),
   ]);
   const defaultPage = pages.find((p) => p.slug === "home") ?? pages[0];
   const selectedPage = pageId ? pages.find((p) => p.id === pageId) : defaultPage;
@@ -49,7 +48,6 @@ export default async function NewContentPage({ params, searchParams }: Props) {
         defaultPageId={selectedPage?.id ?? null}
         allTags={allTags}
         hasAlreadyAcceptedDisclaimer={hasAlreadyAcceptedDisclaimer}
-        defaultCountryCode={profile?.country_code ?? null}
       />
     </div>
   );

@@ -1,17 +1,12 @@
 import Link from "next/link";
-import { getCurrentUser, getProfile, hasAcceptedContentDisclaimer } from "@/actions";
+import { getCurrentUser, hasAcceptedContentDisclaimer } from "@/actions";
 import { PrayerRequestForm } from "@/components/prayer/prayer-request-form";
 import { btwDisplayFont, btwLead, btwPageTitle } from "@/lib/btw-ui";
 import { cn } from "@/lib/utils";
 
 export default async function NewPrayerRequestPage() {
   const user = await getCurrentUser();
-  const [hasDisclaimer, profile] = user
-    ? await Promise.all([
-        hasAcceptedContentDisclaimer(user.id),
-        getProfile(user.id),
-      ])
-    : [false, null];
+  const hasDisclaimer = user ? await hasAcceptedContentDisclaimer(user.id) : false;
 
   return (
     <div className="mx-auto max-w-2xl py-6 sm:py-8">
@@ -28,10 +23,7 @@ export default async function NewPrayerRequestPage() {
           Your request will be reviewed before it appears on the wall. You may post anonymously.
         </p>
       </header>
-      <PrayerRequestForm
-        hasAlreadyAcceptedDisclaimer={hasDisclaimer}
-        defaultCountryCode={profile?.country_code ?? null}
-      />
+      <PrayerRequestForm hasAlreadyAcceptedDisclaimer={hasDisclaimer} />
     </div>
   );
 }

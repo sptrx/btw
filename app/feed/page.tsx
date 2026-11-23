@@ -1,17 +1,14 @@
 import Link from "next/link";
-import { Suspense } from "react";
-import { getCommunityFeedPage, type CommunityFeedGeoFilter } from "@/actions/feed";
+import { getCommunityFeedPage } from "@/actions/feed";
 import { getCurrentUser } from "@/actions";
 import { getPeopleYouMayKnow } from "@/actions/follows";
 import { CommunityFeed } from "@/components/feed/community-feed";
-import { RegionFilter } from "@/components/geo/region-filter";
 import { PeopleYouMayKnow } from "@/components/people-you-may-know";
 import { btwDisplayFont } from "@/lib/btw-ui";
-import { isGeoRegionId, normalizeCountryCode } from "@/lib/geo";
 import { cn } from "@/lib/utils";
 
 type Props = {
-  searchParams: Promise<{ filter?: string; region?: string; country?: string }>;
+  searchParams: Promise<{ filter?: string }>;
 };
 
 const VALID_FILTERS = new Set([
@@ -34,16 +31,9 @@ export default async function FeedPage({ searchParams }: Props) {
     ? (filterParam as import("@/actions/feed").CommunityFeedFilter)
     : "all";
 
-  const regionParam = params.region?.trim() ?? "";
-  const countryParam = normalizeCountryCode(params.country);
-  const geo: CommunityFeedGeoFilter = {
-    regionId: isGeoRegionId(regionParam) ? regionParam : null,
-    countryCode: countryParam,
-  };
-
   const [user, page, suggestions] = await Promise.all([
     getCurrentUser(),
-    getCommunityFeedPage(filter, 20, null, geo),
+    getCommunityFeedPage(filter, 20, null),
     getPeopleYouMayKnow(5),
   ]);
 
@@ -70,18 +60,11 @@ export default async function FeedPage({ searchParams }: Props) {
         ) : null}
       </header>
 
-      <div className="mb-4">
-        <Suspense fallback={null}>
-          <RegionFilter basePath="/feed" preserveParams={["filter", "country"]} />
-        </Suspense>
-      </div>
-
       <div className="overflow-hidden rounded-none sm:rounded-b-xl border-x-0 sm:border-x border-border/80 bg-muted/35 dark:bg-muted/15">
         <CommunityFeed
           initialItems={page.items}
           initialCursor={page.nextCursor}
           initialFilter={filter}
-          initialGeo={geo}
           displayFontClassName={btwDisplayFont}
           isAuthenticated={!!user}
         />

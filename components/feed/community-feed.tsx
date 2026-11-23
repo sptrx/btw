@@ -6,7 +6,6 @@ import {
   getCommunityFeedPage,
   type CommunityFeedCursor,
   type CommunityFeedFilter,
-  type CommunityFeedGeoFilter,
   type CommunityFeedItem,
 } from "@/actions/feed";
 import { CommunityFeedCard } from "@/components/feed/community-feed-card";
@@ -18,7 +17,6 @@ type Props = {
   initialItems: CommunityFeedItem[];
   initialCursor: CommunityFeedCursor | null;
   initialFilter: CommunityFeedFilter;
-  initialGeo?: CommunityFeedGeoFilter;
   displayFontClassName: string;
   isAuthenticated: boolean;
 };
@@ -27,12 +25,10 @@ export function CommunityFeed({
   initialItems,
   initialCursor,
   initialFilter,
-  initialGeo = {},
   displayFontClassName,
   isAuthenticated,
 }: Props) {
   const [filter, setFilter] = useState(initialFilter);
-  const [geo] = useState(initialGeo);
   const [items, setItems] = useState(initialItems);
   const [cursor, setCursor] = useState(initialCursor);
   const [isPending, startTransition] = useTransition();
@@ -40,16 +36,16 @@ export function CommunityFeed({
   const loadFilter = useCallback((next: CommunityFeedFilter) => {
     setFilter(next);
     startTransition(async () => {
-      const page = await getCommunityFeedPage(next, 20, null, geo);
+      const page = await getCommunityFeedPage(next, 20, null);
       setItems(page.items);
       setCursor(page.nextCursor);
     });
-  }, [geo]);
+  }, []);
 
   const loadMore = () => {
     if (!cursor || isPending) return;
     startTransition(async () => {
-      const page = await getCommunityFeedPage(filter, 20, cursor, geo);
+      const page = await getCommunityFeedPage(filter, 20, cursor);
       setItems((prev) => [...prev, ...page.items]);
       setCursor(page.nextCursor);
     });

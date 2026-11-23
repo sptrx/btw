@@ -11,9 +11,6 @@ import { LandingPrayerWidget } from "@/components/prayer/landing-prayer-widget";
 import { LandingCta } from "@/components/landing-cta";
 import { LandingSeekerSection } from "@/components/landing-seeker-section";
 import { LandingHeroSlogan } from "@/components/landing-hero-slogan";
-import type { MapSummary, RecentGeoPost } from "@/actions/map";
-import { FaithMapWidget } from "@/components/map/faith-map-widget";
-import { GeoPostTicker } from "@/components/map/geo-post-ticker";
 
 /** Break out of layout `main` container to full viewport width */
 function FullBleed({ className, children }: { className?: string; children: React.ReactNode }) {
@@ -37,8 +34,6 @@ type LandingHomeProps = {
   featured?: LandingFeedItem[];
   isAuthenticated?: boolean;
   prayerRequests?: PrayerRequestListItem[];
-  mapSummary?: MapSummary;
-  geoPosts?: RecentGeoPost[];
 };
 
 export function LandingHome({
@@ -47,8 +42,6 @@ export function LandingHome({
   featured = [],
   isAuthenticated = false,
   prayerRequests = [],
-  mapSummary = { countryCount: 0, totalPosts: 0 },
-  geoPosts = [],
 }: LandingHomeProps) {
   return (
     <article>
@@ -132,20 +125,6 @@ export function LandingHome({
       <LandingSeekerSection displayFontClassName={displayFontClassName} />
 
       <LandingFeatured items={featured} displayFontClassName={displayFontClassName} />
-
-      {mapSummary.countryCount > 0 || geoPosts.length > 0 ? (
-        <section className="container mx-auto max-w-6xl px-4 sm:px-5 py-10 sm:py-12">
-          <div className="grid gap-6 lg:grid-cols-[minmax(0,18rem)_1fr] lg:items-start">
-            <FaithMapWidget summary={mapSummary} />
-            {geoPosts.length > 0 ? (
-              <div className="min-w-0 space-y-2">
-                <p className="text-sm font-medium text-foreground">Recent from around the world</p>
-                <GeoPostTicker posts={geoPosts} />
-              </div>
-            ) : null}
-          </div>
-        </section>
-      ) : null}
 
       {prayerRequests.length > 0 ? (
         <LandingPrayerWidget

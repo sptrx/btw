@@ -83,7 +83,6 @@ function buildNavLinks(
   return [
     { href: homeHref(isLoggedIn), label: "Home" as const },
     { href: "/explore", label: "Explore" as const },
-    { href: "/map", label: "World map" as const },
     { href: "/channel/browse", label: "Channels" as const },
     { href: "/prayer", label: "Prayer Wall" as const },
     ...(bibleAiNavLink ? [bibleAiNavLink] : []),
@@ -111,7 +110,6 @@ function navActive(href: string, pathname: string, isLoggedIn: boolean): boolean
     return isLoggedIn ? pathname === "/feed" : pathname === "/";
   }
   if (href === "/explore") return pathname === "/explore" || pathname.startsWith("/ask");
-  if (href === "/map") return pathname === "/map";
   if (href === "/channel/browse") return pathname.startsWith("/channel");
   if (href === "/prayer") return pathname === "/prayer" || pathname.startsWith("/prayer/");
   return pathname === href;

@@ -20,7 +20,6 @@ export function FeedCard({ item }: { item: FeedItem }) {
     timeAgo(item.createdAt),
     item.readMinutes && item.readMinutes > 1 ? `${item.readMinutes} min read` : null,
     item.commentCount ? plural(item.commentCount, 'comment') : null,
-    item.countryFlag ? `${item.countryFlag} ${item.countryName ?? ''}`.trim() : null,
   ].filter(Boolean);
 
   return (

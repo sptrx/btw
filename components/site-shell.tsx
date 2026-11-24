@@ -2,7 +2,9 @@ import { getCurrentUser } from "@/actions";
 import { fetchChannels, fetchLatestOwnedChannelSlug } from "@/actions/channels";
 import { getHomepagePrayerRequests } from "@/actions/prayer";
 import { SiteFrame } from "@/components/site-frame";
-import { SiteLeftRail } from "@/components/site-left-rail";
+import { SiteLeftNav } from "@/components/site-left-nav";
+import { MobileTabBar } from "@/components/mobile-tab-bar";
+import { buildSiteNav } from "@/lib/site-nav";
 import { SiteRightRail, type PopularChannel, type RailPrayer } from "@/components/site-right-rail";
 import { resolveBibleAiNavLink } from "@/lib/bible-ai-config";
 
@@ -36,11 +38,13 @@ export async function SiteShell({ children }: { children: React.ReactNode }) {
   }
 
   const bibleQa = resolveBibleAiNavLink(loggedIn);
+  const navItems = buildSiteNav(bibleQa);
 
   return (
     <SiteFrame
-      left={<SiteLeftRail isLoggedIn={loggedIn} channelSlug={channelSlug} />}
+      nav={<SiteLeftNav items={navItems} isLoggedIn={loggedIn} channelSlug={channelSlug} />}
       right={<SiteRightRail channels={popular} prayers={prayers} bibleQa={bibleQa} />}
+      tabBar={<MobileTabBar items={navItems} />}
     >
       {children}
     </SiteFrame>

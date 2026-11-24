@@ -14,7 +14,9 @@ export type PopularChannel = {
   follower_count: number;
 };
 
-function followerLabel(count: number) {
+/** Hide empty counts: "0 followers" on every row reads as an empty community. */
+function followerLabel(count: number): string | null {
+  if (count <= 0) return null;
   if (count === 1) return "1 follower";
   return `${count} followers`;
 }
@@ -50,9 +52,11 @@ export function SiteRightRail({
                   <span className="min-w-0 truncate text-sm font-medium text-foreground">
                     {channel.title}
                   </span>
-                  <span className="shrink-0 text-xs text-muted-foreground">
-                    {followerLabel(channel.follower_count)}
-                  </span>
+                  {followerLabel(channel.follower_count) ? (
+                    <span className="shrink-0 text-xs text-muted-foreground">
+                      {followerLabel(channel.follower_count)}
+                    </span>
+                  ) : null}
                 </Link>
               </li>
             ))}

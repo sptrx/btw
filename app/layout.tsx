@@ -106,7 +106,7 @@ export default function RootLayout({
         />
       </head>
       <body
-        className={cn(dmSans.className, "min-h-dvh pb-[env(safe-area-inset-bottom)]")}
+        className={cn(dmSans.className, "min-h-dvh pb-[env(safe-area-inset-bottom)] max-lg:pb-[calc(4rem+env(safe-area-inset-bottom))]")}
         suppressHydrationWarning
       >
         {supabaseInline ? (

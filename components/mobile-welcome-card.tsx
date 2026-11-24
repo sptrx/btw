@@ -1,16 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
-import { ArrowRight, X } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { X } from "lucide-react";
 
 const STORAGE_KEY = "btw-welcome-dismissed";
 
-/**
- * Short pitch for signed-out visitors on phones and tablets, where the left
- * column (which carries the same message on desktop) is hidden.
- */
+/** Short, dismissible pitch above the feed for signed-out visitors. */
 export function MobileWelcomeCard() {
   const [hidden, setHidden] = useState(false);
 
@@ -36,7 +31,7 @@ export function MobileWelcomeCard() {
   return (
     <section
       aria-label="Welcome"
-      className="relative mb-3 rounded-xl border border-border/70 bg-card p-4 shadow-sm lg:hidden"
+      className="relative mb-3 rounded-xl border border-border/70 bg-card p-4 shadow-sm"
     >
       <button
         type="button"
@@ -51,19 +46,8 @@ export function MobileWelcomeCard() {
       </h2>
       <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
         A faith community for testimonies, prayer and encouragement. Everything is checked by AI
-        moderation, so it is safe for every age.
+        moderation, so it is safe for every age. Use Sign up above to join.
       </p>
-      <div className="mt-3 flex flex-wrap gap-2">
-        <Button asChild size="sm" className="min-h-10 rounded-full">
-          <Link href="/auth/signup">
-            Get started
-            <ArrowRight className="ml-1.5 size-3.5" aria-hidden />
-          </Link>
-        </Button>
-        <Button asChild size="sm" variant="outline" className="min-h-10 rounded-full">
-          <Link href="/channel/browse">Browse channels</Link>
-        </Button>
-      </div>
     </section>
   );
 }

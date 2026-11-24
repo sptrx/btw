@@ -314,43 +314,6 @@ export async function getLandingFeed(limit = 28): Promise<LandingFeedItem[]> {
 }
 
 /**
- * Posts flagged `is_featured = true`, capped at `limit` (max 4) and newest
- * first. Returns `[]` if the `is_featured` column hasn't been migrated yet,
- * which lets the homepage render gracefully on stale environments.
- */
-export async function getLandingFeatured(limit = 4): Promise<LandingFeedItem[]> {
-  const supabase = await createClient();
-  const safeLimit = Math.min(Math.max(limit, 1), 4);
-
-  const run = (sel: string) =>
-    supabase
-      .from("topic_content")
-      .select(sel)
-      .eq("is_featured", true)
-      .eq("likes.type", "like")
-      .order("created_at", { ascending: false })
-      .limit(safeLimit);
-
-  let { data, error } = await run(FEED_BASE_SELECT + FEED_FEATURED_FRAGMENT + FEED_TAGS_EMBED);
-  if (error && isMissingPostTagsEmbed(error)) {
-    ({ data, error } = await run(FEED_BASE_SELECT + FEED_FEATURED_FRAGMENT));
-  }
-  if (error && isMissingIsFeaturedColumn(error)) {
-    return [];
-  }
-
-  if (error) {
-    console.warn("[landing] getLandingFeatured:", error.message);
-    return [];
-  }
-  if (!data?.length) return [];
-
-  const rows = data as unknown as LandingFeedRow[];
-  const { topicById, pageById } = await fetchFeedLookups(supabase, rows);
-  return withFaithReactions(mapFeedRows(rows, topicById, pageById));
-}
-
-/**
  * Recently created channels for the home “discover” strip.
  */
 export async function getLandingRecentChannels(limit = 14): Promise<LandingChannelPill[]> {

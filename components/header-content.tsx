@@ -302,7 +302,7 @@ export function HeaderContent({
           <Button
             variant="ghost"
             size="icon"
-            className="size-11 shrink-0 touch-manipulation"
+            className="size-11 shrink-0 touch-manipulation lg:hidden"
             onClick={() => setMobileOpen((o) => !o)}
             aria-expanded={mobileOpen}
             aria-controls={MOBILE_NAV_ID}
@@ -335,14 +335,11 @@ export function HeaderContent({
               <Button variant="ghost" className={mobileMenuItemClass} asChild onClick={closeMobile}>
                 <Link href="/auth/login">Sign in</Link>
               </Button>
-              <Button className="h-9 w-full justify-center rounded-lg text-sm" asChild onClick={closeMobile}>
-                <Link href="/auth/signup">Sign up</Link>
-              </Button>
             </MobileMenuSection>
           ) : null}
 
-          <MobileMenuSection title="Explore">
-            {navLinks.map((link) => {
+          <MobileMenuSection title="Discover">
+            {navLinks.filter((link) => link.href === "/explore").map((link) => {
               const external = "external" in link && link.external;
               const active = !external && navActive(link.href, pathname, isLoggedIn);
               const Icon =

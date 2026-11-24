@@ -17,7 +17,7 @@ export function SiteLeftRail({
   return (
     <aside className="sticky top-[calc(var(--header-bar-height)+0.75rem)] hidden max-h-[calc(100dvh-var(--header-bar-height)-1.5rem)] space-y-3 overflow-y-auto lg:block">
       <section className="overflow-hidden rounded-xl border border-border/70 bg-card shadow-sm">
-        <div className="relative h-28">
+        <div className="relative h-40">
           <Image
             src="/sunrise-hero.jpg"
             alt=""
@@ -27,7 +27,7 @@ export function SiteLeftRail({
             className="object-cover object-[50%_35%]"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/45 to-black/20" />
-          <p className="absolute inset-x-3 bottom-3 text-xs leading-relaxed text-amber-50">
+          <p className="absolute inset-x-3 bottom-3 text-sm leading-relaxed text-amber-50">
             Weigh the actions and evidence of Jesus Christ when words alone are hard to accept. John 10:38
           </p>
         </div>

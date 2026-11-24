@@ -95,6 +95,16 @@ export default function RootLayout({
       className={cn("font-sans", dmSans.variable, sourceSerif.variable)}
       suppressHydrationWarning
     >
+      <head>
+        {/* The Cloudflare build adds `__name(...)` calls to functions that next-themes
+            serialises into an inline script, where that helper doesn't exist. Define
+            it first so the theme script runs instead of throwing on every page. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: "window.__name=window.__name||function(f){return f};",
+          }}
+        />
+      </head>
       <body
         className={cn(dmSans.className, "min-h-dvh pb-[env(safe-area-inset-bottom)]")}
         suppressHydrationWarning

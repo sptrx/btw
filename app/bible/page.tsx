@@ -87,7 +87,18 @@ const BOOK_TITLES: Record<string, string> = {
   eph: "Ephesians",
 };
 
+/**
+ * The scripture service labels these two books wrongly (Ezra as "EZR", Ezekiel as
+ * "Ezra"), so their names are fixed here by abbreviation, ahead of the generic map.
+ */
+const FORCED_TITLES: Record<string, string> = {
+  ezr: "Ezra",
+  ez: "Ezekiel",
+};
+
 function bookLabel(book: BibleBookSummary, books: BibleBookSummary[]) {
+  const forced = FORCED_TITLES[book.abbrev.toLowerCase()];
+  if (forced) return forced;
   const mapped = BOOK_TITLES[book.abbrev.toLowerCase()];
   if (!mapped) return book.title;
   const taken = books.some(

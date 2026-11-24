@@ -194,6 +194,11 @@ export function HeaderContent({
 
         <div className="ml-auto flex shrink-0 items-center justify-end gap-1 sm:gap-1.5">
           {user ? <NotificationBell className="shrink-0" /> : null}
+          {!user ? (
+            <Button size="sm" className="h-9 rounded-full px-3.5 text-sm md:hidden" asChild>
+              <Link href="/auth/signup">Sign up</Link>
+            </Button>
+          ) : null}
           <ThemeToggle className="hidden lg:inline-flex" />
           <div className="hidden min-w-0 items-center gap-2 md:flex">
             {user ? (
@@ -308,7 +313,7 @@ export function HeaderContent({
           {mobileOpen ? (
           <nav
             id={MOBILE_NAV_ID}
-            className="absolute right-0 top-[calc(100%+0.35rem)] z-50 max-h-[min(20rem,70vh)] w-60 overflow-y-auto rounded-xl border border-border bg-popover p-1 text-popover-foreground shadow-lg"
+            className="absolute right-0 top-[calc(100%+0.35rem)] z-50 max-h-[min(32rem,80vh)] w-60 overflow-y-auto rounded-xl border border-border bg-popover p-1 text-popover-foreground shadow-lg"
             aria-label="Primary"
           >
           {user && userLabel !== null ? (
@@ -323,6 +328,17 @@ export function HeaderContent({
                 ) : null}
               </div>
             </div>
+          ) : null}
+
+          {!user ? (
+            <MobileMenuSection title="Join" className="md:hidden">
+              <Button variant="ghost" className={mobileMenuItemClass} asChild onClick={closeMobile}>
+                <Link href="/auth/login">Sign in</Link>
+              </Button>
+              <Button className="h-9 w-full justify-center rounded-lg text-sm" asChild onClick={closeMobile}>
+                <Link href="/auth/signup">Sign up</Link>
+              </Button>
+            </MobileMenuSection>
           ) : null}
 
           <MobileMenuSection title="Explore">
@@ -431,14 +447,7 @@ export function HeaderContent({
               </form>
             </MobileMenuSection>
           ) : (
-            <MobileMenuSection title="Join" className="md:hidden">
-              <Button variant="ghost" className={mobileMenuItemClass} asChild onClick={closeMobile}>
-                <Link href="/auth/login">Sign in</Link>
-              </Button>
-              <Button className="h-9 w-full justify-center rounded-lg text-sm" asChild onClick={closeMobile}>
-                <Link href="/auth/signup">Sign up</Link>
-              </Button>
-            </MobileMenuSection>
+            null
           )}
           </nav>
           ) : null}

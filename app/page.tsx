@@ -2,6 +2,7 @@ import { getCurrentUser } from "@/actions";
 import { getCommunityFeedPage, type CommunityFeedFilter } from "@/actions/feed";
 import { getTodaysWordOfGod } from "@/actions/word-of-god";
 import { HomeFeed } from "@/components/feed/home-feed";
+import { MobileWelcomeCard } from "@/components/mobile-welcome-card";
 import { btwDisplayFont } from "@/lib/btw-ui";
 
 const FEED_FILTERS = new Set<CommunityFeedFilter>([
@@ -52,14 +53,17 @@ export default async function Home({
   ]);
 
   return (
-    <HomeFeed
-      isAuthenticated={signedIn}
-      initialTab={tab}
-      initialFilter={feedFilter}
-      initialItems={page?.items ?? []}
-      initialCursor={page?.nextCursor ?? null}
-      word={word}
-      displayFontClassName={btwDisplayFont}
-    />
+    <>
+      {signedIn ? null : <MobileWelcomeCard />}
+      <HomeFeed
+        isAuthenticated={signedIn}
+        initialTab={tab}
+        initialFilter={feedFilter}
+        initialItems={page?.items ?? []}
+        initialCursor={page?.nextCursor ?? null}
+        word={word}
+        displayFontClassName={btwDisplayFont}
+      />
+    </>
   );
 }

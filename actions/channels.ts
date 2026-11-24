@@ -375,6 +375,21 @@ export async function userOwnsAnyChannel(userId: string): Promise<boolean> {
   return Boolean(data);
 }
 
+/** Newest channel the user still owns, for home shortcuts to add a page or video. */
+export async function fetchLatestOwnedChannelSlug(userId: string): Promise<string | null> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("topics")
+    .select("slug")
+    .eq("author_id", userId)
+    .is("archived_at", null)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (error || !data?.slug) return null;
+  return data.slug;
+}
+
 /** Channels owned by the signed-in user (for /channel hub) */
 export async function fetchMyChannels() {
   const supabase = await createClient();

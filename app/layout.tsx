@@ -1,6 +1,5 @@
 import type { Metadata, Viewport } from "next";
 import { DM_Sans, Source_Serif_4 } from "next/font/google";
-import Script from "next/script";
 import Header from "@/components/header";
 import { SiteShell } from "@/components/site-shell";
 import { SiteFooter } from "@/components/site-footer";
@@ -101,14 +100,13 @@ export default function RootLayout({
         suppressHydrationWarning
       >
         {supabaseInline ? (
-          <Script
+          <script
             id="btw-supabase-env"
-            strategy="beforeInteractive"
             dangerouslySetInnerHTML={{
               __html: `window.__BTW_SUPABASE__=${JSON.stringify({
                 url: supabaseInline.url,
                 k: supabaseInline.k,
-              })}`,
+              }).replace(/</g, "\\u003c")}`,
             }}
           />
         ) : null}

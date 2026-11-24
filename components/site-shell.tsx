@@ -1,5 +1,5 @@
 import { getCurrentUser } from "@/actions";
-import { fetchChannels } from "@/actions/channels";
+import { fetchChannels, fetchLatestOwnedChannelSlug } from "@/actions/channels";
 import { getHomepagePrayerRequests } from "@/actions/prayer";
 import { SiteFrame } from "@/components/site-frame";
 import { SiteLeftRail } from "@/components/site-left-rail";
@@ -8,6 +8,7 @@ import { resolveBibleAiNavLink } from "@/lib/bible-ai-config";
 
 export async function SiteShell({ children }: { children: React.ReactNode }) {
   let loggedIn = false;
+  let channelSlug: string | null = null;
   let popular: PopularChannel[] = [];
   let prayers: RailPrayer[] = [];
   try {
@@ -17,6 +18,7 @@ export async function SiteShell({ children }: { children: React.ReactNode }) {
       getHomepagePrayerRequests(4),
     ]);
     loggedIn = Boolean(user);
+    channelSlug = user ? await fetchLatestOwnedChannelSlug(user.id) : null;
     prayers = prayerRows.map(({ id, title }) => ({ id, title }));
     popular = [...channels]
       .sort(
@@ -37,7 +39,7 @@ export async function SiteShell({ children }: { children: React.ReactNode }) {
 
   return (
     <SiteFrame
-      left={<SiteLeftRail isLoggedIn={loggedIn} />}
+      left={<SiteLeftRail isLoggedIn={loggedIn} channelSlug={channelSlug} />}
       right={<SiteRightRail channels={popular} prayers={prayers} bibleQa={bibleQa} />}
     >
       {children}

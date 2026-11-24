@@ -2,13 +2,20 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, Play, ShieldCheck } from "lucide-react";
 import { LandingHeroSlogan } from "@/components/landing-hero-slogan";
+import { SharePrompt } from "@/components/share-prompt";
 import { Button } from "@/components/ui/button";
 import { btwDisplayFont } from "@/lib/btw-ui";
 import { cn } from "@/lib/utils";
 
-export function SiteLeftRail({ isLoggedIn }: { isLoggedIn: boolean }) {
+export function SiteLeftRail({
+  isLoggedIn,
+  channelSlug = null,
+}: {
+  isLoggedIn: boolean;
+  channelSlug?: string | null;
+}) {
   return (
-    <aside className="sticky top-[calc(var(--header-bar-height)+0.75rem)] hidden max-h-[calc(100dvh-var(--header-bar-height)-1.5rem)] overflow-y-auto lg:block">
+    <aside className="sticky top-[calc(var(--header-bar-height)+0.75rem)] hidden max-h-[calc(100dvh-var(--header-bar-height)-1.5rem)] space-y-3 overflow-y-auto lg:block">
       <section className="overflow-hidden rounded-xl border border-border/70 bg-card shadow-sm">
         <div className="relative h-28">
           <Image
@@ -54,6 +61,7 @@ export function SiteLeftRail({ isLoggedIn }: { isLoggedIn: boolean }) {
           </p>
         </div>
       </section>
+      <SharePrompt isLoggedIn={isLoggedIn} channelSlug={channelSlug} />
     </aside>
   );
 }

@@ -28,6 +28,7 @@ type Props = {
   initialItems: CommunityFeedItem[];
   initialCursor: CommunityFeedCursor | null;
   word: WordOfGodToday | null;
+  channelSlug?: string | null;
   displayFontClassName: string;
 };
 
@@ -38,6 +39,7 @@ export function HomeFeed({
   initialItems,
   initialCursor,
   word,
+  channelSlug = null,
   displayFontClassName,
 }: Props) {
   const [tab, setTab] = useState<HomeTab>(initialTab);

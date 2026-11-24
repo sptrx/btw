@@ -1,6 +1,6 @@
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Alert, Pressable, Share, StyleSheet, Text, View } from 'react-native';
 
 import { AppText } from '@/components/ui';
@@ -32,6 +32,24 @@ export function ReactionBar({
   const router = useRouter();
   const { session } = useAuth();
   const [state, setState] = useState({ counts: counts ?? EMPTY, mine: userReaction });
+  const [tip, setTip] = useState<string | null>(null);
+  const hideTip = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  function showTip(label: string) {
+    if (hideTip.current) clearTimeout(hideTip.current);
+    setTip(label);
+  }
+
+  function scheduleHideTip() {
+    if (hideTip.current) clearTimeout(hideTip.current);
+    hideTip.current = setTimeout(() => setTip(null), 900);
+  }
+
+  useEffect(() => {
+    return () => {
+      if (hideTip.current) clearTimeout(hideTip.current);
+    };
+  }, []);
 
   async function openShare() {
     if (!shareUrl) return;
@@ -78,47 +96,67 @@ export function ReactionBar({
   }
 
   return (
-    <View style={styles.row}>
-      {REACTIONS.map((r) => {
-        const selected = state.mine === r.type;
-        const count = state.counts[r.type];
-        return (
-          <Pressable
-            key={r.type}
-            onPress={() => choose(r.type)}
-            accessibilityRole="button"
-            accessibilityLabel={
-              r.type === 'sharing' ? `Share, ${count}` : `${r.label}, ${count}`
-            }
-            accessibilityState={{ selected }}
-            hitSlop={4}
-            style={[
-              styles.pill,
-              {
-                borderColor: selected ? theme.accent : theme.border,
-                backgroundColor: selected ? theme.accentSoft : 'transparent',
-              },
-            ]}>
-            <Text style={styles.emoji}>{r.emoji}</Text>
-            <AppText variant="caption" tone={selected ? 'primary' : 'secondary'}>
-              {r.label}
-            </AppText>
-            {count > 0 ? (
-              <AppText variant="caption" tone={selected ? 'primary' : 'secondary'} style={styles.count}>
-                {count}
-              </AppText>
-            ) : null}
-          </Pressable>
-        );
-      })}
+    <View style={styles.wrap}>
+      {tip ? (
+        <View pointerEvents="none" style={[styles.tip, { backgroundColor: theme.primary }]}>
+          <Text style={[styles.tipText, { color: theme.onPrimary }]}>{tip}</Text>
+        </View>
+      ) : null}
+      <View style={styles.row}>
+        {REACTIONS.map((r) => {
+          const selected = state.mine === r.type;
+          const count = state.counts[r.type];
+          const label = r.type === 'sharing' ? 'Sharing. Opens the share sheet.' : r.label;
+          return (
+            <Pressable
+              key={r.type}
+              onPressIn={() => showTip(label)}
+              onPressOut={scheduleHideTip}
+              onPress={() => choose(r.type)}
+              accessibilityRole="button"
+              accessibilityLabel={
+                r.type === 'sharing' ? `Share, ${count}` : `${r.label}, ${count}`
+              }
+              accessibilityState={{ selected }}
+              hitSlop={4}
+              style={[
+                styles.pill,
+                {
+                  borderColor: selected ? theme.accent : theme.border,
+                  backgroundColor: selected ? theme.accentSoft : 'transparent',
+                },
+              ]}>
+              <Text style={styles.emoji}>{r.emoji}</Text>
+              {count > 0 ? (
+                <AppText variant="caption" tone={selected ? 'primary' : 'secondary'} style={styles.count}>
+                  {count}
+                </AppText>
+              ) : null}
+            </Pressable>
+          );
+        })}
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  row: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.one + 2, marginTop: Spacing.one },
+  wrap: { marginTop: Spacing.one, position: 'relative' },
+  tip: {
+    position: 'absolute',
+    bottom: '100%',
+    left: 0,
+    marginBottom: 6,
+    zIndex: 20,
+    borderRadius: Radius.sm,
+    paddingHorizontal: Spacing.two,
+    paddingVertical: Spacing.one,
+  },
+  tipText: { fontSize: 12, fontWeight: '600' },
+  row: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.one + 2 },
   pill: {
     minHeight: 32,
+    minWidth: 36,
     paddingHorizontal: Spacing.two,
     borderRadius: Radius.pill,
     borderWidth: StyleSheet.hairlineWidth,

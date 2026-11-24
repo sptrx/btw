@@ -142,17 +142,17 @@ export function PostReactions({
 
   return (
     <div className={cn("space-y-2", className)}>
-      <div className="flex flex-wrap items-center gap-1.5" role="group" aria-label="Faith reactions">
+      <div className="flex flex-wrap items-center gap-1.5" role="group" aria-label="Responses">
         {POST_REACTION_TYPES.map((type) => {
           const meta = POST_REACTION_META[type];
           const selected = userReaction === type;
           const count = counts[type];
+          const tip = type === "sharing" ? `${meta.label}. Opens the share sheet.` : meta.label;
           return (
             <button
               key={type}
               type="button"
               disabled={pending && type !== "sharing"}
-              title={type === "sharing" ? `${meta.label} — open share sheet` : meta.label}
               aria-label={
                 type === "sharing"
                   ? `Share this post${count > 0 ? `, ${count}` : ""}`
@@ -161,7 +161,7 @@ export function PostReactions({
               aria-pressed={selected}
               onClick={() => handlePick(type)}
               className={cn(
-                "inline-flex min-h-9 items-center gap-1 rounded-full border px-2.5 py-1.5 text-sm transition-all duration-150",
+                "group/reaction relative inline-flex min-h-9 min-w-9 items-center justify-center gap-1 rounded-full border px-2 py-1.5 text-sm transition-all duration-150",
                 "border-border/80 bg-background/80 hover:bg-muted/60 active:scale-[0.98]",
                 selected && "border-primary/40 bg-primary/5",
                 pulseType === type && "scale-105"
@@ -170,10 +170,15 @@ export function PostReactions({
               <span className="text-base leading-none" aria-hidden>
                 {meta.emoji}
               </span>
-              <span className="text-xs font-medium text-muted-foreground">{meta.shortLabel}</span>
               {count > 0 ? (
                 <span className="text-xs tabular-nums text-muted-foreground">{count}</span>
               ) : null}
+              <span
+                role="tooltip"
+                className="pointer-events-none absolute bottom-[calc(100%+0.35rem)] left-1/2 z-30 -translate-x-1/2 whitespace-nowrap rounded-md bg-foreground px-2 py-1 text-xs font-medium text-background opacity-0 shadow-sm transition-opacity group-hover/reaction:opacity-100 group-focus-visible/reaction:opacity-100"
+              >
+                {tip}
+              </span>
             </button>
           );
         })}

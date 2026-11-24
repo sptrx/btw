@@ -40,9 +40,14 @@ export function AppChrome({ children }: { children?: ReactNode }) {
           style={styles.iconBtn}>
           <Icon ios="line.3.horizontal" md="menu" size={20} color={theme.text} />
         </Pressable>
-        <AppText variant="label" style={styles.brand}>
-          BTW
-        </AppText>
+        <View style={styles.brand} accessibilityLabel="Believe The Works">
+          <AppText variant="title" style={[styles.mark, { color: theme.accent }]}>
+            BTW
+          </AppText>
+          <AppText variant="caption" tone="secondary" style={styles.sub}>
+            Believe The Works
+          </AppText>
+        </View>
         <Pressable
           style={styles.right}
           onPress={() => {
@@ -75,5 +80,7 @@ const styles = StyleSheet.create({
   },
   iconBtn: { minWidth: 44, minHeight: 40, alignItems: 'center', justifyContent: 'center' },
   brand: { flex: 1 },
+  mark: { fontSize: 22, lineHeight: 24, letterSpacing: 1 },
+  sub: { fontSize: 10, lineHeight: 12 },
   right: { maxWidth: 140, alignItems: 'flex-end', minHeight: 40, justifyContent: 'center' },
 });

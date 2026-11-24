@@ -85,6 +85,9 @@ export class MobileApiError extends Error {
 type Args = Record<string, unknown>;
 type Handler = (args: Args) => Promise<unknown>;
 
+/** The scripture service mislabels these books; fix by abbreviation (same as the website). */
+const FORCED_BOOK_TITLES: Record<string, string> = { ezr: "Ezra", ez: "Ezekiel" };
+
 const FEED_FILTERS = new Set<string>(SHARING_FEED_FILTERS.map((f) => f.id));
 const PRAYER_FILTERS = new Set<PrayerWallFilter>(["all", "unanswered", "answered", "mine"]);
 const POST_KINDS = new Set<FeedPostKind>(["topic_content", "prayer_request", "praise_report"]);
@@ -219,7 +222,10 @@ export const mobileHandlers: Record<string, Handler> = {
     const translationId = str(args, "translationId", { max: 32 }) || "kjv";
     const result = await fetchBibleBooks(translationId);
     if ("error" in result) throw new MobileApiError(result.error, 502);
-    return result;
+    return {
+      ...result,
+      books: result.books.map((b) => ({ ...b, title: FORCED_BOOK_TITLES[b.abbrev.toLowerCase()] ?? b.title })),
+    };
   },
 
   async "bible.chapter"(args) {
@@ -244,7 +250,10 @@ export const mobileHandlers: Record<string, Handler> = {
       chapter: Math.floor(chapter),
     });
     if ("error" in result) throw new MobileApiError(result.error, 502);
-    return result;
+    return {
+      ...result,
+      bookTitle: FORCED_BOOK_TITLES[result.abbrev.toLowerCase()] ?? result.bookTitle,
+    };
   },
 
   async "wordOfGod.today"() {

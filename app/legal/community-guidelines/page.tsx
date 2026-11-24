@@ -13,8 +13,8 @@ export default function CommunityGuidelinesPage() {
       <h1 className="btw-page-title mb-2">Community guidelines</h1>
       <p className="btw-lead mb-2">{MISSION_TAGLINE}</p>
       <p className="btw-lead mb-8">
-        Believe The Works exists so Christians can share witness and strengthen one another, not debate politics or
-        publish general opinion blogs.
+        Believe The Works, a registered nonprofit organization, hosts this community for people anywhere. It exists so
+        Christians can share witness and strengthen one another.
       </p>
 
       <div className="space-y-8 btw-legal-body">

@@ -30,9 +30,21 @@ export function BtwLogo({
   size = "default",
 }: Props) {
   const imageClassName = sizeClassNames[size];
+  const compact = size === "header";
 
   const images = (
     <>
+      {compact ? (
+        <span
+          aria-hidden
+          className="flex flex-col leading-none text-[#8a6a1f] dark:text-[#d9b45a] sm:hidden"
+        >
+          <span className="font-serif text-[1.65rem] font-semibold tracking-wider">BTW</span>
+          <span className="mt-0.5 whitespace-nowrap text-[0.5rem] tracking-wide text-muted-foreground">
+            Believe The Works
+          </span>
+        </span>
+      ) : null}
       <Image
         src="/assets/btw-logo-light.svg"
         alt=""
@@ -40,7 +52,7 @@ export function BtwLogo({
         height={LOGO_HEIGHT}
         priority={priority}
         aria-hidden
-        className={cn(imageClassName, "dark:hidden", className)}
+        className={cn(imageClassName, "dark:hidden", compact && "max-sm:hidden", className)}
       />
       <Image
         src="/assets/btw-logo-dark.svg"
@@ -49,7 +61,7 @@ export function BtwLogo({
         height={LOGO_HEIGHT}
         priority={priority}
         aria-hidden
-        className={cn(imageClassName, "hidden dark:block", className)}
+        className={cn(imageClassName, "hidden dark:block", compact && "max-sm:!hidden", className)}
       />
     </>
   );

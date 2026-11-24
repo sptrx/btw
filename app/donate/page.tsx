@@ -18,8 +18,9 @@ export default function DonatePage() {
         <p className="btw-section-eyebrow">Get involved</p>
         <h1 className="btw-page-title">Give to the ministry</h1>
         <p className="btw-lead">
-          Believe The Works is a nonprofit organization. Your generosity helps us run AI-powered moderation, hosting,
-          and outreach so more people can encounter the Gospel through authentic testimony.
+          Believe The Works is a registered nonprofit organization. People anywhere can read, share, and support the
+          ministry. Your generosity helps us run AI-powered moderation, hosting, and outreach so more people can
+          encounter the Gospel through authentic testimony. Tax treatment of a gift is your own responsibility.
         </p>
       </header>
 

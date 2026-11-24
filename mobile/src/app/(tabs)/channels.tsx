@@ -83,7 +83,7 @@ export default function ChannelsScreen() {
                 </AppText>
               ) : null}
               <AppText variant="caption" tone="secondary">
-                {[item.authorName, plural(item.postCount, 'post'), plural(item.followerCount, 'follower')]
+                {[item.authorName, plural(item.postCount, 'post'), item.followerCount > 0 ? plural(item.followerCount, 'follower') : null]
                   .filter(Boolean)
                   .join(' · ')}
               </AppText>

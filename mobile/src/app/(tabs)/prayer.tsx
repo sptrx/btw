@@ -53,6 +53,12 @@ export default function PrayerScreen() {
               <AppText variant="small" tone="secondary">
                 Lift each other up. Tap “I prayed” when you pray.
               </AppText>
+              {!session ? (
+                <AppText variant="caption" tone="secondary">
+                  Ask: share a need, by name or anonymously. Pray: tap “I prayed” so they know. Celebrate: answered
+                  requests become praise reports. Requests are checked by AI moderation first.
+                </AppText>
+              ) : null}
               <Button
                 title="Ask for prayer"
                 onPress={() => router.push(session ? '/prayer/new' : '/sign-in')}

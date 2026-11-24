@@ -10,17 +10,20 @@ export default function ContentDisclaimerPage() {
   return (
     <div className="mx-auto max-w-3xl py-6 sm:py-10">
       <h1 className="btw-page-title mb-2">Content disclaimer</h1>
+      <p className="text-sm text-muted-foreground mb-2">Last updated: November 23, 2026</p>
       <p className="btw-lead mb-8">
-        This page explains responsibilities when you post or comment on channels.
+        Believe The Works, a registered nonprofit organization, operates this Service. This page explains your
+        responsibilities when you post or comment, including when that material can be seen worldwide.
       </p>
 
       <div className="space-y-6 btw-legal-body">
         <section className="space-y-2">
           <h2 className="btw-section-title">Your responsibility</h2>
           <p>
-            You are solely responsible for text, images, audio, video, links, and other material you submit. You confirm
-            that you have the rights and permissions needed to share that material and that it does not infringe
-            copyright, trademark, privacy, or other rights of any person or entity.
+            You are solely responsible for text, images, audio, video, links, and other material you submit. Posts and
+            comments may be read by people anywhere the Service is available. You confirm that you have the rights and
+            permissions needed to share that material and that it does not infringe copyright, trademark, privacy, or
+            other rights of any person or entity.
           </p>
         </section>
 
@@ -58,8 +61,9 @@ export default function ContentDisclaimerPage() {
         <section className="space-y-2">
           <h2 className="btw-section-title">Indemnity</h2>
           <p>
-            To the extent permitted by law, you agree to hold harmless the operators of the Service from claims arising
-            from content you submit or your use of posting features, except where prohibited by law.
+            To the extent permitted by law, you agree to hold harmless Believe The Works, its directors, officers,
+            employees, and volunteers from claims arising from content you submit or your use of posting features,
+            except where prohibited by law.
           </p>
         </section>
       </div>

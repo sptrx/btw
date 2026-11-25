@@ -16,7 +16,7 @@ import { isMissingSharingTypeColumn } from "@/lib/moderation";
 import { getFollowedUserIds } from "@/actions/follows";
 import { isMissingGeoColumn } from "@/lib/geo/resolve-content-country";
 import { readingMinutes } from "@/lib/post-card";
-import { streamCustomerCode, streamPlayerUrl, streamThumbnailUrl } from "@/lib/stream-urls";
+import { streamCustomerCode, streamHlsUrl, streamPlayerUrl, streamThumbnailUrl } from "@/lib/stream-urls";
 import { shortsInFeedFilter } from "@/lib/shorts-types";
 
 export type CommunityFeedFilter = SharingFeedFilter;
@@ -47,6 +47,8 @@ export type CommunityFeedItem = {
   /** Shorts only — Stream player and poster, built on the server. */
   playerUrl?: string | null;
   posterUrl?: string | null;
+  /** HLS manifest for the app's native player. */
+  hlsUrl?: string | null;
   durationSeconds?: number | null;
   /** Prayer request */
   prayerCount?: number;
@@ -756,6 +758,7 @@ export async function getCommunityFeedPage(
       durationSeconds: r.duration_seconds,
       playerUrl: r.stream_uid ? streamPlayerUrl(r.stream_uid, streamCode) : null,
       posterUrl: r.stream_uid ? streamThumbnailUrl(r.stream_uid, streamCode) : null,
+      hlsUrl: r.stream_uid ? streamHlsUrl(r.stream_uid, streamCode) : null,
       authorId: r.author_id,
       authorUsername: profile?.username ?? null,
       authorLabel: profile?.display_name?.trim() || "Community member",

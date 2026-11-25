@@ -22,6 +22,7 @@ export type ShortItem = {
   /** Built on the server from the runtime customer code; null when not configured. */
   playerUrl: string | null;
   posterUrl: string | null;
+  hlsUrl: string | null;
 };
 
 export const SHORT_STATUS_LABEL: Record<ShortStatus, string> = {

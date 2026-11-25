@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -18,6 +18,9 @@ import { useTheme } from '@/hooks/use-theme';
 import { api } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
 import type { FeedCursor, FeedItem, FeedPage } from '@/lib/types';
+
+/** Only the short that is mostly on screen plays; the rest stay paused. */
+const SHORT_VISIBILITY = { itemVisiblePercentThreshold: 60 };
 
 type HomeTab = 'for_you' | 'following' | 'word';
 
@@ -110,6 +113,16 @@ function FeedList({
     };
   }, [mode]);
 
+  const [activeShortId, setActiveShortId] = useState<string | null>(null);
+  // Stable identity: FlatList rejects an onViewableItemsChanged that changes between renders.
+  const onViewableItemsChanged = useCallback(
+    ({ viewableItems }: { viewableItems: { item: FeedItem }[] }) => {
+      const short = viewableItems.find((v) => v.item?.postKind === 'short');
+      setActiveShortId(short ? short.item.id : null);
+    },
+    []
+  );
+
   function load(s: Exclude<Status, 'idle'>) {
     const after = s === 'more' ? cursor : null;
     setStatus(s);
@@ -133,9 +146,11 @@ function FeedList({
       keyExtractor={(item) => `${item.postKind}:${item.id}`}
       renderItem={({ item }) => (
         <View style={styles.item}>
-          <FeedCard item={item} />
+          <FeedCard item={item} shortActive={item.id === activeShortId} />
         </View>
       )}
+      onViewableItemsChanged={onViewableItemsChanged}
+      viewabilityConfig={SHORT_VISIBILITY}
       ListEmptyComponent={
         status === 'loading' ? (
           <LoadingState />

@@ -1,7 +1,7 @@
 import { createHmac } from "node:crypto";
 import { describe, expect, it } from "vitest";
 import { verifyStreamWebhook } from "@/lib/stream";
-import { streamCustomerCode, streamPlayerUrl, streamThumbnailUrl } from "@/lib/stream-urls";
+import { streamCustomerCode, streamHlsUrl, streamPlayerUrl, streamThumbnailUrl } from "@/lib/stream-urls";
 
 const SECRET = "s3cret";
 const sign = (body: string, time: number) =>
@@ -41,5 +41,16 @@ describe("stream urls", () => {
     process.env.STREAM_CUSTOMER_CODE = " run123 ";
     expect(streamCustomerCode()).toBe("run123");
     delete process.env.STREAM_CUSTOMER_CODE;
+  });
+});
+
+describe("streamHlsUrl", () => {
+  it("returns null without a customer code", () => {
+    expect(streamHlsUrl("abc", null)).toBeNull();
+  });
+  it("points at the HLS manifest the app's player needs", () => {
+    expect(streamHlsUrl("abc", "xyz")).toBe(
+      "https://customer-xyz.cloudflarestream.com/abc/manifest/video.m3u8"
+    );
   });
 });

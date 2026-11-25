@@ -12,7 +12,7 @@ import {
   isStreamConfigured,
 } from "@/lib/stream";
 import { syncShortFromStream } from "@/lib/shorts-sync";
-import { streamCustomerCode, streamPlayerUrl, streamThumbnailUrl } from "@/lib/stream-urls";
+import { streamCustomerCode, streamHlsUrl, streamPlayerUrl, streamThumbnailUrl } from "@/lib/stream-urls";
 import type { ShortItem, ShortStatus } from "@/lib/shorts-types";
 
 const DAILY_UPLOAD_LIMIT = 5;
@@ -70,6 +70,7 @@ async function withAuthors(rows: Row[]): Promise<ShortItem[]> {
         : null,
       playerUrl: r.stream_uid ? streamPlayerUrl(r.stream_uid, code) : null,
       posterUrl: r.stream_uid ? streamThumbnailUrl(r.stream_uid, code) : null,
+      hlsUrl: r.stream_uid ? streamHlsUrl(r.stream_uid, code) : null,
     };
   });
 }

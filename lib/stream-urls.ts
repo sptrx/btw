@@ -18,6 +18,12 @@ export function streamPlayerUrl(uid: string, code: string | null): string | null
   return `https://customer-${code}.cloudflarestream.com/${uid}/iframe?${q.toString()}`;
 }
 
+/** HLS manifest, for a native player (the app) rather than the iframe. */
+export function streamHlsUrl(uid: string, code: string | null): string | null {
+  if (!code) return null;
+  return `https://customer-${code}.cloudflarestream.com/${uid}/manifest/video.m3u8`;
+}
+
 export function streamThumbnailUrl(uid: string, code: string | null): string | null {
   if (!code) return null;
   return `https://customer-${code}.cloudflarestream.com/${uid}/thumbnails/thumbnail.jpg?time=1s&height=720`;

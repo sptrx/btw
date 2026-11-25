@@ -45,6 +45,7 @@ export type FeedItem = {
   /** Shorts only */
   playerUrl?: string | null;
   posterUrl?: string | null;
+  hlsUrl?: string | null;
   durationSeconds?: number | null;
   authorLabel?: string | null;
   authorId?: string;

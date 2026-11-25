@@ -32,7 +32,10 @@ export function ShortPlayer({
   const src = show ? `${playerUrl}${controls ? "" : "&autoplay=true&controls=false"}` : null;
 
   return (
-    <div ref={ref} className={`relative aspect-[9/16] w-full overflow-hidden bg-black ${className}`}>
+    <div
+      ref={ref}
+      className={`relative aspect-[9/16] max-h-[70vh] w-full overflow-hidden rounded-t-2xl bg-black ${className}`}
+    >
       {posterUrl ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img src={posterUrl} alt="" className="absolute inset-0 h-full w-full object-cover" loading="lazy" />

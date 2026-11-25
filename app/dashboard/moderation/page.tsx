@@ -6,8 +6,8 @@ import { getModerationOverview } from "@/actions/moderation-admin";
 import { ModerationReviewActions } from "@/components/moderation-review-actions";
 import { RelativeDate } from "@/components/relative-date";
 import { isSiteModerator } from "@/lib/site-roles";
-import { listPendingShorts } from "@/actions/shorts";
-import { ShortsReviewList } from "@/components/shorts/shorts-review-list";
+import { listShortsForModeration } from "@/actions/shorts";
+import { ShortsModerationPanel } from "@/components/shorts/shorts-moderation-panel";
 
 export const metadata: Metadata = {
   title: "Moderation",
@@ -22,7 +22,8 @@ export default async function ModerationDashboardPage() {
   if (!isSiteModerator(profile?.role)) redirect("/dashboard");
 
   const overview = await getModerationOverview();
-  const pendingShorts = await listPendingShorts();
+  const shorts = await listShortsForModeration();
+  const shortItems = Array.isArray(shorts) ? shorts : [];
   if ("error" in overview) {
     return (
       <div>
@@ -89,13 +90,13 @@ export default async function ModerationDashboardPage() {
       <section aria-labelledby="mod-shorts-heading" className="mb-10">
         <div className="mb-4 flex items-center justify-between gap-3">
           <h2 id="mod-shorts-heading" className="btw-section-title">
-            Shorts waiting for review
+            Shorts
           </h2>
           <span className="rounded-full border border-border bg-muted/40 px-2.5 py-0.5 text-xs font-medium tabular-nums">
-            {Array.isArray(pendingShorts) ? pendingShorts.length : 0} pending
+            {shortItems.filter((s) => s.status === "pending_review").length} waiting
           </span>
         </div>
-        <ShortsReviewList items={Array.isArray(pendingShorts) ? pendingShorts : []} />
+        <ShortsModerationPanel items={shortItems} />
       </section>
 
       <section aria-labelledby="mod-reports-heading">

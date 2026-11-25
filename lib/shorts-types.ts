@@ -17,6 +17,8 @@ export type ShortItem = {
   authorName: string;
   authorUsername: string | null;
   rejectionReason?: string | null;
+  reviewedAt: string | null;
+  reviewerName: string | null;
   /** Built on the server from the runtime customer code; null when not configured. */
   playerUrl: string | null;
   posterUrl: string | null;

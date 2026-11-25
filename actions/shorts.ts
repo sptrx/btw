@@ -26,10 +26,12 @@ type Row = {
   duration_seconds: number | null;
   created_at: string;
   rejection_reason: string | null;
+  reviewed_by: string | null;
+  reviewed_at: string | null;
 };
 
 const COLUMNS =
-  "id, author_id, caption, stream_uid, status, duration_seconds, created_at, rejection_reason";
+  "id, author_id, caption, stream_uid, status, duration_seconds, created_at, rejection_reason, reviewed_by, reviewed_at";
 
 /** Moves rows still waiting on Stream forward, so a missed webhook never leaves a short stuck. */
 async function syncStuck(rows: Row[]): Promise<boolean> {
@@ -42,7 +44,7 @@ async function syncStuck(rows: Row[]): Promise<boolean> {
 async function withAuthors(rows: Row[]): Promise<ShortItem[]> {
   if (!rows.length) return [];
   const supabase = await createClient();
-  const ids = [...new Set(rows.map((r) => r.author_id))];
+  const ids = [...new Set(rows.flatMap((r) => [r.author_id, r.reviewed_by].filter((x): x is string => Boolean(x))))];
   const { data } = await supabase.from("profiles").select("id, display_name, username").in("id", ids);
   const code = streamCustomerCode();
   const byId = new Map((data ?? []).map((p) => [p.id as string, p]));
@@ -59,6 +61,13 @@ async function withAuthors(rows: Row[]): Promise<ShortItem[]> {
       authorName: p?.display_name?.trim() || p?.username || "A member",
       authorUsername: p?.username ?? null,
       rejectionReason: r.rejection_reason,
+      reviewedAt: r.reviewed_at,
+      reviewerName: r.reviewed_by
+        ? ((byId.get(r.reviewed_by) as { display_name?: string | null; username?: string | null } | undefined)
+            ?.display_name?.trim() ||
+          (byId.get(r.reviewed_by) as { username?: string | null } | undefined)?.username ||
+          "A moderator")
+        : null,
       playerUrl: r.stream_uid ? streamPlayerUrl(r.stream_uid, code) : null,
       posterUrl: r.stream_uid ? streamThumbnailUrl(r.stream_uid, code) : null,
     };
@@ -193,7 +202,7 @@ async function requireModerator(): Promise<{ userId: string } | { error: string 
   return { userId: user.id };
 }
 
-export async function listPendingShorts(): Promise<ShortItem[] | { error: string }> {
+export async function listShortsForModeration(): Promise<ShortItem[] | { error: string }> {
   const mod = await requireModerator();
   if ("error" in mod) return mod;
   const supabase = await createClient();
@@ -206,26 +215,48 @@ export async function listPendingShorts(): Promise<ShortItem[] | { error: string
   const { data } = await supabase
     .from("shorts")
     .select(COLUMNS)
-    .eq("status", "pending_review")
-    .order("created_at", { ascending: true })
-    .limit(50);
+    .order("created_at", { ascending: false })
+    .limit(200);
   return withAuthors((data ?? []) as Row[]);
 }
 
 export async function reviewShort(
   id: string,
-  decision: "approve" | "reject",
+  decision: "approve" | "reject" | "requeue",
   reason?: string,
 ): Promise<{ ok: true } | { error: string }> {
   const mod = await requireModerator();
   if ("error" in mod) return mod;
   const supabase = await createClient();
-  const patch =
-    decision === "approve"
-      ? { status: "approved", approved_at: new Date().toISOString(), rejection_reason: null }
-      : { status: "rejected", rejection_reason: reason?.trim().slice(0, 300) || null };
-  const { error } = await supabase.from("shorts").update(patch).eq("id", id).eq("status", "pending_review");
+  const now = new Date().toISOString();
+  const by = { reviewed_by: mod.userId, reviewed_at: now };
+  const plan = {
+    approve: {
+      from: ["pending_review", "rejected"],
+      patch: { status: "approved", approved_at: now, rejection_reason: null, ...by },
+    },
+    reject: {
+      from: ["pending_review", "approved"],
+      patch: {
+        status: "rejected",
+        approved_at: null,
+        rejection_reason: reason?.trim().slice(0, 300) || null,
+        ...by,
+      },
+    },
+    requeue: {
+      from: ["approved", "rejected"],
+      patch: { status: "pending_review", approved_at: null, rejection_reason: null, reviewed_by: null, reviewed_at: null },
+    },
+  }[decision];
+  const { data, error } = await supabase
+    .from("shorts")
+    .update(plan.patch)
+    .eq("id", id)
+    .in("status", plan.from)
+    .select("id");
   if (error) return { error: "Couldn't save that decision." };
+  if (!data?.length) return { error: "That short has already changed. Refresh the list." };
   revalidatePath("/shorts");
   revalidatePath("/dashboard/moderation");
   return { ok: true };

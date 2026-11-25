@@ -13,7 +13,7 @@ export function streamPlayerUrl(uid: string, code: string | null): string | null
     muted: "true",
     loop: "true",
     preload: "auto",
-    letterboxColor: "transparent",
+    letterboxColor: "black",
   });
   return `https://customer-${code}.cloudflarestream.com/${uid}/iframe?${q.toString()}`;
 }

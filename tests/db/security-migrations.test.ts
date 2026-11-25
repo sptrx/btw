@@ -146,6 +146,7 @@ beforeAll(async () => {
   await db.exec(read("20261121000200_archive_channels_pages.sql"));
   await db.exec(read("20261124200000_shorts.sql"));
   await db.exec(read("20261124210000_shorts_guard_invoker.sql"));
+  await db.exec(read("20261124220000_shorts_review_columns.sql"));
 });
 
 afterAll(async () => {

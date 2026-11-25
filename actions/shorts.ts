@@ -30,6 +30,14 @@ type Row = {
 const COLUMNS =
   "id, author_id, caption, stream_uid, status, duration_seconds, created_at, rejection_reason";
 
+/** Moves rows still waiting on Stream forward, so a missed webhook never leaves a short stuck. */
+async function syncStuck(rows: Row[]): Promise<boolean> {
+  const stuck = rows.filter((r) => r.stream_uid && ["uploading", "processing"].includes(r.status));
+  if (!stuck.length) return false;
+  const results = await Promise.all(stuck.map((r) => syncShortFromStream(r.stream_uid as string)));
+  return results.some((st, i) => st && st !== stuck[i].status);
+}
+
 async function withAuthors(rows: Row[]): Promise<ShortItem[]> {
   if (!rows.length) return [];
   const supabase = await createClient();
@@ -157,7 +165,17 @@ export async function listMyShorts(): Promise<ShortItem[]> {
     .eq("author_id", user.id)
     .order("created_at", { ascending: false })
     .limit(50);
-  return withAuthors((data ?? []) as Row[]);
+  let rows = (data ?? []) as Row[];
+  if (await syncStuck(rows)) {
+    const again = await supabase
+      .from("shorts")
+      .select(COLUMNS)
+      .eq("author_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(50);
+    rows = (again.data ?? []) as Row[];
+  }
+  return withAuthors(rows);
 }
 
 async function requireModerator(): Promise<{ userId: string } | { error: string }> {
@@ -175,6 +193,12 @@ export async function listPendingShorts(): Promise<ShortItem[] | { error: string
   const mod = await requireModerator();
   if ("error" in mod) return mod;
   const supabase = await createClient();
+  const { data: waiting } = await supabase
+    .from("shorts")
+    .select(COLUMNS)
+    .in("status", ["uploading", "processing"])
+    .limit(50);
+  await syncStuck((waiting ?? []) as Row[]);
   const { data } = await supabase
     .from("shorts")
     .select(COLUMNS)

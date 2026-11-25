@@ -40,7 +40,7 @@ export function ShortsReviewList({ items }: { items: ShortItem[] }) {
       <ul className="grid gap-4 sm:grid-cols-2">
         {items.map((s) => (
           <li key={s.id} className="overflow-hidden rounded-2xl border border-border bg-card">
-            {s.streamUid ? <ShortPlayer uid={s.streamUid} controls /> : null}
+            {s.streamUid ? <ShortPlayer playerUrl={s.playerUrl} posterUrl={s.posterUrl} controls /> : null}
             <div className="space-y-2 p-4">
               <p className="text-xs text-muted-foreground">
                 {s.authorName}

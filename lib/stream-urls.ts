@@ -1,21 +1,24 @@
-// Browser-safe helpers (no Node imports). Needs NEXT_PUBLIC_STREAM_CUSTOMER_CODE at build time.
+// Browser-safe URL builders. The customer code is read on the server at request time
+// (STREAM_CUSTOMER_CODE as a runtime variable) and passed down, so it needs no rebuild.
 
-/** Stream player URL (iframe). Needs STREAM_CUSTOMER_CODE, e.g. "abc123xyz". */
-export function streamPlayerUrl(uid: string, opts: { autoplay?: boolean } = {}): string | null {
-  const code = process.env.NEXT_PUBLIC_STREAM_CUSTOMER_CODE?.trim();
+export function streamCustomerCode(): string | null {
+  const code = (process.env.STREAM_CUSTOMER_CODE || process.env.NEXT_PUBLIC_STREAM_CUSTOMER_CODE || "").trim();
+  return code || null;
+}
+
+/** Stream player URL (iframe) without autoplay. */
+export function streamPlayerUrl(uid: string, code: string | null): string | null {
   if (!code) return null;
   const q = new URLSearchParams({
     muted: "true",
     loop: "true",
     preload: "auto",
     letterboxColor: "transparent",
-    ...(opts.autoplay ? { autoplay: "true" } : {}),
   });
   return `https://customer-${code}.cloudflarestream.com/${uid}/iframe?${q.toString()}`;
 }
 
-export function streamThumbnailUrl(uid: string): string | null {
-  const code = process.env.NEXT_PUBLIC_STREAM_CUSTOMER_CODE?.trim();
+export function streamThumbnailUrl(uid: string, code: string | null): string | null {
   if (!code) return null;
   return `https://customer-${code}.cloudflarestream.com/${uid}/thumbnails/thumbnail.jpg?time=1s&height=720`;
 }

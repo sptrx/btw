@@ -1,15 +1,16 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { streamPlayerUrl, streamThumbnailUrl } from "@/lib/stream-urls";
 
 /** Stream iframe player. Autoplays (muted) only while mostly on screen. */
 export function ShortPlayer({
-  uid,
+  playerUrl,
+  posterUrl,
   controls = false,
   className = "",
 }: {
-  uid: string;
+  playerUrl: string | null;
+  posterUrl: string | null;
   controls?: boolean;
   className?: string;
 }) {
@@ -26,23 +27,29 @@ export function ShortPlayer({
     return () => io.disconnect();
   }, []);
 
-  const src = visible ? streamPlayerUrl(uid, { autoplay: true }) : null;
-  const poster = streamThumbnailUrl(uid);
+  // Reviewers get the player straight away (with controls); the feed waits until it's on screen.
+  const show = playerUrl && (controls || visible);
+  const src = show ? `${playerUrl}${controls ? "" : "&autoplay=true&controls=false"}` : null;
 
   return (
     <div ref={ref} className={`relative aspect-[9/16] w-full overflow-hidden bg-black ${className}`}>
-      {poster ? (
+      {posterUrl ? (
         // eslint-disable-next-line @next/next/no-img-element
-        <img src={poster} alt="" className="absolute inset-0 h-full w-full object-cover" loading="lazy" />
+        <img src={posterUrl} alt="" className="absolute inset-0 h-full w-full object-cover" loading="lazy" />
       ) : null}
       {src ? (
         <iframe
-          src={controls ? src : `${src}&controls=false`}
+          src={src}
           title="Short video"
           allow="autoplay; fullscreen; picture-in-picture"
           allowFullScreen
           className="absolute inset-0 h-full w-full border-0"
         />
+      ) : null}
+      {!playerUrl ? (
+        <p className="absolute inset-0 flex items-center justify-center p-4 text-center text-xs text-white/80">
+          Video preview isn&apos;t configured yet.
+        </p>
       ) : null}
     </div>
   );

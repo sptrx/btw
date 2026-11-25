@@ -1,7 +1,7 @@
 import { createHmac } from "node:crypto";
 import { describe, expect, it } from "vitest";
 import { verifyStreamWebhook } from "@/lib/stream";
-import { streamPlayerUrl } from "@/lib/stream-urls";
+import { streamCustomerCode, streamPlayerUrl, streamThumbnailUrl } from "@/lib/stream-urls";
 
 const SECRET = "s3cret";
 const sign = (body: string, time: number) =>
@@ -28,13 +28,18 @@ describe("verifyStreamWebhook", () => {
   });
 });
 
-describe("streamPlayerUrl", () => {
+describe("stream urls", () => {
   it("returns null without a customer code", () => {
-    delete process.env.NEXT_PUBLIC_STREAM_CUSTOMER_CODE;
-    expect(streamPlayerUrl("abc")).toBeNull();
+    expect(streamPlayerUrl("abc", null)).toBeNull();
+    expect(streamThumbnailUrl("abc", null)).toBeNull();
   });
-  it("builds an iframe url", () => {
-    process.env.NEXT_PUBLIC_STREAM_CUSTOMER_CODE = "xyz";
-    expect(streamPlayerUrl("abc", { autoplay: true })).toContain("customer-xyz.cloudflarestream.com/abc/iframe");
+  it("builds iframe and thumbnail urls", () => {
+    expect(streamPlayerUrl("abc", "xyz")).toContain("customer-xyz.cloudflarestream.com/abc/iframe");
+    expect(streamThumbnailUrl("abc", "xyz")).toContain("/abc/thumbnails/thumbnail.jpg");
+  });
+  it("reads the code at runtime", () => {
+    process.env.STREAM_CUSTOMER_CODE = " run123 ";
+    expect(streamCustomerCode()).toBe("run123");
+    delete process.env.STREAM_CUSTOMER_CODE;
   });
 });

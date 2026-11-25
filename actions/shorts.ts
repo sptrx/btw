@@ -12,6 +12,7 @@ import {
   isStreamConfigured,
 } from "@/lib/stream";
 import { syncShortFromStream } from "@/lib/shorts-sync";
+import { streamCustomerCode, streamPlayerUrl, streamThumbnailUrl } from "@/lib/stream-urls";
 import type { ShortItem, ShortStatus } from "@/lib/shorts-types";
 
 const DAILY_UPLOAD_LIMIT = 5;
@@ -43,6 +44,7 @@ async function withAuthors(rows: Row[]): Promise<ShortItem[]> {
   const supabase = await createClient();
   const ids = [...new Set(rows.map((r) => r.author_id))];
   const { data } = await supabase.from("profiles").select("id, display_name, username").in("id", ids);
+  const code = streamCustomerCode();
   const byId = new Map((data ?? []).map((p) => [p.id as string, p]));
   return rows.map((r) => {
     const p = byId.get(r.author_id) as { display_name?: string | null; username?: string | null } | undefined;
@@ -57,6 +59,8 @@ async function withAuthors(rows: Row[]): Promise<ShortItem[]> {
       authorName: p?.display_name?.trim() || p?.username || "A member",
       authorUsername: p?.username ?? null,
       rejectionReason: r.rejection_reason,
+      playerUrl: r.stream_uid ? streamPlayerUrl(r.stream_uid, code) : null,
+      posterUrl: r.stream_uid ? streamThumbnailUrl(r.stream_uid, code) : null,
     };
   });
 }

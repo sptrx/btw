@@ -24,12 +24,12 @@ NEXTJS_ENV=development
 # Short videos (Cloudflare Stream). Token needs Stream:Edit. STREAM_ACCOUNT_ID falls back to R2_ACCOUNT_ID.
 # Webhook: in Cloudflare run  POST /accounts/<id>/stream/webhook  with notificationUrl
 #   https://believetheworks.org/api/shorts/webhook  and put the returned "secret" below.
-# NEXT_PUBLIC_STREAM_CUSTOMER_CODE is the "customer-<code>" part of your Stream playback domain
-# (set it at build time, it is public).
+# STREAM_CUSTOMER_CODE is the "customer-<code>" part of your Stream playback domain
+# (a normal Worker variable, read at runtime, no rebuild needed).
 # STREAM_ACCOUNT_ID=
 # STREAM_API_TOKEN=
 # STREAM_WEBHOOK_SECRET=
-# NEXT_PUBLIC_STREAM_CUSTOMER_CODE=
+# STREAM_CUSTOMER_CODE=
 
 # Server-only Supabase service role key (required for post approval, comments and
 # the Bible AI daily quota). Never prefix with NEXT_PUBLIC_. Production:

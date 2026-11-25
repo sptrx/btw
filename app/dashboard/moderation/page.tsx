@@ -87,9 +87,14 @@ export default async function ModerationDashboardPage() {
       </section>
 
       <section aria-labelledby="mod-shorts-heading" className="mb-10">
-        <h2 id="mod-shorts-heading" className="btw-section-title mb-4">
-          Shorts waiting for review
-        </h2>
+        <div className="mb-4 flex items-center justify-between gap-3">
+          <h2 id="mod-shorts-heading" className="btw-section-title">
+            Shorts waiting for review
+          </h2>
+          <span className="rounded-full border border-border bg-muted/40 px-2.5 py-0.5 text-xs font-medium tabular-nums">
+            {Array.isArray(pendingShorts) ? pendingShorts.length : 0} pending
+          </span>
+        </div>
         <ShortsReviewList items={Array.isArray(pendingShorts) ? pendingShorts : []} />
       </section>
 

@@ -8,7 +8,7 @@ export const POST_REACTION_TYPES = [
 
 export type PostReactionType = (typeof POST_REACTION_TYPES)[number];
 
-export type FeedPostKind = "topic_content" | "prayer_request" | "praise_report";
+export type FeedPostKind = "topic_content" | "prayer_request" | "praise_report" | "short";
 
 export const POST_REACTION_META: Record<
   PostReactionType,

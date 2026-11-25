@@ -189,4 +189,8 @@ function revalidateFeedPaths(postKind: FeedPostKind, postId: string) {
     revalidatePath("/prayer");
     revalidatePath(`/prayer/${postId}`);
   }
+  if (postKind === "short") {
+    revalidatePath("/shorts");
+    revalidatePath(`/shorts/${postId}`);
+  }
 }

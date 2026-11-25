@@ -1,10 +1,11 @@
 import { ViewTransition } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Clock, HandHeart, MessageCircle } from "lucide-react";
+import { Clock, HandHeart, MessageCircle, Play } from "lucide-react";
 import type { CommunityFeedItem } from "@/actions/feed";
 import { PostPoster } from "@/components/feed/post-poster";
 import { PostReactions } from "@/components/post-reactions";
+import { ShortPlayer } from "@/components/shorts/short-player";
 import { RelativeDate } from "@/components/relative-date";
 import { SharingTypeBadge } from "@/components/sharing-type-badge";
 import { TopicTagPill } from "@/components/tags/topic-tag-pill";
@@ -31,6 +32,7 @@ export function CommunityFeedCard({ item, displayFontClassName, isAuthenticated 
   });
   const reactionTotal = totalReactions(item.reactions);
   const isChannel = item.postKind === "topic_content";
+  const isShort = item.postKind === "short";
   const isQuestion = item.sharingType === "question";
   const commentHref = `${item.href}#comments`;
 
@@ -85,7 +87,11 @@ export function CommunityFeedCard({ item, displayFontClassName, isAuthenticated 
             className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-border/60 bg-muted/50 sm:h-11 sm:w-11"
             aria-hidden
           >
-            <HandHeart className="h-5 w-5 text-muted-foreground" />
+            {isShort ? (
+              <Play className="h-5 w-5 text-muted-foreground" />
+            ) : (
+              <HandHeart className="h-5 w-5 text-muted-foreground" />
+            )}
           </div>
         )}
 
@@ -212,9 +218,26 @@ export function CommunityFeedCard({ item, displayFontClassName, isAuthenticated 
             </Link>
           ) : null}
 
-          {poster ? <PostPoster poster={poster} href={item.href} title={item.title} /> : null}
+          {isShort ? (
+            <div className="mt-3 w-full max-w-[18rem]">
+              <ShortPlayer
+                playerUrl={item.playerUrl ?? null}
+                posterUrl={item.posterUrl ?? null}
+                controls
+                className="rounded-2xl border border-border/60"
+              />
+            </div>
+          ) : poster ? (
+            <PostPoster poster={poster} href={item.href} title={item.title} />
+          ) : null}
 
           <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+            {isShort && item.durationSeconds ? (
+              <span className="inline-flex items-center gap-1">
+                <Clock className="size-3.5" aria-hidden />
+                {Math.round(item.durationSeconds)}s
+              </span>
+            ) : null}
             {item.readMinutes ? (
               <span className="inline-flex items-center gap-1">
                 <Clock className="size-3.5" aria-hidden />
@@ -244,7 +267,11 @@ export function CommunityFeedCard({ item, displayFontClassName, isAuthenticated 
               </Link>
             ) : null}
             <Link href={item.href} className="text-primary font-medium hover:underline">
-              {item.postKind === "prayer_request" ? "View request" : "Open"}
+              {item.postKind === "prayer_request"
+                ? "View request"
+                : isShort
+                  ? "Open short"
+                  : "Open"}
             </Link>
             {isChannel && item.channelSlug ? (
               <Link

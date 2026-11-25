@@ -10,7 +10,7 @@ export const REACTIONS = [
 
 export type ReactionType = (typeof REACTIONS)[number]['type'];
 export type ReactionCounts = Record<ReactionType, number>;
-export type PostKind = 'topic_content' | 'prayer_request' | 'praise_report';
+export type PostKind = 'topic_content' | 'prayer_request' | 'praise_report' | 'short';
 export type MediaItem = { url: string; type: string };
 
 export type FeedFilter =
@@ -25,7 +25,8 @@ export type FeedFilter =
   | 'devotionals'
   | 'praise'
   | 'prayer'
-  | 'videos';
+  | 'videos'
+  | 'shorts';
 
 export type FeedItem = {
   id: string;
@@ -41,6 +42,10 @@ export type FeedItem = {
   scriptureReference?: string | null;
   mediaItems?: MediaItem[];
   commentCount?: number;
+  /** Shorts only */
+  playerUrl?: string | null;
+  posterUrl?: string | null;
+  durationSeconds?: number | null;
   authorLabel?: string | null;
   authorId?: string;
   reactions: ReactionCounts;

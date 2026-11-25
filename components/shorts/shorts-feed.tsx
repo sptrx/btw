@@ -50,7 +50,7 @@ export function ShortsFeed({
     <div className="mx-auto flex max-w-sm flex-col gap-6">
       {items.map((s) => (
         <article key={s.id} className="overflow-hidden rounded-2xl border border-border bg-card">
-          {s.streamUid ? <ShortPlayer playerUrl={s.playerUrl} posterUrl={s.posterUrl} /> : null}
+          {s.streamUid ? <ShortPlayer playerUrl={s.playerUrl} posterUrl={s.posterUrl} className="rounded-t-2xl" /> : null}
           <div className="space-y-1 p-4">
             <p className="text-sm font-medium">
               {s.authorUsername ? (

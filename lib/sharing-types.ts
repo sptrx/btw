@@ -137,6 +137,9 @@ export function sharingTypeLabel(type: string): string {
 
 export function sharingTypeBadgeClass(type: string): string {
   if (isSharingType(type)) return SHARING_TYPE_CONFIG[type].badgeClass;
+  if (type === "short") {
+    return "border-fuchsia-500/40 bg-fuchsia-500/15 text-fuchsia-900 dark:text-fuchsia-100";
+  }
   return "border-border/80 bg-muted/50 text-foreground/80";
 }
 
@@ -153,7 +156,8 @@ export type SharingFeedFilter =
   | "devotionals"
   | "praise"
   | "prayer"
-  | "videos";
+  | "videos"
+  | "shorts";
 
 export const SHARING_FEED_FILTERS: { id: SharingFeedFilter; label: string }[] = [
   { id: "all", label: "All" },
@@ -168,6 +172,7 @@ export const SHARING_FEED_FILTERS: { id: SharingFeedFilter; label: string }[] = 
   { id: "praise", label: "Praise" },
   { id: "prayer", label: "Prayer" },
   { id: "videos", label: "Videos" },
+  { id: "shorts", label: "Shorts" },
 ];
 
 /** Category chips under the mobile "For you" tab (not top-level navigation). */
@@ -182,6 +187,7 @@ export const FOR_YOU_CATEGORY_FILTERS: { id: SharingFeedFilter; label: string }[
   { id: "praise", label: "Praise" },
   { id: "prayer", label: "Prayer requests" },
   { id: "videos", label: "Videos" },
+  { id: "shorts", label: "Shorts" },
 ];
 
 export function browseTypeHref(type: SharingType): string {

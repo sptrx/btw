@@ -95,7 +95,7 @@ const FORCED_BOOK_TITLES: Record<string, string> = { ezr: "Ezra", ez: "Ezekiel" 
 
 const FEED_FILTERS = new Set<string>(SHARING_FEED_FILTERS.map((f) => f.id));
 const PRAYER_FILTERS = new Set<PrayerWallFilter>(["all", "unanswered", "answered", "mine"]);
-const POST_KINDS = new Set<FeedPostKind>(["topic_content", "prayer_request", "praise_report"]);
+const POST_KINDS = new Set<FeedPostKind>(["topic_content", "prayer_request", "praise_report", "short"]);
 
 function str(args: Args, key: string, opts: { required?: boolean; max?: number } = {}): string {
   const raw = args[key];

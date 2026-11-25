@@ -16,6 +16,8 @@ import { isMissingSharingTypeColumn } from "@/lib/moderation";
 import { getFollowedUserIds } from "@/actions/follows";
 import { isMissingGeoColumn } from "@/lib/geo/resolve-content-country";
 import { readingMinutes } from "@/lib/post-card";
+import { streamCustomerCode, streamPlayerUrl, streamThumbnailUrl } from "@/lib/stream-urls";
+import { shortsInFeedFilter } from "@/lib/shorts-types";
 
 export type CommunityFeedFilter = SharingFeedFilter;
 
@@ -23,7 +25,7 @@ export type CommunityFeedBadge = string;
 
 export type CommunityFeedItem = {
   id: string;
-  postKind: "topic_content" | "prayer_request" | "praise_report";
+  postKind: "topic_content" | "prayer_request" | "praise_report" | "short";
   badge: CommunityFeedBadge;
   title: string;
   bodySnippet: string | null;
@@ -42,6 +44,10 @@ export type CommunityFeedItem = {
   scriptureReference?: string | null;
   mediaItems?: { url: string; type: string }[];
   commentCount?: number;
+  /** Shorts only — Stream player and poster, built on the server. */
+  playerUrl?: string | null;
+  posterUrl?: string | null;
+  durationSeconds?: number | null;
   /** Prayer request */
   prayerCount?: number;
   authorLabel?: string | null;
@@ -391,6 +397,56 @@ async function fetchPraiseSlice(
   return data ?? [];
 }
 
+type ShortFeedRow = {
+  id: string;
+  author_id: string;
+  caption: string;
+  stream_uid: string | null;
+  duration_seconds: number | null;
+  created_at: string;
+};
+
+/** Approved shorts belong in the same feed as everything else. */
+async function fetchShortsSlice(
+  filter: CommunityFeedFilter,
+  limit: number,
+  cursor: CommunityFeedCursor | null,
+  followedAuthorIds: string[] | null
+): Promise<ShortFeedRow[]> {
+  if (!shortsInFeedFilter(filter)) return [];
+  if (filter === "following" && (!followedAuthorIds || followedAuthorIds.length === 0)) {
+    return [];
+  }
+
+  const supabase = await createClient();
+  let q = supabase
+    .from("shorts")
+    .select("id, author_id, caption, stream_uid, duration_seconds, created_at")
+    .eq("status", "approved")
+    .not("stream_uid", "is", null)
+    .order("created_at", { ascending: false })
+    .order("id", { ascending: false })
+    .limit(limit);
+
+  if (followedAuthorIds?.length) q = q.in("author_id", followedAuthorIds);
+
+  if (cursor?.postKind === "short") {
+    q = q.or(
+      `created_at.lt.${cursor.createdAt},and(created_at.eq.${cursor.createdAt},id.lt.${cursor.id})`
+    );
+  } else if (cursor) {
+    q = q.lt("created_at", cursor.createdAt);
+  }
+
+  const { data, error } = await q;
+  if (error) {
+    // The table or its columns may not exist yet on an older database.
+    console.warn("[feed] shorts:", error.message);
+    return [];
+  }
+  return (data ?? []) as ShortFeedRow[];
+}
+
 function sortFeedItems(items: CommunityFeedItem[]): CommunityFeedItem[] {
   return [...items].sort((a, b) => {
     if (a.fromFollowed !== b.fromFollowed) return a.fromFollowed ? -1 : 1;
@@ -519,7 +575,7 @@ export async function getCommunityFeedPage(
     filter === "for_you" ? preferenceBoosts(user?.id ?? null) : Promise.resolve({ preferredTypes: new Set<string>() }),
   ]);
 
-  const [contentRows, prayerRows, praiseRows] = await Promise.all([
+  const [contentRows, prayerRows, praiseRows, shortRows] = await Promise.all([
     fetchTopicContentSlice(
       contentFilter,
       fetchLimit,
@@ -530,6 +586,7 @@ export async function getCommunityFeedPage(
     ),
     fetchPrayerSlice(contentFilter, fetchLimit, cursor, followedAuthorIds),
     fetchPraiseSlice(contentFilter, fetchLimit, cursor, followedAuthorIds),
+    fetchShortsSlice(contentFilter, fetchLimit, cursor, followedAuthorIds),
   ]);
 
   const topicIds = [...new Set(contentRows.map((r) => r.topic_id))];
@@ -548,6 +605,7 @@ export async function getCommunityFeedPage(
           ...contentRows.map((r) => r.author_id).filter((id): id is string => Boolean(id)),
           ...prayerRows.map((r) => r.user_id),
           ...praiseRows.map((r) => r.user_id),
+          ...shortRows.map((r) => r.author_id),
         ]),
       ];
       if (!userIds.length) {
@@ -673,6 +731,35 @@ export async function getCommunityFeedPage(
       authorUsername: profile?.username ?? null,
       authorLabel: profile?.display_name?.trim() || "Community member",
       viewerFollowsAuthor: followedUserIds.has(r.user_id),
+      reactions: emptyReactionCounts(),
+      userReaction: null,
+    });
+  }
+
+  const streamCode = streamCustomerCode();
+  for (const r of shortRows) {
+    const profile = profileById.get(r.author_id);
+    const caption = r.caption.trim();
+    const title = caption.length > 80 ? `${caption.slice(0, 77)}…` : caption || "A short";
+    items.push({
+      id: r.id,
+      postKind: "short",
+      badge: "Short",
+      sharingType: "short",
+      title,
+      bodySnippet: caption.length > 80 ? snippet(caption, 280) : null,
+      readMinutes: null,
+      createdAt: r.created_at,
+      href: `/shorts/${r.id}`,
+      fromFollowed: followedUserIds.has(r.author_id),
+      contentType: "video",
+      durationSeconds: r.duration_seconds,
+      playerUrl: r.stream_uid ? streamPlayerUrl(r.stream_uid, streamCode) : null,
+      posterUrl: r.stream_uid ? streamThumbnailUrl(r.stream_uid, streamCode) : null,
+      authorId: r.author_id,
+      authorUsername: profile?.username ?? null,
+      authorLabel: profile?.display_name?.trim() || "Community member",
+      viewerFollowsAuthor: followedUserIds.has(r.author_id),
       reactions: emptyReactionCounts(),
       userReaction: null,
     });

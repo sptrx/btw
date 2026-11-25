@@ -18,6 +18,7 @@ const FEED_FILTERS = new Set<CommunityFeedFilter>([
   "praise",
   "prayer",
   "videos",
+  "shorts",
 ]);
 
 type HomeTab = "for_you" | "following" | "word";

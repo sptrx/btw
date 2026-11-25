@@ -2,22 +2,26 @@
 
 import { useEffect, useRef, useState } from "react";
 
-/** Stream iframe player. Autoplays (muted) only while mostly on screen. */
-export function ShortPlayer({
-  playerUrl,
-  posterUrl,
-  controls = false,
-  className = "",
-}: {
+type Props = {
   playerUrl: string | null;
   posterUrl: string | null;
+  /** Show Stream's own controls (play, pause, unmute). */
   controls?: boolean;
+  /** Load the player straight away instead of waiting until it scrolls into view. */
+  eager?: boolean;
   className?: string;
-}) {
+};
+
+/**
+ * Stream iframe player. By default it shows the poster until the video is mostly
+ * on screen, then loads and plays it muted — so a feed of shorts stays light.
+ */
+export function ShortPlayer({ playerUrl, posterUrl, controls = false, eager = false, className = "" }: Props) {
   const ref = useRef<HTMLDivElement>(null);
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
+    if (eager) return;
     const el = ref.current;
     if (!el) return;
     const io = new IntersectionObserver(([e]) => setVisible(e.intersectionRatio >= 0.6), {
@@ -25,16 +29,17 @@ export function ShortPlayer({
     });
     io.observe(el);
     return () => io.disconnect();
-  }, []);
+  }, [eager]);
 
-  // Reviewers get the player straight away (with controls); the feed waits until it's on screen.
-  const show = playerUrl && (controls || visible);
-  const src = show ? `${playerUrl}${controls ? "" : "&autoplay=true&controls=false"}` : null;
+  const load = Boolean(playerUrl) && (eager || visible);
+  const src = load
+    ? `${playerUrl}${controls ? "" : "&controls=false"}${eager ? "" : "&autoplay=true"}`
+    : null;
 
   return (
     <div
       ref={ref}
-      className={`relative aspect-[9/16] max-h-[70vh] w-full overflow-hidden rounded-t-2xl bg-black ${className}`}
+      className={`relative aspect-[9/16] max-h-[70vh] w-full overflow-hidden bg-black ${className}`}
     >
       {posterUrl ? (
         // eslint-disable-next-line @next/next/no-img-element

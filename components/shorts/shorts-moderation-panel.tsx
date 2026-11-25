@@ -81,7 +81,7 @@ export function ShortsModerationPanel({ items }: { items: ShortItem[] }) {
         <ul className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {shown.map((s) => (
             <li key={s.id} className="flex flex-col overflow-hidden rounded-2xl border border-border bg-card">
-              <ShortPlayer playerUrl={s.playerUrl} posterUrl={s.posterUrl} controls />
+              <ShortPlayer playerUrl={s.playerUrl} posterUrl={s.posterUrl} controls eager className="rounded-t-2xl" />
               <div className="flex flex-1 flex-col gap-2 p-4">
                 <p className="text-xs text-muted-foreground">
                   {s.authorName}

@@ -32,3 +32,11 @@ export const SHORT_STATUS_LABEL: Record<ShortStatus, string> = {
   rejected: "Not approved",
   failed: "Upload failed",
 };
+
+/**
+ * Which home-feed tabs mix shorts in. "for_you" and "all" draw from the whole
+ * pool; a category chip like "testimonies" is about written posts, so it doesn't.
+ */
+export function shortsInFeedFilter(filter: string): boolean {
+  return filter === "all" || filter === "for_you" || filter === "following" || filter === "videos" || filter === "shorts";
+}

@@ -29,7 +29,7 @@ NEXTJS_ENV=development
 # STREAM_ACCOUNT_ID=
 # STREAM_API_TOKEN=
 # STREAM_WEBHOOK_SECRET=
-# NEXT_PUBLIC_STREAM_CUSTOMER_CODE=22v13b1s87zy2n5q
+# NEXT_PUBLIC_STREAM_CUSTOMER_CODE=
 
 # Server-only Supabase service role key (required for post approval, comments and
 # the Bible AI daily quota). Never prefix with NEXT_PUBLIC_. Production:

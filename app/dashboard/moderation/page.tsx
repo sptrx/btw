@@ -6,6 +6,8 @@ import { getModerationOverview } from "@/actions/moderation-admin";
 import { ModerationReviewActions } from "@/components/moderation-review-actions";
 import { RelativeDate } from "@/components/relative-date";
 import { isSiteModerator } from "@/lib/site-roles";
+import { listPendingShorts } from "@/actions/shorts";
+import { ShortsReviewList } from "@/components/shorts/shorts-review-list";
 
 export const metadata: Metadata = {
   title: "Moderation",
@@ -20,6 +22,7 @@ export default async function ModerationDashboardPage() {
   if (!isSiteModerator(profile?.role)) redirect("/dashboard");
 
   const overview = await getModerationOverview();
+  const pendingShorts = await listPendingShorts();
   if ("error" in overview) {
     return (
       <div>
@@ -81,6 +84,13 @@ export default async function ModerationDashboardPage() {
             ))}
           </ul>
         )}
+      </section>
+
+      <section aria-labelledby="mod-shorts-heading" className="mb-10">
+        <h2 id="mod-shorts-heading" className="btw-section-title mb-4">
+          Shorts waiting for review
+        </h2>
+        <ShortsReviewList items={Array.isArray(pendingShorts) ? pendingShorts : []} />
       </section>
 
       <section aria-labelledby="mod-reports-heading">

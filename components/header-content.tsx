@@ -169,7 +169,7 @@ export function HeaderContent({
 
   return (
     <header
-      className="sticky top-0 z-50 w-full border-b border-header-border bg-[oklch(0.72_0.04_108)]/95 pt-[env(safe-area-inset-top)] shadow-[0_1px_0_0_var(--header-border)] backdrop-blur-sm transition-[background,box-shadow,border-color] duration-300 dark:border-border/50 dark:bg-neutral-900/90 dark:shadow-none dark:backdrop-blur-md"
+      className="sticky top-0 z-50 w-full border-b-2 border-[#c9a24a] bg-[oklch(0.985_0.01_92)]/95 pt-[env(safe-area-inset-top)] backdrop-blur-sm transition-[background,box-shadow,border-color] duration-300 dark:border-b dark:border-border/50 dark:bg-neutral-900/90 dark:shadow-none dark:backdrop-blur-md"
       role="banner"
     >
       <div className="mx-auto w-full max-w-[1240px] px-3 sm:px-4 lg:px-5">

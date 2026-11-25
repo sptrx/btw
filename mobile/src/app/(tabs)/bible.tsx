@@ -1,4 +1,6 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useFocusEffect, useRouter } from 'expo-router';
+import * as Speech from 'expo-speech';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   FlatList,
   Platform,
@@ -21,6 +23,7 @@ import {
 import { MaxContentWidth, Radius, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { api } from '@/lib/api';
+import { useAuth } from '@/lib/auth';
 import type {
   BibleBookSummary,
   BibleChapter,
@@ -38,6 +41,8 @@ const verseFont = Platform.select({
 
 export default function BibleScreen() {
   const theme = useTheme();
+  const router = useRouter();
+  const { session } = useAuth();
   const [translations, setTranslations] = useState<BibleTranslation[]>([]);
   const [translationId, setTranslationId] = useState('kjv');
   const [books, setBooks] = useState<BibleBookSummary[]>([]);
@@ -47,6 +52,12 @@ export default function BibleScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [bookmarked, setBookmarked] = useState<number[]>([]);
+  const [remembered, setRemembered] = useState<number[]>([]);
+  const [speaking, setSpeaking] = useState(false);
+  const [spokenVerse, setSpokenVerse] = useState<number | null>(null);
+  const stopReading = useRef(false);
+  const speakingRef = useRef(false);
 
   const translationLabel =
     translations.find((t) => t.id === translationId)?.label ?? translationId.toUpperCase();
@@ -135,6 +146,152 @@ export default function BibleScreen() {
   function goNav(nav: BibleChapterNav | null) {
     if (!nav) return;
     void openChapter(nav.abbrev, nav.chapter);
+  }
+
+  useEffect(() => {
+    if (!session || !chapter) {
+      setBookmarked([]);
+      setRemembered([]);
+      return;
+    }
+    let cancelled = false;
+    api<{ bookmarked: number[]; remembered: number[] }>('bible.marks', {
+      translationId,
+      bookAbbrev: chapter.abbrev,
+      bookTitle: chapter.bookTitle,
+      chapter: chapter.chapter,
+      verses: chapter.verses.map((verse) => verse.verse),
+    })
+      .then((marks) => {
+        if (!cancelled) {
+          setBookmarked(marks.bookmarked);
+          setRemembered(marks.remembered);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setBookmarked([]);
+          setRemembered([]);
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [chapter, session, translationId]);
+
+  const haltReading = useCallback(() => {
+    stopReading.current = true;
+    if (!speakingRef.current) return;
+    speakingRef.current = false;
+    void Speech.stop();
+    setSpeaking(false);
+    setSpokenVerse(null);
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      return () => {
+        haltReading();
+      };
+    }, [haltReading])
+  );
+
+  const chapterKey = chapter ? `${translationId}:${chapter.abbrev}:${chapter.chapter}` : '';
+  const chapterKeyRef = useRef(chapterKey);
+  useEffect(() => {
+    if (chapterKeyRef.current === chapterKey) return;
+    chapterKeyRef.current = chapterKey;
+    haltReading();
+  }, [chapterKey, haltReading]);
+
+  async function listen() {
+    if (!chapter) return;
+    if (speakingRef.current) {
+      haltReading();
+      return;
+    }
+    stopReading.current = false;
+    speakingRef.current = true;
+    setSpeaking(true);
+    setError(null);
+    let failed = false;
+    for (const verse of chapter.verses) {
+      if (stopReading.current) break;
+      setSpokenVerse(verse.verse);
+      const outcome = await new Promise<'done' | 'stopped' | 'error'>((resolve) => {
+        Speech.speak(`Verse ${verse.verse}. ${verse.text}`, {
+          language: 'en-US',
+          pitch: 1,
+          rate: 0.9,
+          volume: 1,
+          useApplicationAudioSession: false,
+          onDone: () => resolve('done'),
+          onStopped: () => resolve('stopped'),
+          onError: () => resolve('error'),
+        });
+      });
+      if (stopReading.current || outcome === 'stopped') break;
+      if (outcome === 'error') {
+        failed = true;
+        break;
+      }
+    }
+    speakingRef.current = false;
+    setSpeaking(false);
+    setSpokenVerse(null);
+    if (failed) {
+      setError(
+        'No audio played. Turn the volume up, and make sure this phone has an English speech voice installed.'
+      );
+    }
+  }
+
+  async function onBookmark(verse: number, text: string) {
+    if (!session || !chapter) {
+      router.push('/sign-in');
+      return;
+    }
+    try {
+    const result = await api<{ bookmarked?: boolean; error?: string }>('bible.bookmark', {
+      translationId,
+      bookAbbrev: chapter.abbrev,
+      bookTitle: chapter.bookTitle,
+      chapter: chapter.chapter,
+      verse,
+      verseText: text,
+    });
+    if (result.error) {
+      setError(result.error);
+      return;
+    }
+    setBookmarked((current) =>
+      result.bookmarked ? [...current, verse] : current.filter((item) => item !== verse)
+    );
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Could not bookmark this verse.');
+    }
+  }
+
+  async function onRemember(verse: number, text: string) {
+    if (!session || !chapter) {
+      router.push('/sign-in');
+      return;
+    }
+    try {
+    const result = await api<{ saved?: boolean; error?: string }>('bible.remember', {
+      bookTitle: chapter.bookTitle,
+      chapter: chapter.chapter,
+      verse,
+      verseText: text,
+    });
+    if (result.error) {
+      setError(result.error);
+      return;
+    }
+    setRemembered((current) => (current.includes(verse) ? current : [...current, verse]));
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Could not save this verse.');
+    }
   }
 
   const chapterButtons = useMemo(() => {
@@ -279,6 +436,11 @@ export default function BibleScreen() {
                   <AppText variant="small" tone="secondary">
                     {chapter.translationLabel}
                   </AppText>
+                  <Pressable onPress={() => void listen()} accessibilityRole="button" hitSlop={8}>
+                    <AppText variant="small" tone="primary">
+                      {speaking ? 'Stop audio' : 'Listen'}
+                    </AppText>
+                  </Pressable>
                   {error ? (
                     <AppText variant="small" tone="danger" style={{ marginTop: Spacing.two }}>
                       {error}
@@ -287,15 +449,33 @@ export default function BibleScreen() {
                 </View>
               }
               renderItem={({ item }) => (
-                <View style={styles.verseRow}>
+                <View
+                  style={[
+                    styles.verseRow,
+                    spokenVerse === item.verse ? { backgroundColor: theme.accentSoft } : null,
+                  ]}>
                   <AppText variant="caption" tone="primary" style={styles.verseNum}>
                     {item.verse}
                   </AppText>
-                  <AppText
-                    variant="body"
-                    style={[styles.verseText, { color: theme.text, fontFamily: verseFont }]}>
-                    {item.text}
-                  </AppText>
+                  <View style={styles.verseBody}>
+                    <AppText
+                      variant="body"
+                      style={[styles.verseText, { color: theme.text, fontFamily: verseFont }]}>
+                      {item.text}
+                    </AppText>
+                    <View style={styles.verseActions}>
+                      <Pressable onPress={() => void onBookmark(item.verse, item.text)} hitSlop={6}>
+                        <AppText variant="caption" tone={bookmarked.includes(item.verse) ? 'primary' : 'secondary'}>
+                          {bookmarked.includes(item.verse) ? 'Bookmarked' : 'Bookmark'}
+                        </AppText>
+                      </Pressable>
+                      <Pressable onPress={() => void onRemember(item.verse, item.text)} hitSlop={6}>
+                        <AppText variant="caption" tone={remembered.includes(item.verse) ? 'primary' : 'secondary'}>
+                          {remembered.includes(item.verse) ? 'In memory' : 'Memory bank'}
+                        </AppText>
+                      </Pressable>
+                    </View>
+                  </View>
                 </View>
               )}
               ListFooterComponent={
@@ -389,7 +569,9 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.two,
   },
   verseNum: { minWidth: 28, paddingTop: 4, fontWeight: '700' },
-  verseText: { flex: 1, lineHeight: 28, fontSize: 17 },
+  verseBody: { flex: 1, gap: Spacing.one },
+  verseText: { lineHeight: 28, fontSize: 17 },
+  verseActions: { flexDirection: 'row', gap: Spacing.three },
   navRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',

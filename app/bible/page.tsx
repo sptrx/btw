@@ -1,4 +1,7 @@
 import Link from "next/link";
+import { getCurrentUser } from "@/actions";
+import { getBibleChapterMarks } from "@/actions/bible-reader";
+import { BibleReader } from "@/components/bible/bible-reader";
 import {
   fetchBibleBooks,
   fetchBibleChapter,
@@ -58,6 +61,17 @@ export default async function BiblePage({
     chapter: chapterNumber,
   });
   const chapter = chapterResult && !("error" in chapterResult) ? chapterResult : null;
+  const user = await getCurrentUser();
+  const title = bookLabel(book, booksResult.books);
+  const marks = chapter
+    ? await getBibleChapterMarks({
+        translationId: "kjv",
+        bookAbbrev: book.abbrev,
+        bookTitle: title,
+        chapter: chapterNumber,
+        verses: chapter.verses.map((verse) => verse.verse),
+      })
+    : { bookmarked: [], remembered: [] };
 
   return (
     <article className="space-y-4">
@@ -74,6 +88,9 @@ export default async function BiblePage({
           books={booksResult.books}
           chapter={chapter}
           chapterNumber={chapterNumber}
+          isAuthenticated={Boolean(user)}
+          bookmarkedVerses={marks.bookmarked}
+          rememberedVerses={marks.remembered}
         />
       </div>
     </article>
@@ -140,11 +157,17 @@ function ChapterView({
   books,
   chapter,
   chapterNumber,
+  isAuthenticated,
+  bookmarkedVerses,
+  rememberedVerses,
 }: {
   book: BibleBookSummary;
   books: BibleBookSummary[];
   chapter: BibleChapter | null;
   chapterNumber: number;
+  isAuthenticated: boolean;
+  bookmarkedVerses: number[];
+  rememberedVerses: number[];
 }) {
   const prev = chapterNumber > 1 ? chapterNumber - 1 : null;
   const next = chapterNumber < book.chapterCount ? chapterNumber + 1 : null;
@@ -178,14 +201,19 @@ function ChapterView({
         </div>
       </div>
       {chapter ? (
-        <ol className="mt-5 space-y-3">
-          {chapter.verses.map((verse) => (
-            <li key={verse.verse} className="text-base leading-relaxed text-foreground">
-              <sup className="mr-1.5 text-xs font-semibold text-muted-foreground">{verse.verse}</sup>
-              {verse.text}
-            </li>
-          ))}
-        </ol>
+        <div className="mt-5">
+          <BibleReader
+            translationId="kjv"
+            bookAbbrev={book.abbrev}
+            bookTitle={bookLabel(book, books)}
+            chapterNumber={chapterNumber}
+            verses={chapter.verses}
+            isAuthenticated={isAuthenticated}
+            bookmarkedVerses={bookmarkedVerses}
+            rememberedVerses={rememberedVerses}
+            loginHref={`/auth/login?next=${encodeURIComponent(`/bible?book=${book.abbrev}&chapter=${chapterNumber}`)}`}
+          />
+        </div>
       ) : (
         <p className="mt-4 text-sm text-muted-foreground">This chapter could not be loaded.</p>
       )}

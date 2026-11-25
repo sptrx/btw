@@ -2,15 +2,17 @@ import { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Bookmark, Footprints } from "lucide-react";
+import { Bookmark, Brain, Footprints } from "lucide-react";
 import { getCurrentUser } from "@/actions";
+import { listBibleBookmarks } from "@/actions/bible-reader";
 import { getUserLibrary } from "@/actions/library";
+import { listMemorizedScriptures } from "@/actions/word-of-god";
 import { RelativeDate } from "@/components/relative-date";
 import { LIBRARY_LABELS } from "@/lib/library-vocabulary";
 
 export const metadata: Metadata = {
   title: "Your library",
-  description: "Channels you walk with and posts you keep",
+  description: "Channels you walk with, Bible bookmarks, scripture memory, and posts you keep",
 };
 
 function cardImageUnoptimized(src: string) {
@@ -21,7 +23,11 @@ export default async function LibraryPage() {
   const user = await getCurrentUser();
   if (!user) redirect("/auth/login?next=/dashboard/library");
 
-  const library = await getUserLibrary(user.id);
+  const [library, bookmarks, memory] = await Promise.all([
+    getUserLibrary(user.id),
+    listBibleBookmarks(),
+    listMemorizedScriptures(user.id),
+  ]);
 
   return (
     <div>
@@ -78,6 +84,68 @@ export default async function LibraryPage() {
                   </span>
                   <RelativeDate date={ch.walkedSince} className="shrink-0 text-xs text-muted-foreground tabular-nums" />
                 </Link>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      <section aria-labelledby="library-bookmarks" className="mb-10">
+        <div className="mb-4 flex items-center gap-2">
+          <Bookmark className="size-5 text-primary" aria-hidden />
+          <h2 id="library-bookmarks" className="btw-section-title">
+            Bible bookmarks
+          </h2>
+        </div>
+        {bookmarks.length === 0 ? (
+          <div className="rounded-2xl border border-border bg-card p-6 text-sm text-muted-foreground">
+            <p>Verses you bookmark in the Bible will appear here.</p>
+            <Link href="/bible" className="mt-3 inline-flex font-medium text-primary hover:underline">
+              Open the Bible
+            </Link>
+          </div>
+        ) : (
+          <ul className="divide-y divide-border/70 rounded-2xl border border-border bg-card">
+            {bookmarks.map((item) => (
+              <li key={item.id}>
+                <Link
+                  href={`/bible?book=${encodeURIComponent(item.bookAbbrev)}&chapter=${item.chapter}#v-${item.verse}`}
+                  className="block px-4 py-4 transition-colors hover:bg-muted/40 sm:px-5"
+                >
+                  <p className="text-sm font-medium text-primary">{item.reference}</p>
+                  <p className="mt-1 text-sm leading-relaxed text-foreground">{item.verseText}</p>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      <section aria-labelledby="library-memory" className="mb-10">
+        <div className="mb-4 flex items-center gap-2">
+          <Brain className="size-5 text-primary" aria-hidden />
+          <h2 id="library-memory" className="btw-section-title">
+            Scripture memory
+          </h2>
+        </div>
+        {memory.length === 0 ? (
+          <div className="rounded-2xl border border-border bg-card p-6 text-sm text-muted-foreground">
+            <p>Verses you add from the Bible, and verses you practice in Word Of God, are kept here.</p>
+            <Link href="/bible" className="mt-3 inline-flex font-medium text-primary hover:underline">
+              Open the Bible
+            </Link>
+          </div>
+        ) : (
+          <ul className="divide-y divide-border/70 rounded-2xl border border-border bg-card">
+            {memory.map((item) => (
+              <li key={item.id} className="px-4 py-4 sm:px-5">
+                <p className="text-sm font-medium text-primary">{item.reference}</p>
+                <p className="mt-1 text-sm leading-relaxed text-foreground">{item.text}</p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {item.practiceCount > 0
+                    ? `Practiced ${item.practiceCount} ${item.practiceCount === 1 ? "time" : "times"}`
+                    : "Saved for memory"}
+                </p>
               </li>
             ))}
           </ul>

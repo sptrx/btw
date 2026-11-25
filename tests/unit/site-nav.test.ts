@@ -2,11 +2,12 @@ import { describe, expect, it } from "vitest";
 import { buildSiteNav, isNavActive } from "@/lib/site-nav";
 
 describe("buildSiteNav", () => {
-  it("lists the six destinations in order", () => {
+  it("lists the seven destinations in order", () => {
     expect(buildSiteNav(null).map((i) => i.key)).toEqual([
       "home",
       "explore",
       "channels",
+      "shorts",
       "prayer",
       "bible",
       "ask",

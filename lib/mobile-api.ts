@@ -2,6 +2,11 @@ import "server-only";
 
 import { createClient } from "@/utils/supabase/server";
 import {
+  getBibleChapterMarks,
+  saveVerseToMemoryBank,
+  toggleBibleBookmark,
+} from "@/actions/bible-reader";
+import {
   getCurrentUser,
   getProfile,
   hasAcceptedContentDisclaimer,
@@ -102,6 +107,22 @@ function str(args: Args, key: string, opts: { required?: boolean; max?: number }
 
 function bool(args: Args, key: string): boolean {
   return args[key] === true;
+}
+
+function positiveInt(raw: unknown, key: string): number {
+  const value = typeof raw === "number" ? raw : typeof raw === "string" ? Number(raw) : NaN;
+  if (!Number.isFinite(value) || value < 1) {
+    throw new MobileApiError(`${key} must be a positive integer.`);
+  }
+  return Math.floor(value);
+}
+
+function numberList(raw: unknown): number[] {
+  if (!Array.isArray(raw)) return [];
+  return raw
+    .map((item) => (typeof item === "number" ? item : Number(item)))
+    .filter((item) => Number.isFinite(item) && item > 0)
+    .map((item) => Math.floor(item));
 }
 
 function snippet(text: string | null | undefined, max = 280): string | null {
@@ -254,6 +275,42 @@ export const mobileHandlers: Record<string, Handler> = {
       ...result,
       bookTitle: FORCED_BOOK_TITLES[result.abbrev.toLowerCase()] ?? result.bookTitle,
     };
+  },
+
+  async "bible.marks"(args) {
+    await requireUserId();
+    const bookTitle = str(args, "bookTitle", { required: true, max: 80 });
+    const chapter = positiveInt(args.chapter, "chapter");
+    const verses = numberList(args.verses);
+    return getBibleChapterMarks({
+      translationId: str(args, "translationId", { max: 32 }) || "kjv",
+      bookAbbrev: str(args, "bookAbbrev", { required: true, max: 16 }),
+      bookTitle,
+      chapter,
+      verses,
+    });
+  },
+
+  async "bible.bookmark"(args) {
+    await requireUserId();
+    return toggleBibleBookmark({
+      translationId: str(args, "translationId", { max: 32 }) || "kjv",
+      bookAbbrev: str(args, "bookAbbrev", { required: true, max: 16 }),
+      bookTitle: str(args, "bookTitle", { required: true, max: 80 }),
+      chapter: positiveInt(args.chapter, "chapter"),
+      verse: positiveInt(args.verse, "verse"),
+      verseText: str(args, "verseText", { required: true, max: 4000 }),
+    });
+  },
+
+  async "bible.remember"(args) {
+    await requireUserId();
+    return saveVerseToMemoryBank({
+      bookTitle: str(args, "bookTitle", { required: true, max: 80 }),
+      chapter: positiveInt(args.chapter, "chapter"),
+      verse: positiveInt(args.verse, "verse"),
+      verseText: str(args, "verseText", { required: true, max: 4000 }),
+    });
   },
 
   async "wordOfGod.today"() {

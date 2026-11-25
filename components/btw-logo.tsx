@@ -37,7 +37,7 @@ export function BtwLogo({
       {compact ? (
         <span
           aria-hidden
-          className="flex flex-col leading-none text-[#8a6a1f] dark:text-[#d9b45a] sm:hidden"
+          className="flex flex-col leading-none text-[#8a6514] dark:text-[#d9b45a] sm:hidden"
         >
           <span className="font-serif text-[1.65rem] font-semibold tracking-wider">BTW</span>
           <span className="mt-0.5 whitespace-nowrap text-[0.5rem] tracking-wide text-muted-foreground">

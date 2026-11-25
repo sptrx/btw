@@ -144,6 +144,7 @@ beforeAll(async () => {
   await db.exec(read("20261121000000_security_hardening.sql"));
   await db.exec(read("20261121000100_editorial_featured.sql"));
   await db.exec(read("20261121000200_archive_channels_pages.sql"));
+  await db.exec(read("20261124200000_shorts.sql"));
 });
 
 afterAll(async () => {
@@ -432,5 +433,98 @@ describe("archived channels and pages", () => {
       db.query("update public.topics set archived_at = now() where id = $1", [LIVE])
     );
     expect(await seen("anon", null, "topics", "title")).toContain("arc-live");
+  });
+});
+
+describe("shorts", () => {
+  const ids: Record<string, string> = {};
+
+  const titles = async (role: "anon" | "authenticated", uid: string | null) =>
+    (
+      await as(role, uid, () => db.query<{ caption: string }>("select caption from public.shorts order by caption"))
+    ).rows.map((r) => r.caption);
+
+  beforeAll(async () => {
+    for (const [caption, status, author] of [
+      ["live", "approved", USER],
+      ["waiting", "pending_review", USER],
+      ["nope", "rejected", USER],
+      ["others-waiting", "pending_review", OTHER],
+    ] as const) {
+      const r = await db.query<{ id: string }>(
+        "insert into public.shorts (author_id, caption, status, stream_uid) values ($1, $2, $3, $4) returning id",
+        [author, caption, status, `uid-${caption}`]
+      );
+      ids[caption] = r.rows[0].id;
+    }
+  });
+
+  it("shows only approved shorts to the public", async () => {
+    expect(await titles("anon", null)).toEqual(["live"]);
+    expect(await titles("authenticated", MOD.replace("3", "4"))).toEqual(["live"]);
+  });
+
+  it("shows authors their own shorts in any state, moderators everything", async () => {
+    expect(await titles("authenticated", USER)).toEqual(["live", "nope", "waiting"]);
+    expect(await titles("authenticated", MOD)).toEqual(["live", "nope", "others-waiting", "waiting"]);
+  });
+
+  it("lets a member add a short only as themselves and only as 'uploading'", async () => {
+    const ok = await as("authenticated", OTHER, () =>
+      db.query("insert into public.shorts (author_id, caption) values ($1, 'mine')", [OTHER])
+    );
+    expect(ok.affectedRows).toBe(1);
+    await expect(
+      as("authenticated", OTHER, () =>
+        db.query("insert into public.shorts (author_id, caption) values ($1, 'forged')", [USER])
+      )
+    ).rejects.toThrow();
+    await expect(
+      as("authenticated", OTHER, () =>
+        db.query("insert into public.shorts (author_id, caption, status) values ($1, 'self-approved', 'approved')", [OTHER])
+      )
+    ).rejects.toThrow();
+  });
+
+  it("does not let an author approve their own short or swap the video", async () => {
+    await expect(
+      as("authenticated", USER, () =>
+        db.query("update public.shorts set status = 'approved' where id = $1", [ids.waiting])
+      )
+    ).rejects.toThrow();
+    await expect(
+      as("authenticated", USER, () =>
+        db.query("update public.shorts set stream_uid = 'other' where id = $1", [ids.waiting])
+      )
+    ).rejects.toThrow();
+    await expect(
+      as("authenticated", USER, () =>
+        db.query("update public.shorts set status = 'pending_review' where id = $1", [ids.nope])
+      )
+    ).rejects.toThrow();
+  });
+
+  it("lets moderators approve and reject", async () => {
+    await as("authenticated", MOD, () =>
+      db.query("update public.shorts set status = 'approved', approved_at = now() where id = $1", [ids["others-waiting"]])
+    );
+    expect(await titles("anon", null)).toEqual(["live", "others-waiting"]);
+    await as("authenticated", MOD, () =>
+      db.query("update public.shorts set status = 'rejected' where id = $1", [ids["others-waiting"]])
+    );
+    expect(await titles("anon", null)).toEqual(["live"]);
+  });
+
+  it("does not let someone else edit or delete a short", async () => {
+    await as("authenticated", OTHER, () => db.query("delete from public.shorts where id = $1", [ids.live]));
+    await as("authenticated", OTHER, () =>
+      db.query("update public.shorts set caption = 'hijacked' where id = $1", [ids.live])
+    );
+    expect(await titles("anon", null)).toEqual(["live"]);
+  });
+
+  it("lets the author delete their own short", async () => {
+    await as("authenticated", USER, () => db.query("delete from public.shorts where id = $1", [ids.nope]));
+    expect(await titles("authenticated", USER)).toEqual(["live", "waiting"]);
   });
 });

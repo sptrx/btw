@@ -37,7 +37,7 @@ export default function HomeScreen() {
             [
               { id: 'for_you', label: 'For you' },
               { id: 'following', label: 'Following' },
-              { id: 'word', label: 'Word Of God' },
+              { id: 'word', label: 'Word of God' },
             ] as const
           ).map((t) => {
             const selected = tab === t.id;

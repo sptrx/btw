@@ -72,7 +72,7 @@ export function SiteRightRail({
 
       <section className="rounded-xl border border-border/70 bg-card p-3 shadow-sm">
         <h2 className="px-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-          Prayer wall
+          Prayer
         </h2>
         {prayers.length === 0 ? (
           <p className="px-1 py-3 text-sm text-muted-foreground">No requests yet.</p>

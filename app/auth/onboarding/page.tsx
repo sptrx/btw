@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/utils/supabase/server";
-import { OnboardingRoleForm } from "./role-form";
+import { FinishOnboarding } from "./finish-onboarding";
 
 export const dynamic = "force-dynamic";
 
@@ -14,25 +14,16 @@ export default async function OnboardingPage() {
     redirect("/auth/login");
   }
 
-  const existingRole = user.user_metadata?.role as
-    | "user"
-    | "channel_author"
-    | undefined;
-
+  const existingRole = user.user_metadata?.role as string | undefined;
   if (existingRole === "user" || existingRole === "channel_author") {
     redirect("/");
   }
 
   return (
-    <div className="max-w-md mx-auto mt-12 sm:mt-20">
+    <div className="mx-auto mt-12 max-w-md sm:mt-20">
       <div className="btw-auth-panel">
-        <h1 className="btw-page-title mb-1">
-          One last thing
-        </h1>
-        <p className="btw-lead mb-6">
-          Choose how you&apos;ll be using Believe The Works.
-        </p>
-        <OnboardingRoleForm />
+        <h1 className="btw-page-title mb-2">Sign up</h1>
+        <FinishOnboarding />
       </div>
     </div>
   );

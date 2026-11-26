@@ -49,6 +49,19 @@ export async function middleware(request: NextRequest) {
     request.nextUrl.pathname.startsWith("/auth/email-changed");
   const isAuthCallback = request.nextUrl.pathname === "/auth/callback";
   const path = request.nextUrl.pathname;
+  if (path === "/topics") {
+    return NextResponse.redirect(new URL("/channel/browse", request.url));
+  }
+  if (path === "/topics/new") {
+    return NextResponse.redirect(new URL("/channel/new", request.url));
+  }
+  if (path.startsWith("/topics/content/")) {
+    return NextResponse.redirect(new URL("/", request.url));
+  }
+  const legacyTopic = path.match(/^\/topics\/([^/]+)$/);
+  if (legacyTopic) {
+    return NextResponse.redirect(new URL(`/channel/${legacyTopic[1]}`, request.url));
+  }
   const isChannelList = path === "/channel";
   const isChannelRoute = path.startsWith("/channel/");
   const isChannelNew = path === "/channel/new";
@@ -81,6 +94,7 @@ export async function middleware(request: NextRequest) {
     path === "/donate" ||
     path === "/invite" ||
     path === "/bible" ||
+    path === "/post/new" ||
     isMapPage;
   const isSeoFile = path === "/robots.txt" || path === "/sitemap.xml";
   const isPwaFile = path === "/manifest.webmanifest" || path === "/sw.js";

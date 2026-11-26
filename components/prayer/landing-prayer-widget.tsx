@@ -22,7 +22,7 @@ export function LandingPrayerWidget({ requests, displayFontClassName }: Props) {
       <div>
         <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between mb-6">
           <div className="space-y-1">
-            <p className="btw-overline text-primary">Prayer Wall</p>
+            <p className="btw-overline text-primary">Prayer</p>
             <h2
               id="landing-prayer-heading"
               className={cn(displayFontClassName, "text-2xl sm:text-3xl")}
@@ -35,7 +35,7 @@ export function LandingPrayerWidget({ requests, displayFontClassName }: Props) {
           </div>
           <Button asChild variant="outline" className="rounded-full shrink-0">
             <Link href="/prayer">
-              View Prayer Wall
+              Prayer
               <ArrowRight className="ml-2 h-4 w-4" aria-hidden />
             </Link>
           </Button>

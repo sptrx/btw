@@ -37,7 +37,7 @@ export function AppDrawer() {
   const accountItems: Item[] = session
     ? [
         {
-          label: `${name.split(/\s+/)[0]}'s Library`,
+          label: 'Library',
           icon: { ios: 'book', md: 'menu_book' },
           onPress: () => go(libraryKey ? `/library/${libraryKey}` : '/library'),
         },
@@ -64,7 +64,7 @@ export function AppDrawer() {
           onPress: () => go('/sign-in'),
         },
         {
-          label: 'Create account',
+          label: 'Sign up',
           icon: { ios: 'person.badge.plus', md: 'person_add' },
           onPress: () => go('/sign-up'),
         },
@@ -77,7 +77,7 @@ export function AppDrawer() {
       onPress: () => go('/channels'),
     },
     {
-      label: 'Create a channel',
+      label: 'Create channel',
       icon: { ios: 'plus.circle', md: 'create_new_folder' },
       onPress: () => {
         closeDrawer();
@@ -113,7 +113,7 @@ export function AppDrawer() {
       },
     },
     {
-      label: 'Invite others',
+      label: 'Invite',
       icon: { ios: 'envelope', md: 'share' },
       onPress: () => {
         closeDrawer();

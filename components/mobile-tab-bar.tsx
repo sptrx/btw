@@ -6,8 +6,8 @@ import { SiteNavIcon } from "@/components/site-nav-icon";
 import { isNavActive, type SiteNavItem } from "@/lib/site-nav";
 import { cn } from "@/lib/utils";
 
-const TAB_KEYS = ["home", "channels", "prayer", "bible", "ask"] as const;
-const SHORT_LABEL: Record<string, string> = { prayer: "Prayer", ask: "Ask" };
+const TAB_KEYS = ["home", "explore", "channels", "prayer", "bible", "ask"] as const;
+const SHORT_LABEL: Record<string, string> = { prayer: "Prayer", ask: "Q&A" };
 
 /** Bottom tab bar for phones and tablets (the left sidebar takes over on large screens). */
 export function MobileTabBar({ items }: { items: SiteNavItem[] }) {

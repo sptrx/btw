@@ -10,7 +10,7 @@ import { OUTREACH_COMMON_QUESTIONS } from "@/lib/outreach-content";
 import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = {
-  title: "Explore faith",
+  title: "Explore",
   description:
     "Curious about Christianity? Explore real stories, ask Bible questions, and learn about Believe The Works, no pressure.",
 };
@@ -38,7 +38,7 @@ export default async function ExplorePage({ searchParams }: Props) {
               "mt-2 max-w-2xl text-balance text-3xl font-normal tracking-tight sm:text-4xl md:text-5xl",
             )}
           >
-            Explore faith at your own pace
+            Explore at your own pace
           </h1>
           <p className="mt-4 max-w-xl text-base leading-relaxed text-muted-foreground sm:text-lg">
             Whether you are curious, skeptical, or simply visiting, ask questions, read real-life

@@ -1258,6 +1258,207 @@ export async function createContent(channelId: string, pageId: string, formData:
   redirect(`/channel/${channel.slug}`);
 }
 
+type WitnessPlace = { channelId: string; pageId: string; slug: string };
+
+/** Newest channel plus its home page, or a new personal channel for a first post. */
+async function ensureWitnessChannel(userId: string): Promise<WitnessPlace | { error: string }> {
+  const supabase = await createClient();
+  const { data: existing } = await supabase
+    .from("topics")
+    .select("id, slug")
+    .eq("author_id", userId)
+    .is("archived_at", null)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (existing?.id && existing.slug) {
+    const { data: home } = await supabase
+      .from("channel_pages")
+      .select("id")
+      .eq("channel_id", existing.id)
+      .eq("slug", "home")
+      .maybeSingle();
+    if (home?.id) return { channelId: existing.id, pageId: home.id, slug: existing.slug };
+    const { data: createdPage, error: pageError } = await supabase
+      .from("channel_pages")
+      .insert({ channel_id: existing.id, slug: "home", title: "Home", sort_order: 0 })
+      .select("id")
+      .single();
+    if (pageError || !createdPage) return { error: "Could not open a page for this post." };
+    return { channelId: existing.id, pageId: createdPage.id, slug: existing.slug };
+  }
+
+  const profile = await getProfile(userId);
+  if (profile?.role !== "channel_author") {
+    const promoted = await promoteToChannelAuthor(userId);
+    if ("error" in promoted) return promoted;
+  }
+
+  const title = profile?.display_name?.trim() || profile?.username?.trim() || "My witness";
+  let baseSlug = slugify(title);
+  if (!baseSlug) baseSlug = `witness-${Date.now().toString(36)}`;
+  let slug = baseSlug;
+  let suffix = 0;
+  while (suffix < 30) {
+    if (assertSlugAllowed(slug)) {
+      slug = `witness-${Date.now().toString(36)}`;
+    }
+    const { data: taken } = await supabase.from("topics").select("id").eq("slug", slug).maybeSingle();
+    if (!taken) break;
+    suffix += 1;
+    slug = `${baseSlug}-${suffix}`;
+  }
+
+  const { data: channel, error } = await supabase
+    .from("topics")
+    .insert({
+      author_id: userId,
+      title,
+      slug,
+      description: "Testimonies and encouragement.",
+    })
+    .select("id")
+    .single();
+  if (error || !channel) return { error: error?.message || "Could not create your channel." };
+
+  const { data: page, error: pageError } = await supabase
+    .from("channel_pages")
+    .insert({ channel_id: channel.id, slug: "home", title: "Home", sort_order: 0 })
+    .select("id")
+    .single();
+  if (pageError || !page) return { error: "Could not open a page for this post." };
+  return { channelId: channel.id, pageId: page.id, slug };
+}
+
+/** Makes sure a signed-in member has a channel before they upload pictures. */
+export async function prepareWitnessChannel(): Promise<
+  { channelId: string } | { error: string } | { needsAuth: true }
+> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { needsAuth: true };
+  const place = await ensureWitnessChannel(user.id);
+  if ("error" in place) return place;
+  return { channelId: place.channelId };
+}
+
+/** A post from the home welcome box. Guests are sent to sign up first. */
+export async function publishWitnessPost(formData: FormData): Promise<
+  | { needsAuth: true }
+  | { error: string }
+  | { success: true; pendingReview: boolean; message?: string; href: string }
+> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { needsAuth: true };
+
+  const title = (formData.get("title") as string)?.trim() ?? "";
+  const body = (formData.get("body") as string)?.trim() ?? "";
+  const sharingRaw = (formData.get("sharing_type") as string)?.trim() || "testimony";
+  if (!isSharingType(sharingRaw) || sharingRaw === "prayer_request") {
+    return { error: "Choose what kind of post this is." };
+  }
+  const pictures = formData.get("format") === "pictures";
+  const mediaUrls: { url: string; type: string }[] = [];
+  const mediaStr = formData.get("media_urls") as string | null;
+  if (mediaStr) {
+    try {
+      const parsed = JSON.parse(mediaStr);
+      if (Array.isArray(parsed)) {
+        for (const item of parsed) {
+          if (item && typeof item.url === "string" && item.url.trim() && item.type === "image") {
+            mediaUrls.push({ url: item.url.trim(), type: "image" });
+          }
+        }
+      }
+    } catch {
+      return { error: "Those pictures could not be read. Try adding them again." };
+    }
+  }
+  if (!title) return { error: "Add a title for your post." };
+  if (pictures) {
+    if (mediaUrls.length === 0) return { error: "Add at least one picture." };
+  } else if (!body) {
+    return { error: "Write the post before publishing." };
+  }
+
+  const acceptedDisclaimer = formData.get("accepted_disclaimer") === "1";
+  const alreadyAccepted = await hasAcceptedContentDisclaimer(user.id);
+  if (!alreadyAccepted && !acceptedDisclaimer) {
+    return { error: "Please accept the content disclaimer before publishing." };
+  }
+
+  const contentType = sharingRaw === "discussion" ? "discussion" : "article";
+  const result = await moderateContent([title, body].filter(Boolean).join("\n"), { contentType });
+  if (!result.allowed) return { error: result.reason ?? "Content not allowed." };
+
+  let moderationStatus: ModerationOutcome = result.pendingReview ? "pending_review" : "approved";
+  if (!alreadyAccepted && acceptedDisclaimer) {
+    await recordContentDisclaimerAcceptance(user.id);
+  }
+
+  const place = await ensureWitnessChannel(user.id);
+  if ("error" in place) return place;
+
+  const insertPayload: Record<string, unknown> = {
+    topic_id: place.channelId,
+    page_id: place.pageId,
+    author_id: user.id,
+    type: contentType,
+    sharing_type: sharingRaw,
+    title,
+    body: body || null,
+    media_urls: mediaUrls,
+    moderation_status: moderationStatus,
+  };
+
+  let { data: inserted, error: insertErr } = await supabase
+    .from("topic_content")
+    .insert(insertPayload)
+    .select("id")
+    .single();
+
+  if (insertErr && isMissingSharingTypeColumn(insertErr)) {
+    delete insertPayload.sharing_type;
+    ({ data: inserted, error: insertErr } = await supabase
+      .from("topic_content")
+      .insert(insertPayload)
+      .select("id")
+      .single());
+  }
+
+  if (insertErr && isMissingModerationStatusColumn(insertErr)) {
+    delete insertPayload.moderation_status;
+    ({ data: inserted, error: insertErr } = await supabase
+      .from("topic_content")
+      .insert(insertPayload)
+      .select("id")
+      .single());
+  }
+
+  if (insertErr || !inserted) {
+    console.error("[publishWitnessPost]", insertErr?.message);
+    return { error: insertErr?.message || "Could not publish this post." };
+  }
+
+  moderationStatus = await applyModerationStatus(inserted.id, moderationStatus);
+  revalidatePath(`/channel/${place.slug}`);
+  revalidatePath("/");
+  revalidatePath("/feed");
+
+  return {
+    success: true,
+    pendingReview: moderationStatus === "pending_review",
+    message: moderationStatus === "pending_review" ? PENDING_REVIEW_MESSAGE : undefined,
+    href: `/channel/${place.slug}`,
+  };
+}
+
 export async function updateContent(contentId: string, formData: FormData) {
   const supabase = await createClient();
   const {

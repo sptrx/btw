@@ -11,6 +11,6 @@ export const LIBRARY_LABELS = {
     active: "Kept",
     section: "Kept posts",
   },
-  pageTitle: "Your library",
+  pageTitle: "Library",
   pageDescription: "Channels you walk with, Bible bookmarks, scripture memory, and posts you keep.",
 } as const;

@@ -15,7 +15,7 @@ const STEPS = [
   },
 ];
 
-/** Short explainer for the Prayer Wall. Open for visitors, collapsed once signed in. */
+/** Short explainer for the prayer wall. Open for visitors, collapsed once signed in. */
 export function PrayerHowItWorks({ defaultOpen }: { defaultOpen: boolean }) {
   return (
     <details
@@ -23,7 +23,7 @@ export function PrayerHowItWorks({ defaultOpen }: { defaultOpen: boolean }) {
       className="group mb-6 rounded-xl border border-border/80 bg-card/60 shadow-sm"
     >
       <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 text-sm font-medium text-foreground sm:px-5 [&::-webkit-details-marker]:hidden">
-        How the Prayer Wall works
+        How the prayer wall works
         <ChevronDown
           className="h-4 w-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180"
           aria-hidden

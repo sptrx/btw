@@ -123,7 +123,14 @@ function LoginForm() {
         </form>
         <p className="mt-6 text-sm text-muted-foreground text-center">
           Don&apos;t have an account?{" "}
-          <Link href="/auth/signup" className="text-primary font-medium hover:underline">
+          <Link
+            href={
+              safeNextPath(searchParams.get("next"), "")
+                ? `/auth/signup?next=${encodeURIComponent(safeNextPath(searchParams.get("next"), ""))}`
+                : "/auth/signup"
+            }
+            className="text-primary font-medium hover:underline"
+          >
             Sign up
           </Link>
         </p>

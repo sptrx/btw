@@ -66,7 +66,7 @@ export default function AskScreen() {
           keyboardDismissMode="interactive"
           onContentSizeChange={() => scroll.current?.scrollToEnd({ animated: true })}>
           <View style={styles.titleBlock}>
-            <AppText variant="title">Ask</AppText>
+            <AppText variant="title">Bible Q&A</AppText>
             <AppText variant="small" tone="secondary">
               Questions about the Bible, answered with Scripture
             </AppText>

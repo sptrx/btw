@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { X } from "lucide-react";
+import { RotatingSlogan } from "@/components/rotating-slogan";
 
 const STORAGE_KEY = "btw-welcome-dismissed";
 
@@ -41,13 +43,20 @@ export function MobileWelcomeCard() {
       >
         <X className="size-4" aria-hidden />
       </button>
-      <h2 className="pr-10 text-lg font-semibold leading-snug text-foreground">
-        Share your witness. Strengthen another.
-      </h2>
+      <RotatingSlogan
+        className="pr-10 text-lg font-semibold leading-snug text-foreground"
+        supportClassName="mt-1.5 text-sm leading-relaxed text-muted-foreground"
+      />
       <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
         A faith community for testimonies, prayer and encouragement. Everything is checked by AI
-        moderation, so it is safe for every age. Use Sign up above to join.
+        moderation, so it is safe for every age.
       </p>
+      <Link
+        href="/post/new"
+        className="mt-3 inline-flex h-9 items-center rounded-full bg-primary px-4 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+      >
+        Post it
+      </Link>
     </section>
   );
 }

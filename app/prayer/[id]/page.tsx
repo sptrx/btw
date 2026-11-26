@@ -23,7 +23,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   // Title only: the request text itself stays on the page, not in link previews.
   return pageMetadata({
     title: request.title,
-    description: "A prayer request on the Believe The Works Prayer Wall. Join in prayer.",
+    description: "A prayer request on the Believe The Works prayer wall. Join in prayer.",
     path: `/prayer/${id}`,
     noindex: request.isAnonymous,
   });
@@ -48,7 +48,7 @@ export default async function PrayerRequestDetailPage({ params }: Props) {
     <div className="mx-auto max-w-2xl py-6 sm:py-8">
       <nav className="mb-6 text-sm text-muted-foreground">
         <Link href="/prayer" className="hover:text-primary hover:underline">
-          Prayer Wall
+          Prayer wall
         </Link>
         <span aria-hidden> / </span>
         <span className="text-foreground line-clamp-1">{request.title}</span>

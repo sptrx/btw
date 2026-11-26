@@ -73,13 +73,13 @@ export default async function Dashboard() {
 
       <div className="space-y-3">
         <Link href="/dashboard/library" className="btw-app-row font-medium">
-          Your library
+          Library
         </Link>
         <Link href="/channel/browse" className="btw-app-row font-medium">
           Browse channels
         </Link>
         <Link href="/channel/new" className="btw-app-row font-medium">
-          Create a channel
+          Create channel
         </Link>
         <Link href="/profile" className="btw-app-row font-medium">
           View your profile

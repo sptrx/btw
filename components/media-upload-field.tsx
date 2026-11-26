@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Loader2, Upload } from "lucide-react";
-import { MEDIA_ACCEPT_ATTR, isAllowedMediaType } from "@/lib/media-types";
+import { IMAGE_ACCEPT_ATTR, MEDIA_ACCEPT_ATTR, isAllowedImageType, isAllowedMediaType } from "@/lib/media-types";
 
 export type MediaItem = { url: string; type: string };
 
@@ -16,6 +16,8 @@ type Props = {
   channelId: string;
   mediaUrls: MediaItem[];
   onMediaChange: (urls: MediaItem[]) => void;
+  /** Pictures only, for the simple Post it form. */
+  imagesOnly?: boolean;
 };
 
 function guessMime(file: File): string {
@@ -37,7 +39,7 @@ const fetchConfig = async (): Promise<UploadConfig | null> => {
   return (await res.json()) as UploadConfig;
 };
 
-export function MediaUploadField({ channelId, mediaUrls, onMediaChange }: Props) {
+export function MediaUploadField({ channelId, mediaUrls, onMediaChange, imagesOnly = false }: Props) {
   const [config, setConfig] = useState<UploadConfig | null>(null);
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
@@ -51,8 +53,8 @@ export function MediaUploadField({ channelId, mediaUrls, onMediaChange }: Props)
   const runUpload = useCallback(
     async (file: File) => {
       const contentType = guessMime(file);
-      if (!isAllowedMediaType(contentType)) {
-        throw new Error("Choose an image or video file.");
+      if (imagesOnly ? !isAllowedImageType(contentType) : !isAllowedMediaType(contentType)) {
+        throw new Error(imagesOnly ? "Choose a JPEG, PNG, GIF, or WebP picture." : "Choose an image or video file.");
       }
 
       const cfg = config ?? (await fetchConfig());
@@ -126,7 +128,7 @@ export function MediaUploadField({ channelId, mediaUrls, onMediaChange }: Props)
         },
       ]);
     },
-    [channelId, config, mediaUrls, onMediaChange]
+    [channelId, config, imagesOnly, mediaUrls, onMediaChange]
   );
 
   const onFile = useCallback(
@@ -192,7 +194,7 @@ export function MediaUploadField({ channelId, mediaUrls, onMediaChange }: Props)
         <input
           id="media-upload-input"
           type="file"
-          accept={MEDIA_ACCEPT_ATTR}
+          accept={imagesOnly ? IMAGE_ACCEPT_ATTR : MEDIA_ACCEPT_ATTR}
           className="sr-only"
           disabled={uploading}
           onChange={onFile}
@@ -212,12 +214,14 @@ export function MediaUploadField({ channelId, mediaUrls, onMediaChange }: Props)
           ) : (
             <>
               <Upload className="h-4 w-4 mr-2" aria-hidden />
-              Upload image or video
+              {imagesOnly ? "Add a picture" : "Upload image or video"}
             </>
           )}
         </Button>
         <span className="text-xs text-muted-foreground">
-          Cloudflare R2, files ≤ ~{proxyMb} MB use the app server (no R2 CORS); larger files upload directly (R2 CORS required)
+          {imagesOnly
+            ? "JPEG, PNG, GIF, or WebP. You can add more than one."
+            : `Cloudflare R2, files ≤ ~${proxyMb} MB use the app server (no R2 CORS); larger files upload directly (R2 CORS required)`}
         </span>
       </div>
       {uploadError && (

@@ -72,7 +72,7 @@ export default function AboutPage() {
         </p>
         <p className="flex flex-wrap gap-4 text-sm font-medium">
           <Link href="/auth/signup" className="text-primary hover:underline">
-            Get started
+            Sign up
           </Link>
           <Link href="/donate" className="text-primary hover:underline">
             Support the ministry

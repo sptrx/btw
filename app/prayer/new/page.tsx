@@ -12,7 +12,7 @@ export default async function NewPrayerRequestPage() {
     <div className="mx-auto max-w-2xl py-6 sm:py-8">
       <nav className="mb-6 text-sm text-muted-foreground">
         <Link href="/prayer" className="hover:text-primary hover:underline">
-          Prayer Wall
+          Prayer wall
         </Link>
         <span aria-hidden> / </span>
         <span className="text-foreground">New request</span>

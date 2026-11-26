@@ -49,7 +49,7 @@ export default function PrayerScreen() {
         ListHeaderComponent={
           <View>
             <View style={styles.header}>
-              <AppText variant="title">Prayer Wall</AppText>
+              <AppText variant="title">Prayer wall</AppText>
               <AppText variant="small" tone="secondary">
                 Lift each other up. Tap “I prayed” when you pray.
               </AppText>

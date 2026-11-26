@@ -82,8 +82,8 @@ export default async function BrowseChannelsPage({ searchParams }: Props) {
           {!q.trim() ? (
             <p className="text-sm">
               Leading a church or ministry?{" "}
-              <Link href="/invite" className="font-medium text-primary hover:underline">
-                Start your channel
+              <Link href="/channel/new" className="font-medium text-primary hover:underline">
+                Create channel
               </Link>{" "}
               and be one of the first.
             </p>

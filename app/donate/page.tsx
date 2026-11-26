@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { donateUrl } from "@/lib/site-links";
 
 export const metadata: Metadata = {
-  title: "Get involved",
+  title: "Donate",
   description: "Support Believe The Works, give to our Gospel outreach ministry.",
 };
 
@@ -15,7 +15,7 @@ export default function DonatePage() {
   return (
     <div className="max-w-3xl space-y-8 pb-4">
       <header className="space-y-3">
-        <p className="btw-section-eyebrow">Get involved</p>
+        <p className="btw-section-eyebrow">Donate</p>
         <h1 className="btw-page-title">Give to the ministry</h1>
         <p className="btw-lead">
           Believe The Works is a registered nonprofit organization. People anywhere can read, share, and support the

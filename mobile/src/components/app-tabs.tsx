@@ -35,7 +35,7 @@ export default function AppTabs() {
         />
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="ask">
-        <NativeTabs.Trigger.Label>Ask</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Label>Q&A</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon
           sf={{ default: 'bubble.left.and.bubble.right', selected: 'bubble.left.and.bubble.right.fill' }}
           md="forum"

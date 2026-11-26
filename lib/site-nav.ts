@@ -17,7 +17,7 @@ export function buildSiteNav(bibleQa: BibleAiNavLink | null | undefined): SiteNa
     { key: "explore", href: "/explore", label: "Explore" },
     { key: "channels", href: "/channel/browse", label: "Channels" },
     { key: "shorts", href: "/shorts", label: "Shorts" },
-    { key: "prayer", href: "/prayer", label: "Prayer Wall" },
+    { key: "prayer", href: "/prayer", label: "Prayer" },
     { key: "bible", href: "/bible", label: "Bible" },
     {
       key: "ask",

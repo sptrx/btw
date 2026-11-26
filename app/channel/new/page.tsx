@@ -18,7 +18,7 @@ export default async function NewChannelPage() {
   return (
     <div>
       <p className="btw-section-eyebrow">Channels</p>
-      <h1 className="btw-page-title">Create a channel</h1>
+      <h1 className="btw-page-title">Create channel</h1>
       <p className="mb-6 mt-2 text-muted-foreground">
         Add sub-pages for videos, podcasts, articles, and discussions. Manage all content from your channel.
       </p>

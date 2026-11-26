@@ -6,10 +6,10 @@ export const bibleQaPoweredByLine =
   "Bible Q&A is powered by xgesis, an AI Scripture engine available for integration on Christian platforms.";
 
 export const footerNavLinks = [
-  { href: "/explore", label: "Explore faith" },
+  { href: "/explore", label: "Explore" },
   { href: "/about", label: "About" },
-  { href: "/invite", label: "Invite your church" },
-  { href: "/donate", label: "Get involved, donate" },
+  { href: "/invite", label: "Invite" },
+  { href: "/donate", label: "Donate" },
   { href: "/contact", label: "Contact us" },
 ] as const;
 

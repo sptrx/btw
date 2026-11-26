@@ -43,6 +43,13 @@ export const POST_PROMPTS: Partial<Record<SharingType, PostPrompt[]>> = {
       body: "The passage:\n\nWhat stood out:\n\nHow it applies to my life:\n",
     },
   ],
+  prophecy: [
+    {
+      id: "word-for-the-weary",
+      title: "A word for someone who is weary",
+      body: "Who this is for:\n\nThe word:\n\nThe Scripture it rests on:\n",
+    },
+  ],
   praise_report: [
     {
       id: "god-showed-up",
@@ -74,6 +81,11 @@ export const POST_PROMPTS: Partial<Record<SharingType, PostPrompt[]>> = {
       id: "short-reflection",
       title: "A short reflection on a verse",
       body: "The verse:\n\nWhat it says:\n\nHow I'm applying it today:\n",
+    },
+    {
+      id: "sermon-thought",
+      title: "A sermon thought I am still living",
+      body: "The verse or message:\n\nThe thought:\n\nHow I am living it this week:\n",
     },
   ],
 };

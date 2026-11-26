@@ -80,7 +80,7 @@ export const SHARING_TYPE_CONFIG: Record<SharingType, SharingTypeConfig> = {
     value: "prayer_request",
     label: "Prayer request",
     shortLabel: "Prayer",
-    description: "Ask the community to pray (Prayer Wall)",
+    description: "Ask the community to pray (prayer wall)",
     placeholder: "",
     icon: HandHeart,
     badgeClass: "border-sky-500/40 bg-sky-500/15 text-sky-900 dark:text-sky-100",

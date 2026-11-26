@@ -111,7 +111,7 @@ export default function SignUpScreen() {
       </Checkbox>
       {error ? <Notice tone="error">{error}</Notice> : null}
       <Button
-        title="Create account"
+        title="Sign up"
         onPress={signUp}
         loading={loading}
         disabled={!name.trim() || !email.trim() || !password || !acceptedTerms}

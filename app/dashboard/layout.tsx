@@ -39,7 +39,7 @@ export default async function DashboardLayout({
               href="/dashboard/library"
               className="block rounded-lg px-3 py-2 text-muted-foreground no-underline motion-safe:transition-colors motion-safe:hover:bg-muted motion-safe:hover:text-foreground"
             >
-              Your library
+              Library
             </Link>
           </li>
           <li>

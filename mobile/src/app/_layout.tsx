@@ -59,7 +59,7 @@ function RootStack() {
         <Stack.Screen name="prayer/[id]" options={{ title: 'Prayer request' }} />
         <Stack.Screen name="prayer/new" options={{ title: 'Ask for prayer', presentation: 'modal' }} />
         <Stack.Screen name="sign-in" options={{ title: 'Sign in', presentation: 'modal' }} />
-        <Stack.Screen name="sign-up" options={{ title: 'Create account', presentation: 'modal' }} />
+        <Stack.Screen name="sign-up" options={{ title: 'Sign up', presentation: 'modal' }} />
         <Stack.Screen name="profile-edit" options={{ title: 'Edit profile', presentation: 'modal' }} />
         <Stack.Screen name="delete-account" options={{ title: 'Delete account', presentation: 'modal' }} />
       </Stack>

@@ -4,7 +4,7 @@ import { btwDisplayFont } from "@/lib/btw-ui";
 import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = {
-  title: "Invite your church or ministry",
+  title: "Invite",
   description:
     "Give your church or ministry a channel on Believe The Works to share sermons, testimonies, and encouragement with a wider community.",
 };
@@ -138,7 +138,7 @@ export default function InvitePage() {
         <ul className="list-disc space-y-2 pl-5 text-sm leading-relaxed text-muted-foreground">
           <li>Post one recent sermon clip or a short written takeaway from it.</li>
           <li>Ask three to five members to share a two-minute testimony or a few sentences.</li>
-          <li>Ask your prayer team to add a couple of requests to the Prayer Wall.</li>
+          <li>Ask your prayer team to add a couple of requests to the prayer wall.</li>
           <li>Announce your channel link from the pulpit, the bulletin, or your group chat.</li>
         </ul>
       </section>

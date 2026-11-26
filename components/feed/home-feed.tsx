@@ -18,7 +18,7 @@ type HomeTab = "for_you" | "following" | "word";
 const TABS: { id: HomeTab; label: string }[] = [
   { id: "for_you", label: "For you" },
   { id: "following", label: "Following" },
-  { id: "word", label: "Word Of God" },
+  { id: "word", label: "Word of God" },
 ];
 
 type Props = {

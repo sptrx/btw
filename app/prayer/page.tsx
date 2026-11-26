@@ -18,7 +18,7 @@ import { cn } from "@/lib/utils";
 import { pageMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = pageMetadata({
-  title: "Prayer Wall",
+  title: "Prayer",
   description: "Share needs, pray for one another, and celebrate when God answers.",
   path: "/prayer",
 });
@@ -47,7 +47,7 @@ export default async function PrayerWallPage({ searchParams }: Props) {
       <header className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="space-y-2">
           <p className="btw-overline text-primary">Community</p>
-          <h1 className={cn(btwPageTitle, btwDisplayFont)}>Prayer Wall</h1>
+          <h1 className={cn(btwPageTitle, btwDisplayFont)}>Prayer wall</h1>
           <p className={cn(btwLead, "max-w-lg text-muted-foreground")}>
             Share needs, pray for one another, and celebrate when God answers.
           </p>

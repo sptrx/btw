@@ -11,7 +11,7 @@ import { RelativeDate } from "@/components/relative-date";
 import { LIBRARY_LABELS } from "@/lib/library-vocabulary";
 
 export const metadata: Metadata = {
-  title: "Your library",
+  title: "Library",
   description: "Channels you walk with, Bible bookmarks, scripture memory, and posts you keep",
 };
 
@@ -130,7 +130,7 @@ export default async function LibraryPage() {
         </div>
         {memory.length === 0 ? (
           <div className="rounded-2xl border border-border bg-card p-6 text-sm text-muted-foreground">
-            <p>Verses you add from the Bible, and verses you practice in Word Of God, are kept here.</p>
+            <p>Verses you add from the Bible, and verses you practice in Word of God, are kept here.</p>
             <Link href="/bible" className="mt-3 inline-flex font-medium text-primary hover:underline">
               Open the Bible
             </Link>

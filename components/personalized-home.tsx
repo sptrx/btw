@@ -98,7 +98,7 @@ export function PersonalizedHome({ data, displayFontClassName }: Props) {
           </div>
           <Button asChild variant="outline" className="rounded-full">
             <Link href="/prayer">
-              Prayer Wall
+              Prayer
               <ArrowRight className="size-4" aria-hidden />
             </Link>
           </Button>

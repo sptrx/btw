@@ -155,14 +155,14 @@ export default function AddContentForm({
 
       {isPrayerFlow ? (
         <div className="rounded-xl border border-sky-500/30 bg-sky-500/10 px-4 py-4 text-sm">
-          <p className="font-medium text-foreground">Prayer requests live on the Prayer Wall</p>
+          <p className="font-medium text-foreground">Prayer requests live on the prayer wall</p>
           <p className="mt-1 text-muted-foreground">
             Share your request with the community for prayer and follow-up. You can still link back
             to this channel from your profile.
           </p>
           <Button asChild type="button" className="mt-4 min-h-11">
             <Link href={`/prayer/new?from=channel&channel=${encodeURIComponent(channelSlug)}`}>
-              Continue to Prayer Wall
+              Continue to the prayer wall
             </Link>
           </Button>
         </div>

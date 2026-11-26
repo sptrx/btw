@@ -56,7 +56,8 @@ function buildNavLinks(
     { href: homeHref(isLoggedIn), label: "Home" as const },
     { href: "/explore", label: "Explore" as const },
     { href: "/channel/browse", label: "Channels" as const },
-    { href: "/prayer", label: "Prayer Wall" as const },
+    { href: "/shorts", label: "Shorts" as const },
+    { href: "/prayer", label: "Prayer" as const },
     { href: "/bible", label: "Bible" as const },
     ...(bibleAiNavLink ? [bibleAiNavLink] : []),
   ] as const;
@@ -255,7 +256,7 @@ export function HeaderContent({
                       <DropdownMenu.Item asChild>
                         <Link href="/dashboard/library" className={dropdownItemClass}>
                           <Bookmark className="size-4 text-muted-foreground" aria-hidden />
-                          Your library
+                          Library
                         </Link>
                       </DropdownMenu.Item>
                       {showMyChannels && (
@@ -339,7 +340,7 @@ export function HeaderContent({
           ) : null}
 
           <MobileMenuSection title="Discover">
-            {navLinks.filter((link) => link.href === "/explore").map((link) => {
+            {navLinks.map((link) => {
               const external = "external" in link && link.external;
               const active = !external && navActive(link.href, pathname, isLoggedIn);
               const Icon =
@@ -404,7 +405,7 @@ export function HeaderContent({
               <Button variant="ghost" className={mobileMenuItemClass} asChild onClick={closeMobile}>
                 <Link href="/dashboard/library">
                   <Bookmark className="size-4 shrink-0 text-muted-foreground" aria-hidden />
-                  Your library
+                  Library
                 </Link>
               </Button>
               {showModeration ? (

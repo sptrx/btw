@@ -7,7 +7,8 @@ import { MessageCircle, Rss, ShieldCheck } from "lucide-react";
 import { createImplicitRecoveryClient } from "@/utils/supabase/client";
 import { authInputClass, authPrimaryButtonClass } from "@/lib/auth-form-styles";
 import { OAuthButtons } from "@/components/auth/oauth-buttons";
-import { MIN_PASSWORD_LENGTH } from "@/lib/password-policy";
+import { PasswordRules } from "@/components/password-rules";
+import { MIN_PASSWORD_LENGTH, passwordPolicyError } from "@/lib/password-policy";
 import { safeNextPath } from "@/lib/safe-next";
 
 const signupBenefits = [
@@ -47,6 +48,11 @@ function SignUpForm() {
     setError(null);
     if (!acceptedTerms) {
       setError("Please accept the terms and conditions to create an account.");
+      return;
+    }
+    const policyError = passwordPolicyError(password);
+    if (policyError) {
+      setError(policyError);
       return;
     }
     setLoading(true);
@@ -194,7 +200,7 @@ function SignUpForm() {
           </div>
           <div className="space-y-2">
             <label htmlFor="signup-password" className="text-sm font-medium text-foreground">
-              Password <span className="font-normal text-muted-foreground">(min {MIN_PASSWORD_LENGTH} characters)</span>
+              Password
             </label>
             <input
               id="signup-password"
@@ -206,9 +212,10 @@ function SignUpForm() {
               required
               minLength={MIN_PASSWORD_LENGTH}
               aria-invalid={invalid}
-              aria-describedby={invalid ? "signup-error" : undefined}
+              aria-describedby={invalid ? "signup-password-rules signup-error" : "signup-password-rules"}
               className={authInputClass}
             />
+            <PasswordRules id="signup-password-rules" />
           </div>
           <div className="rounded-xl border border-border bg-muted/30 px-3 py-3">
             <label className="flex cursor-pointer items-start gap-3 text-sm text-foreground">

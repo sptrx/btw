@@ -1,6 +1,6 @@
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { ScrollView, StyleSheet } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 
 import { openSitePage } from '@/components/disclaimer';
 import { AppText, Button, Checkbox, Notice, TextField } from '@/components/ui';
@@ -11,6 +11,37 @@ import { supabase } from '@/lib/supabase';
 
 /** Keep in sync with lib/password-policy.ts on the website and Supabase Auth settings. */
 const MIN_PASSWORD_LENGTH = 10;
+const PASSWORD_SYMBOLS = "!@#$%^&*()_+-=[]{};':\"|<>?,./`~";
+const PASSWORD_RULES = [
+  `At least ${MIN_PASSWORD_LENGTH} characters`,
+  'A lowercase letter',
+  'An uppercase letter',
+  'A number',
+  'A symbol',
+];
+
+function passwordPolicyError(password: string): string | null {
+  const classes: string[] = [];
+  if (!/[a-z]/.test(password)) classes.push('a lowercase letter');
+  if (!/[A-Z]/.test(password)) classes.push('an uppercase letter');
+  if (!/[0-9]/.test(password)) classes.push('a number');
+  if (![...password].some((ch) => PASSWORD_SYMBOLS.includes(ch))) classes.push('a symbol');
+
+  const parts: string[] = [];
+  if (password.length < MIN_PASSWORD_LENGTH) parts.push(`be at least ${MIN_PASSWORD_LENGTH} characters`);
+  if (classes.length > 0) {
+    const list =
+      classes.length === 1
+        ? classes[0]
+        : classes.length === 2
+          ? `${classes[0]} and ${classes[1]}`
+          : `${classes.slice(0, -1).join(', ')}, and ${classes[classes.length - 1]}`;
+    parts.push(`include ${list}`);
+  }
+  if (parts.length === 0) return null;
+  const requirement = parts.length === 1 ? parts[0] : `${parts[0]} and ${parts[1]}`;
+  return `Password must ${requirement}.`;
+}
 
 export default function SignUpScreen() {
   const theme = useTheme();
@@ -24,8 +55,9 @@ export default function SignUpScreen() {
   const [sentTo, setSentTo] = useState<string | null>(null);
 
   async function signUp() {
-    if (password.length < MIN_PASSWORD_LENGTH) {
-      setError(`Password must be at least ${MIN_PASSWORD_LENGTH} characters.`);
+    const policyError = passwordPolicyError(password);
+    if (policyError) {
+      setError(policyError);
       return;
     }
     setLoading(true);
@@ -94,8 +126,15 @@ export default function SignUpScreen() {
         secureTextEntry
         autoComplete="new-password"
         textContentType="newPassword"
-        hint={`At least ${MIN_PASSWORD_LENGTH} characters`}
       />
+      <View style={styles.rules}>
+        <AppText variant="caption">Password rules</AppText>
+        {PASSWORD_RULES.map((rule) => (
+          <AppText key={rule} variant="caption" tone="secondary">
+            {'\u2022'} {rule}
+          </AppText>
+        ))}
+      </View>
       <Checkbox checked={acceptedTerms} onChange={setAcceptedTerms}>
         <AppText variant="small">
           I agree to the{' '}
@@ -128,5 +167,9 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: MaxContentWidth,
     alignSelf: 'center',
+  },
+  rules: {
+    gap: 2,
+    marginTop: -Spacing.two,
   },
 });

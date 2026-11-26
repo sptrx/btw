@@ -5,7 +5,7 @@ import Link from "next/link";
 import { createClient } from "@/utils/supabase/client";
 import { authInputClass, authPrimaryButtonClass } from "@/lib/auth-form-styles";
 import { PasswordRules } from "@/components/password-rules";
-import { MIN_PASSWORD_LENGTH, passwordTooShortMessage } from "@/lib/password-policy";
+import { MIN_PASSWORD_LENGTH, passwordPolicyError } from "@/lib/password-policy";
 
 export default function ResetPasswordPage() {
   const [password, setPassword] = useState("");
@@ -28,8 +28,9 @@ export default function ResetPasswordPage() {
     e.preventDefault();
     setError(null);
 
-    if (password.length < MIN_PASSWORD_LENGTH) {
-      setError(passwordTooShortMessage());
+    const policyError = passwordPolicyError(password);
+    if (policyError) {
+      setError(policyError);
       return;
     }
     if (password !== confirmPassword) {

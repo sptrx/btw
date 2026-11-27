@@ -6,6 +6,7 @@ import { clearPostReaction, setPostReaction } from "@/actions/reactions";
 import {
   POST_REACTION_META,
   POST_REACTION_TYPES,
+  reactionTypesWithCounts,
   totalReactions,
   type FeedPostKind,
   type PostReactionType,
@@ -139,6 +140,14 @@ export function PostReactions({
   };
 
   const total = totalReactions(counts);
+  const used = reactionTypesWithCounts(counts);
+  const selectedTone: Record<PostReactionType, string> = {
+    blessed: "border-red-500/45 bg-red-500/10",
+    amen: "border-primary/40 bg-primary/5",
+    spirit_filled: "border-orange-500/45 bg-orange-500/10",
+    praise_god: "border-amber-500/45 bg-amber-500/10",
+    sharing: "border-emerald-600/45 bg-emerald-600/10",
+  };
 
   return (
     <div className={cn("space-y-2", className)}>
@@ -163,11 +172,11 @@ export function PostReactions({
               className={cn(
                 "group/reaction relative inline-flex min-h-9 min-w-9 items-center justify-center gap-1 rounded-full border px-2 py-1.5 text-sm transition-all duration-150",
                 "border-border/80 bg-background/80 hover:bg-muted/60 active:scale-[0.98]",
-                selected && "border-primary/40 bg-primary/5",
-                pulseType === type && "scale-105"
+                selected && selectedTone[type],
+                pulseType === type && "scale-110"
               )}
             >
-              <span className="text-base leading-none" aria-hidden>
+              <span className="text-lg leading-none" aria-hidden>
                 {meta.emoji}
               </span>
               {count > 0 ? (
@@ -186,7 +195,10 @@ export function PostReactions({
 
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
         {total > 0 ? (
-          <span className="tabular-nums">
+          <span className="inline-flex items-center gap-1.5 tabular-nums">
+            <span aria-hidden className="text-sm leading-none tracking-tight">
+              {used.map((type) => POST_REACTION_META[type].emoji).join("")}
+            </span>
             {total} {total === 1 ? "response" : "responses"}
           </span>
         ) : null}

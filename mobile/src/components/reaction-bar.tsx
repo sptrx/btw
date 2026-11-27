@@ -126,7 +126,7 @@ export function ReactionBar({
                   backgroundColor: selected ? theme.accentSoft : 'transparent',
                 },
               ]}>
-              <Text style={styles.emoji}>{r.emoji}</Text>
+              <Text style={[styles.emoji, selected && { transform: [{ scale: 1.08 }] }]}>{r.emoji}</Text>
               {count > 0 ? (
                 <AppText variant="caption" tone={selected ? 'primary' : 'secondary'} style={styles.count}>
                   {count}
@@ -165,6 +165,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: Spacing.one,
   },
-  emoji: { fontSize: 14 },
+  emoji: { fontSize: 18 },
   count: { fontWeight: '600' },
 });

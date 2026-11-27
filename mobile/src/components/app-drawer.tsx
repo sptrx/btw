@@ -141,7 +141,6 @@ export function AppDrawer() {
   return (
     <Modal visible={open} animationType="fade" transparent onRequestClose={closeDrawer}>
       <View style={styles.overlay}>
-        <Pressable style={styles.backdrop} onPress={closeDrawer} accessibilityLabel="Close menu" />
         <View
           style={[
             styles.panel,
@@ -188,6 +187,7 @@ export function AppDrawer() {
             />
           ) : null}
         </View>
+        <Pressable style={styles.backdrop} onPress={closeDrawer} accessibilityLabel="Close menu" />
       </View>
     </Modal>
   );

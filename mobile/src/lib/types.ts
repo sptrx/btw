@@ -1,11 +1,12 @@
 /** Shapes returned by the website's /api/mobile endpoints (see lib/mobile-api.ts there). */
 
+/** Same glyphs as the website: heart, prayer, fire, raised hands, then X-style repost. */
 export const REACTIONS = [
-  { type: 'amen', emoji: '🙏', label: 'Amen' },
   { type: 'blessed', emoji: '❤️', label: 'Blessed me' },
+  { type: 'amen', emoji: '🙏', label: 'Amen' },
   { type: 'spirit_filled', emoji: '🔥', label: 'Spirit-filled' },
-  { type: 'sharing', emoji: '🌍', label: 'Sharing' },
   { type: 'praise_god', emoji: '🙌', label: 'Praise God' },
+  { type: 'sharing', emoji: '🔁', label: 'Sharing' },
 ] as const;
 
 export type ReactionType = (typeof REACTIONS)[number]['type'];

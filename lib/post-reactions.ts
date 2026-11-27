@@ -1,15 +1,21 @@
+/** Display order follows the response row on Instagram and X: heart first, repost last. */
 export const POST_REACTION_TYPES = [
-  "amen",
   "blessed",
+  "amen",
   "spirit_filled",
-  "sharing",
   "praise_god",
+  "sharing",
 ] as const;
 
 export type PostReactionType = (typeof POST_REACTION_TYPES)[number];
 
 export type FeedPostKind = "topic_content" | "prayer_request" | "praise_report" | "short";
 
+/**
+ * Glyphs people already know from Instagram, X, and Reddit.
+ * Heart is the like on Instagram and X, fire and raised hands are Instagram quick reactions,
+ * and the repost arrows are how X marks a share. Labels stay the faith words.
+ */
 export const POST_REACTION_META: Record<
   PostReactionType,
   { emoji: string; label: string; shortLabel: string }
@@ -17,7 +23,7 @@ export const POST_REACTION_META: Record<
   amen: { emoji: "🙏", label: "Amen", shortLabel: "Amen" },
   blessed: { emoji: "❤️", label: "This blessed me", shortLabel: "Blessed me" },
   spirit_filled: { emoji: "🔥", label: "Spirit-filled", shortLabel: "Spirit-filled" },
-  sharing: { emoji: "🌍", label: "Sharing this", shortLabel: "Sharing" },
+  sharing: { emoji: "🔁", label: "Sharing this", shortLabel: "Sharing" },
   praise_god: { emoji: "🙌", label: "Praise God", shortLabel: "Praise God" },
 };
 
